@@ -279,3 +279,4 @@ export type AzriRunOutput =
     };
 
 export * from './schemas.ts';
+export * from './version.ts';
