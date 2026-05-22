@@ -44,7 +44,7 @@ async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
-  if (args.includes('--help') || args.includes('-h')) {
+  if (args[0] === '--help' || args[0] === '-h') {
     printHelp(VERSION);
     return 0;
   }
