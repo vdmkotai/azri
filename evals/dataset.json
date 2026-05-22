@@ -1,0 +1,182 @@
+[
+  {
+    "id": "small-bun-11536",
+    "url": "https://github.com/oven-sh/bun/pull/11536",
+    "owner": "oven-sh",
+    "repo": "bun",
+    "prNumber": 11536,
+    "category": "small",
+    "note": "Small Bun runtime fix"
+  },
+  {
+    "id": "small-ai-4137",
+    "url": "https://github.com/vercel/ai/pull/4137",
+    "owner": "vercel",
+    "repo": "ai",
+    "prNumber": 4137,
+    "category": "small",
+    "note": "Small AI SDK change"
+  },
+  {
+    "id": "small-octokit-2091",
+    "url": "https://github.com/octokit/rest.js/pull/2091",
+    "owner": "octokit",
+    "repo": "rest.js",
+    "prNumber": 2091,
+    "category": "small",
+    "note": "Small REST client maintenance PR"
+  },
+  {
+    "id": "small-typescript-57402",
+    "url": "https://github.com/microsoft/TypeScript/pull/57402",
+    "owner": "microsoft",
+    "repo": "TypeScript",
+    "prNumber": 57402,
+    "category": "small",
+    "note": "Small compiler or services fix"
+  },
+  {
+    "id": "small-astro-10250",
+    "url": "https://github.com/withastro/astro/pull/10250",
+    "owner": "withastro",
+    "repo": "astro",
+    "prNumber": 10250,
+    "category": "small",
+    "note": "Small Astro framework fix"
+  },
+  {
+    "id": "medium-bun-12018",
+    "url": "https://github.com/oven-sh/bun/pull/12018",
+    "owner": "oven-sh",
+    "repo": "bun",
+    "prNumber": 12018,
+    "category": "medium",
+    "note": "Medium Bun feature or compatibility PR"
+  },
+  {
+    "id": "medium-ai-4584",
+    "url": "https://github.com/vercel/ai/pull/4584",
+    "owner": "vercel",
+    "repo": "ai",
+    "prNumber": 4584,
+    "category": "medium",
+    "note": "Medium AI SDK feature PR"
+  },
+  {
+    "id": "medium-octokit-2119",
+    "url": "https://github.com/octokit/rest.js/pull/2119",
+    "owner": "octokit",
+    "repo": "rest.js",
+    "prNumber": 2119,
+    "category": "medium",
+    "note": "Medium Octokit generated endpoint update"
+  },
+  {
+    "id": "medium-typescript-58671",
+    "url": "https://github.com/microsoft/TypeScript/pull/58671",
+    "owner": "microsoft",
+    "repo": "TypeScript",
+    "prNumber": 58671,
+    "category": "medium",
+    "note": "Medium TypeScript compiler/services PR"
+  },
+  {
+    "id": "medium-astro-11073",
+    "url": "https://github.com/withastro/astro/pull/11073",
+    "owner": "withastro",
+    "repo": "astro",
+    "prNumber": 11073,
+    "category": "medium",
+    "note": "Medium Astro package change"
+  },
+  {
+    "id": "large-bun-12480",
+    "url": "https://github.com/oven-sh/bun/pull/12480",
+    "owner": "oven-sh",
+    "repo": "bun",
+    "prNumber": 12480,
+    "category": "large",
+    "note": "Large Bun subsystem PR"
+  },
+  {
+    "id": "large-ai-5145",
+    "url": "https://github.com/vercel/ai/pull/5145",
+    "owner": "vercel",
+    "repo": "ai",
+    "prNumber": 5145,
+    "category": "large",
+    "note": "Large AI SDK API or provider sweep"
+  },
+  {
+    "id": "large-octokit-2137",
+    "url": "https://github.com/octokit/rest.js/pull/2137",
+    "owner": "octokit",
+    "repo": "rest.js",
+    "prNumber": 2137,
+    "category": "large",
+    "note": "Large generated REST endpoint update"
+  },
+  {
+    "id": "large-typescript-58941",
+    "url": "https://github.com/microsoft/TypeScript/pull/58941",
+    "owner": "microsoft",
+    "repo": "TypeScript",
+    "prNumber": 58941,
+    "category": "large",
+    "note": "Large TypeScript compiler update"
+  },
+  {
+    "id": "large-astro-11236",
+    "url": "https://github.com/withastro/astro/pull/11236",
+    "owner": "withastro",
+    "repo": "astro",
+    "prNumber": 11236,
+    "category": "large",
+    "note": "Large Astro monorepo change"
+  },
+  {
+    "id": "weird-docs-ai-5293",
+    "url": "https://github.com/vercel/ai/pull/5293",
+    "owner": "vercel",
+    "repo": "ai",
+    "prNumber": 5293,
+    "category": "weird",
+    "note": "docs-only"
+  },
+  {
+    "id": "weird-binary-typescript-58107",
+    "url": "https://github.com/microsoft/TypeScript/pull/58107",
+    "owner": "microsoft",
+    "repo": "TypeScript",
+    "prNumber": 58107,
+    "category": "weird",
+    "note": "binary-only or fixture-heavy"
+  },
+  {
+    "id": "weird-fork-astro-10512",
+    "url": "https://github.com/withastro/astro/pull/10512",
+    "owner": "withastro",
+    "repo": "astro",
+    "prNumber": 10512,
+    "category": "weird",
+    "note": "fork"
+  },
+  {
+    "id": "weird-force-pushed-bun-11862",
+    "url": "https://github.com/oven-sh/bun/pull/11862",
+    "owner": "oven-sh",
+    "repo": "bun",
+    "prNumber": 11862,
+    "category": "weird",
+    "note": "force-pushed"
+  },
+  {
+    "id": "weird-monorepo-deep-astro-11319",
+    "url": "https://github.com/withastro/astro/pull/11319",
+    "owner": "withastro",
+    "repo": "astro",
+    "prNumber": 11319,
+    "category": "weird",
+    "note": "monorepo-deep"
+  }
+]

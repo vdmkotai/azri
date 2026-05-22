@@ -17,6 +17,7 @@
     "node_modules/",
     ".sisyphus/",
     "azri-out/",
+    "evals/runs/",
     "pages-data/",
     "test/fixtures/README.md",
     "test/fixtures/azri-output.json",

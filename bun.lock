@@ -7,6 +7,8 @@
       "dependencies": {
         "@ai-sdk/google": "^3",
         "@ai-sdk/openai": "^3",
+        "@azri/core": "workspace:*",
+        "@azri/types": "workspace:*",
         "@effect/platform-bun": "4.0.0-beta.20",
         "@octokit/app": "^16",
         "@octokit/types": "^14",

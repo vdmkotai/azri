@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-05-23T00:00:00.000Z",
+  "provider": "baseline",
+  "note": "Initial automatic baseline; replace after first real eval run.",
+  "aggregate": {
+    "accuracy": 3,
+    "depth": 3,
+    "noSlop": 3,
+    "visual": 3,
+    "readability": 3,
+    "overall": 3
+  }
+}

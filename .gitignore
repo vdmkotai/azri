@@ -13,5 +13,7 @@ pages-data
 .sisyphus/evidence/
 .sisyphus/boulder.json
 azri-explainer.html
+evals/runs/
 test/fixtures/test-private-key.pem
 *.tgz
+apps/cli/LICENSE
