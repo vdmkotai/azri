@@ -1,13 +1,16 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
 
+import type { LanguageModel } from 'ai';
 import type {
   AzriMode,
   ChangedFile,
   ChangeSet,
+  EvidenceGraph,
   FileEntry,
   RepoSnapshot,
 } from '../../../types/src/index.ts';
+import type { ProviderName } from '../providers/registry.ts';
 
 export interface Stage0Logger {
   info(event: string, fields?: Record<string, unknown>): void;
@@ -75,3 +78,22 @@ export type Stage0Output =
   | Stage0TooLargeOutput
   | Stage0CacheHitOutput
   | Stage0SkipOutput;
+
+export interface Stage1Deps {
+  logger: Stage0Logger;
+  provider: ProviderName;
+  cheapModel: LanguageModel;
+  apiKey: string | undefined;
+  /** Optional blob cache: file blob SHA → cached EvidencePacket. */
+  blobCacheGet?: (blobSha: string) => Promise<unknown>;
+  blobCacheSet?: (blobSha: string, packet: unknown) => Promise<void>;
+}
+
+export interface Stage1Output {
+  evidenceGraph: EvidenceGraph;
+  tokensIn: number;
+  tokensOut: number;
+  costUsd: number;
+  cacheHits: number;
+  durationMs: number;
+}
