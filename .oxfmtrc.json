@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "semi": true,
+  "singleQuote": true,
+  "trailingComma": "all",
+  "arrowParens": "always",
+  "bracketSpacing": true,
+  "endOfLine": "lf",
+  "insertFinalNewline": true,
+  "sortPackageJson": true,
+  "sortImports": { "partitionByNewline": true, "newlinesBetween": false },
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    ".sisyphus/",
+    "azri-out/",
+    "pages-data/",
+    "test/fixtures/test-private-key.pem",
+    "examples/*.html",
+    "azri-explainer.html"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/types" },
+    { "path": "./packages/core" },
+    { "path": "./packages/renderer" },
+    { "path": "./packages/adapters/llm-anthropic" },
+    { "path": "./packages/adapters/hosting-local" },
+    { "path": "./apps/cli" },
+    { "path": "./apps/bot" }
+  ]
+}

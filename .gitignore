@@ -1,0 +1,17 @@
+node_modules
+dist
+build
+.env
+.env.local
+azri-out
+pages-data
+*.tsbuildinfo
+.turbo
+.DS_Store
+*.log
+.sisyphus/drafts/
+.sisyphus/evidence/
+.sisyphus/boulder.json
+azri-explainer.html
+test/fixtures/test-private-key.pem
+*.tgz

@@ -1,0 +1,55 @@
+{
+  "name": "azri",
+  "version": "0.0.1",
+  "description": "Generate beautiful HTML explainers for PRs and repos. Powered by AI.",
+  "keywords": [
+    "ai",
+    "anthropic",
+    "bun",
+    "claude",
+    "cli",
+    "code-review",
+    "documentation",
+    "effect-ts",
+    "explainer",
+    "gemini",
+    "github",
+    "github-app",
+    "github-bot",
+    "html",
+    "openai",
+    "pull-request"
+  ],
+  "homepage": "TODO: fill in github url",
+  "bugs": {
+    "url": "TODO: fill in"
+  },
+  "license": "Apache-2.0",
+  "author": "TODO: fill in",
+  "repository": {
+    "type": "git",
+    "url": "TODO: fill in",
+    "directory": "apps/cli"
+  },
+  "bin": {
+    "azri": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "scripts": {
+    "build": "bun run ../../scripts/build-cli.ts",
+    "prepublishOnly": "bun run build"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  }
+}

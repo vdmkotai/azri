@@ -1,0 +1,32 @@
+{
+  "name": "azri-monorepo",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "packages/adapters/*",
+    "apps/*"
+  ],
+  "type": "module",
+  "scripts": {
+    "typecheck": "bun tsc --noEmit",
+    "lint": "bunx oxlint@latest --deny-warnings",
+    "lint:fix": "bunx oxlint@latest --fix",
+    "fmt": "bunx oxfmt@latest",
+    "fmt:check": "bunx oxfmt@latest --check",
+    "check:headers": "bun run scripts/check-headers.ts",
+    "check": "bun run typecheck && bun run lint && bun run fmt:check && bun run check:headers",
+    "test": "bun test",
+    "build:all": "turbo build",
+    "check:all": "turbo check"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "turbo": "^2.0.0",
+    "typescript": "^5.8.0"
+  },
+  "engines": {
+    "bun": ">=1.1.0"
+  },
+  "packageManager": "bun@1.3.14"
+}

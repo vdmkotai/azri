@@ -1,0 +1,27 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "perf": "warn",
+    "pedantic": "warn",
+    "style": "off"
+  },
+  "plugins": ["typescript", "unicorn", "oxc", "import", "promise"],
+  "rules": {
+    "typescript/no-explicit-any": "warn",
+    "typescript/no-floating-promises": "error",
+    "no-unused-vars": "error",
+    "promise/catch-or-return": "error",
+    "import/no-cycle": "error"
+  },
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    ".sisyphus/evidence/",
+    "azri-out/",
+    "examples/",
+    "pages-data/",
+    "test/fixtures/test-private-key.pem"
+  ]
+}
