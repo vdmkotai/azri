@@ -59,8 +59,8 @@ function timeoutAfter(ms: number, message = `timeout after ${ms}ms`): Promise<ne
   });
 }
 
-async function withTimeout<T>(work: Promise<T>, ms: number, message?: string): Promise<T> {
-  return await Promise.race([work, timeoutAfter(ms, message)]);
+function withTimeout<T>(work: Promise<T>, ms: number, message?: string): Promise<T> {
+  return Promise.race([work, timeoutAfter(ms, message)]);
 }
 
 function isComplexObject(value: unknown): value is ComplexObject {
