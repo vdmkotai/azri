@@ -368,3 +368,9 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - Comment-command parser uses one regex `/^\/azri\s+(\w+)(?:\s+(.+))?/iu`; `focus` requires an argument. Author auth restricted to `OWNER | MEMBER | COLLABORATOR`; unauthorized = 👀 reaction + no pipeline invoke.
 - TypeScript structural composition: when several helpers expect overlapping but not identical `rest` shapes (`StickyOctokit`, `CheckRunOctokit`, `CommentCommandOctokit`, ...), an intersection type `& {…}` fails because TS sees each `rest` object as exclusive. Solution: declare a single explicit interface that merges every `rest` namespace we touch.
 - `pr-process.ts` extracted from `pr-webhook.ts` to satisfy `oxlint(max-lines)` and `import(max-dependencies)`. Verification handler stays minimal; orchestration lives in its own file.
+
+## T21 oxlint cleanup
+
+- Consolidated pipeline stage imports through `packages/core/src/pipeline/stages.ts` to keep orchestrator dependency count under Oxlint limits while preserving explicit `.ts` ESM imports.
+- `defaultCache().get` uses an implicit empty async return (`async () => {}`) to satisfy `unicorn/no-useless-undefined` while still resolving to `undefined` for Stage 0 cache miss behavior.
+- Shared timeout/failure helpers in `stages.ts` plus `runTimedStage()` in `orchestrator.ts` keep per-stage failure outputs and stage duration metadata intact while staying under the max-lines gate.
