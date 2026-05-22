@@ -1,0 +1,26 @@
+{
+  "modules": [
+    "packages/types",
+    "packages/core",
+    "packages/renderer",
+    "packages/adapters/llm-anthropic",
+    "packages/adapters/hosting-local",
+    "apps/bot",
+    "apps/cli"
+  ],
+  "excludePaths": [
+    "node_modules/**",
+    "dist/**",
+    "pages-data/**",
+    ".sisyphus/evidence/**",
+    "test/fixtures/test-private-key.pem",
+    "examples/*.html",
+    "azri-explainer.html"
+  ],
+  "maxFiles": 200,
+  "maxLines": 10000,
+  "selfBootstrap": false,
+  "telemetry": false,
+  "focusAreas": [],
+  "brief": false
+}
