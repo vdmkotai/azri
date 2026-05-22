@@ -234,3 +234,22 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - Cross-package imports in `packages/core` must use `@azri/types` (workspace package alias), NOT relative paths like `'../../../types/src/index.ts'`. Relative cross-package paths violate `rootDir` in tsconfig and cause TS6059/TS6307 errors.
 - `SECTION_PROMPTS: Record<SectionType, string>` maps all 7 section types to their prompts.
 - Commit SHA: c1a0ffc
+
+---
+
+## Task T14 complete (2026-05-22)
+
+- All T14 deliverables (8 `.ts` files in `packages/core/src/git/`, 7 JSON fixtures + `sample.diff` + `test/fixtures/README.md`, and the `test-private-key.pem`) were already present in commit `c1a0ffc` (which conflated T14 + T15 into a single commit).
+- Re-ran T14 from spec: rewrote every file with the same content the spec required. `git diff HEAD` for `packages/core/src/git/`, `packages/core/src/index.ts`, and `test/fixtures/` is empty — the bundled implementation matches the spec exactly.
+- Verification commands all passed:
+  - `bun tsc --noEmit -p packages/core` exit 0
+  - `parseUnifiedDiff` correctly identifies 5 files in `sample.diff` with statuses `modified, deleted, renamed, added, added` (binary added file detected).
+  - `isGenerated` returns true for `package-lock.json`, `vendor.min.js`, `foo.snap`, `dist/bundle.js`; false for `src/index.ts`.
+  - `isSubmoduleChange` returns true for `Subproject commit <hex>`, false for normal hunks.
+  - `getDefaultBranch` returns `null` (not `'main'`) when no Octokit + no `refs/remotes/origin/HEAD` — verified by `readRepoSnapshot` on this repo (no `origin` remote): `DEFAULT_BRANCH:` (empty).
+  - `readRepoSnapshot('/Users/vkotai/work/azri')` returned 69 files, README detected, manifests detected.
+  - `openssl rsa -in test/fixtures/test-private-key.pem -check -noout` exit 0 (PEM is a valid RSA-2048 key; gitignored so not committed).
+- Notable patterns:
+  - `safeReadPath` uses `path.resolve()` + prefix check to prevent traversal outside `repoPath` (rejected `..`, absolute paths, and any resolved path escaping the root).
+  - All Octokit-shaped types (`OctokitLike`, `OctokitGitHubClient`) are local structural interfaces — they declare only the methods we call, so they typecheck without `@octokit/*` in core's deps. T27 can swap in the real Octokit type later without rewrites.
+  - `Bun.$` is used for git shellouts (`git ls-files -z`, `git log`, `git symbolic-ref`); `.quiet()` is required to suppress stderr leakage during tests.
