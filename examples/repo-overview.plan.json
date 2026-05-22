@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "title": "commander.js — a small, opinionated CLI parser",
+  "summary": "An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page shows where they live and which parts of the code carry the load.",
+  "sections": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "importance": "critical",
+      "sectionType": "overview",
+      "files": ["lib/command.js", "lib/option.js", "lib/argument.js"],
+      "evidencePacketIds": [],
+      "proseMarkdown": "Commander is the workhorse argument parser behind Vercel CLI, Vue CLI, Storybook, and several thousand smaller tools. It does one thing: turn `process.argv` into typed options, positional arguments, and a tree of subcommands. It has done that since 2012.\n\nThe repo is small. Three files do most of the work — `lib/command.js`, `lib/option.js`, and `lib/argument.js`. The rest are helpers, error types, and the package entry point. There are no runtime dependencies. The published bundle weighs in at 27 KB unminified.\n\nThe public surface fits on one page: `new Command()`, `.option()`, `.argument()`, `.action()`, `.parse()`. Variadic options, custom parsers, conflicting flags, and subcommand inheritance are all expressed as fluent calls on the same `Command` object. That choice — one class doing many things — is the design decision the rest of the code orbits around."
+    },
+    {
+      "id": "tour",
+      "title": "Where the work lives",
+      "importance": "critical",
+      "sectionType": "narrative",
+      "files": ["lib/command.js", "lib/option.js", "lib/argument.js", "lib/help.js"],
+      "evidencePacketIds": [],
+      "diagramId": "core-types",
+      "proseMarkdown": "Three files hold the meaningful logic.\n\n`lib/command.js` (1,840 lines) defines the `Command` class. It owns the option list, the positional argument list, the subcommand tree, and the parse loop. Every fluent call returns `this`, so chains read like a small DSL. The parse loop at `lib/command.js:1124-1248` is the hot path; it walks `process.argv` once and matches tokens against the option list, the argument list, and the subcommand map in that order.\n\n`lib/option.js` (420 lines) defines `Option`. An `Option` holds a flag string (parsed into short and long forms), a description, a default value, and an optional custom-parse function. It does no I/O — building an Option never touches `process.argv`. That separation is what makes the test suite fast.\n\n`lib/argument.js` (180 lines) is the positional counterpart. It is similar to Option but lacks the flag-parsing logic. Variadic arguments live here, gated by an `isVariadic` boolean set when the flag string ends in `...`.\n\n`lib/help.js` (520 lines) renders the auto-generated help text. It is the only file that uses `process.stdout` directly."
+    },
+    {
+      "id": "core-types",
+      "title": "The Command object",
+      "importance": "important",
+      "sectionType": "module-map",
+      "files": ["lib/command.js"],
+      "evidencePacketIds": [],
+      "proseMarkdown": "Every public API call routes through `Command`. The class has 67 methods, but only twelve are used in 95% of programs (per a quick survey of the top-100 downstream packages).\n\nThe core surface:\n\n- **Constructor**: `new Command(name?)` — the root command is unnamed; subcommands take their name as the first argument.\n- **`.option(flags, description, defaultValue?)`** — registers an `Option`. Flag strings follow the convention `-s, --long <value>`. Adding `...` after the placeholder marks the option variadic.\n- **`.argument(name, description, defaultValue?)`** — registers a positional. Same `...` suffix for variadic.\n- **`.command(name, description, opts?)`** — registers a subcommand. Returns the *child* `Command`, not `this`, breaking the chain pattern on purpose.\n- **`.action(fn)`** — registers the function called when this command matches. Receives the parsed values as arguments.\n- **`.parse(argv?)`** — runs the parse loop. Default argv is `process.argv`.\n- **`.parseAsync(argv?)`** — same, but awaits async actions before resolving.\n\nA small set of error types lives next to `Command`: `CommanderError`, `InvalidArgumentError`, `MissingArgumentError`. They all extend a shared base with a `code` field, which is what programs branch on for non-zero exit codes."
+    },
+    {
+      "id": "risks",
+      "title": "Sharp edges to know about",
+      "importance": "important",
+      "sectionType": "risk-callouts",
+      "files": [
+        "lib/command.js",
+        "lib/option.js",
+        "package.json",
+        "tests/options.parse.test.js"
+      ],
+      "evidencePacketIds": [],
+      "proseMarkdown": "Three years of issues distill to four recurring patterns. None are bugs. All are documented in the README, but each catches someone new every month."
+    },
+    {
+      "id": "next",
+      "title": "Where to read next",
+      "importance": "supporting",
+      "sectionType": "next-steps",
+      "files": ["README.md", "CHANGELOG.md", "examples/"],
+      "evidencePacketIds": [],
+      "proseMarkdown": "Three entry points cover most questions:\n\n1. **`README.md`** is unusually thorough. The table of contents at the top lists 47 worked examples covering option types, variadic flags, conflicting options, action handlers, and lifecycle hooks. If your problem looks common, the README probably solves it.\n2. **`examples/`** has 33 runnable scripts, one per feature. Each one is a complete program — copy-paste, run, modify. The patterns under `examples/options-*.js` are the most-linked answers in old issues.\n3. **`CHANGELOG.md`** is curated by hand. Breaking changes are flagged with **(breaking)** at the start of the line. When a new major lands, the diff against the previous major in the CHANGELOG is the fastest path to understanding the migration."
+    }
+  ],
+  "collapsedFiles": [
+    "examples/",
+    "tests/",
+    "typings/index.test-d.ts",
+    "Readme_zh-CN.md"
+  ],
+  "diagramSpecs": [
+    {
+      "id": "core-types",
+      "kind": "mermaid-flow",
+      "mermaidSource": "flowchart LR\n  C[Command]\n  O[Option]\n  A[Argument]\n  H[Help]\n  E[CommanderError]\n  C -- has many --> O\n  C -- has many --> A\n  C -- delegates rendering --> H\n  O -. throws .-> E\n  A -. throws .-> E\n  C -- registers child --> C"
+    }
+  ],
+  "risks": [
+    {
+      "severity": "info",
+      "category": "api-contract",
+      "summary": "Boolean options without a value (`-v`) and option-value pairs (`-p 8080`) parse differently when the flag is grouped with others (`-vp`). The README documents this at the top of the 'Options' section, but it surprises users coming from yargs.",
+      "citations": [
+        { "file": "lib/option.js", "lineStart": 88, "lineEnd": 120, "kind": "code" },
+        { "file": "tests/options.parse.test.js", "lineStart": 240, "lineEnd": 288, "kind": "test" }
+      ]
+    },
+    {
+      "severity": "warn",
+      "category": "api-contract",
+      "summary": "Subcommand registration via `.command(name, description)` returns the *child* command, not the parent. Chaining `.option()` after `.command()` will register the option on the child, which is rarely what the caller meant. The README calls this out explicitly; issues #1408 and #1670 are the canonical reports.",
+      "citations": [
+        { "file": "lib/command.js", "lineStart": 412, "lineEnd": 458, "kind": "code" }
+      ]
+    },
+    {
+      "severity": "info",
+      "category": "dependency-change",
+      "summary": "Commander has no runtime dependencies and intends to stay that way. Pull requests adding dependencies are routinely closed with a pointer to the contributing guide. The internal `pkg.dependencies` field is empty.",
+      "citations": [
+        { "file": "package.json", "lineStart": 30, "lineEnd": 38, "kind": "config" }
+      ]
+    },
+    {
+      "severity": "info",
+      "category": "performance",
+      "summary": "The parse loop is O(n × m) where n is the argv length and m is the number of registered options. For a typical CLI (≤20 options, ≤10 args) this is a non-issue. For programs that register hundreds of options at runtime, the README recommends precomputing the option map and bypassing `.parse()` in favor of `.parseOptions()`.",
+      "citations": [
+        { "file": "lib/command.js", "lineStart": 1124, "lineEnd": 1248, "kind": "code" }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "title": "router: thread RequestContext through handlers instead of FiberRef",
+  "summary": "Routes now take a typed RequestContext as their first argument. Drops two hidden allocations per request and removes three deprecated exports from the package surface. Local benchmark shows -28% median latency on a four-layer middleware stack.",
+  "sections": [
+    {
+      "id": "overview",
+      "title": "Overview",
+      "importance": "critical",
+      "sectionType": "overview",
+      "files": ["packages/http/src/HttpRouter.ts", "packages/http/src/RequestContext.ts"],
+      "evidencePacketIds": [],
+      "proseMarkdown": "HttpRouter held per-request state in a `FiberRef<Request | null>`. Every middleware boundary cloned the fiber graph to scope that state, which cost roughly 6μs and one allocation per layer on the included router benchmark.\n\nThe new shape: handlers take a `RequestContext` argument. The router builds it once at the dispatch boundary, passes it down, and the FiberRef goes away. Three exports tied to it (`CurrentRequest`, `withRequest`, `getRequestRef`) are removed from `effect/unstable/http`.\n\nExisting routes keep working without changes. A small wrapper at `packages/http/src/HttpRouter.ts:142-158` adapts handlers that match the old `(req) => Effect<Response>` shape; the wrapper carries a `@deprecated` JSDoc tag and will be removed in 4.0.0-beta.78.\n\nNumbers from `packages/http/bench/router.bench.ts` (Bun 1.3.14, M2 Pro, four-layer middleware stack, 10k iterations):\n\n- Median latency per request: **5.8ms → 4.1ms**\n- p99 latency: **9.2ms → 6.0ms**\n- Allocations per request (heap-snapshot diff): **14 → 11**"
+    },
+    {
+      "id": "shape",
+      "title": "How the new context flows",
+      "importance": "critical",
+      "sectionType": "narrative",
+      "files": ["packages/http/src/HttpRouter.ts"],
+      "evidencePacketIds": [],
+      "diagramId": "ctx-flow",
+      "proseMarkdown": "The router builds a `RequestContext` once when a request arrives. The context is immutable, shape-checked, and carries only what handlers are allowed to read: the raw `Request`, the parsed `URL`, the path params, and the abort signal tied to the connection.\n\nMiddleware composes by passing the same context down the chain. There is no escape hatch back to fiber-local state and no setter on the request. Routes that need to write headers do so on the returned `Response`, which is the only place mutation lives.\n\nThis is intentionally narrow. The old `FiberRef<Request | null>` had a `null` arm because nothing stopped code from running outside a request. The new shape makes that statically impossible — handlers cannot be invoked without a context."
+    },
+    {
+      "id": "diff",
+      "title": "The diff, file by file",
+      "importance": "important",
+      "sectionType": "annotated-diff",
+      "files": [
+        "packages/http/src/HttpRouter.ts",
+        "packages/http/src/RequestContext.ts",
+        "packages/http/src/index.ts"
+      ],
+      "evidencePacketIds": [],
+      "proseMarkdown": "**`packages/http/src/HttpRouter.ts`** — dispatch path becomes a pure function of context.\n\n```diff\n-const currentRequest = FiberRef.unsafeMake<Request | null>(null)\n-\n export const make = (routes: ReadonlyArray<Route>) => {\n-  return Effect.gen(function* () {\n-    const req = yield* FiberRef.get(currentRequest)\n-    if (req === null) return new Response(null, { status: 500 })\n-    const ctx: HandlerCtx = { req }\n+  return (ctx: RequestContext) => Effect.gen(function* () {\n     for (const route of routes) {\n-      const match = route.match(req.url, req.method)\n+      const match = route.match(ctx.url.pathname, ctx.req.method)\n       if (match) return yield* route.handler(ctx)\n     }\n     return new Response(null, { status: 404 })\n   })\n }\n```\n\n**`packages/http/src/RequestContext.ts`** — new module, 24 lines, no implementation logic.\n\n```ts\nexport interface RequestContext {\n  readonly req: Request\n  readonly url: URL\n  readonly params: ReadonlyMap<string, string>\n  readonly signal: AbortSignal\n}\n\nexport const make = (req: Request, params: ReadonlyMap<string, string>): RequestContext => ({\n  req,\n  url: new URL(req.url),\n  params,\n  signal: req.signal,\n})\n```\n\n**`packages/http/src/index.ts`** — three exports removed, one added.\n\n```diff\n-export { CurrentRequest, withRequest, getRequestRef } from \"./HttpRouter.js\"\n+export type { RequestContext } from \"./RequestContext.js\"\n+export { make as makeContext } from \"./RequestContext.js\"\n```\n\nThe removed names were marked `@deprecated` two minors ago. CHANGELOG entry at `packages/http/CHANGELOG.md:14-22` calls this out under **BREAKING CHANGES**."
+    },
+    {
+      "id": "module-map",
+      "title": "Module impact",
+      "importance": "important",
+      "sectionType": "module-map",
+      "files": [
+        "packages/http/src/HttpRouter.ts",
+        "packages/http/src/RequestContext.ts",
+        "packages/platform-node/src/HttpServer.ts",
+        "packages/platform-bun/src/HttpServer.ts"
+      ],
+      "evidencePacketIds": [],
+      "proseMarkdown": "The change is scoped to `packages/http`. Both platform adapters (`platform-node`, `platform-bun`) consume the router through the public route definition API, which is unchanged. No code in those packages had to move.\n\nDownstream packages that imported the deprecated exports (`CurrentRequest`, `withRequest`, `getRequestRef`) need to migrate. An npm search via `npms.io` found 11 published dependents touching those names. All 11 are listed in the CHANGELOG with the one-line replacement. The migration is mechanical: replace `yield* CurrentRequest` with the `ctx` argument.\n\nInternal call sites inside the monorepo: zero. Earlier passes had already moved `@effect/experimental/sse` and `@effect/rpc-http` off the FiberRef path."
+    },
+    {
+      "id": "risks",
+      "title": "Risks we're watching",
+      "importance": "critical",
+      "sectionType": "risk-callouts",
+      "files": [
+        "packages/http/src/HttpRouter.ts",
+        "packages/http/CHANGELOG.md",
+        "packages/http/bench/router.bench.ts",
+        "packages/http/test/HttpRouter.test.ts"
+      ],
+      "evidencePacketIds": [],
+      "proseMarkdown": "Four risks were flagged during review. None are blocking, but the api-contract item below is the one to read carefully if you maintain a downstream package."
+    },
+    {
+      "id": "tests",
+      "title": "Test coverage",
+      "importance": "supporting",
+      "sectionType": "test-impact",
+      "files": ["packages/http/test/HttpRouter.test.ts"],
+      "evidencePacketIds": [],
+      "proseMarkdown": "Eleven tests added in `packages/http/test/HttpRouter.test.ts:88-201`, covering:\n\n- **Nested middleware** with three layers passing the same context (lines 88-110)\n- **Header propagation** through `ctx.req.headers` (lines 112-128)\n- **Abort signal** plumbing from the client through to a slow handler (lines 130-152)\n- **Path param parsing** for routes with two and three segments (lines 154-178)\n- **404 handling** when no route matches and no fallback is configured (lines 180-201)\n\nThe seven tests that previously read from the `FiberRef` were rewritten in place. One test for fiber-scoped cancellation was deleted; the same scenario is now covered by the abort-signal test at line 130, which is closer to how production code observes cancellation."
+    },
+    {
+      "id": "next",
+      "title": "After this lands",
+      "importance": "supporting",
+      "sectionType": "next-steps",
+      "files": ["packages/http/CHANGELOG.md", "packages/http/src/HttpRouter.ts"],
+      "evidencePacketIds": [],
+      "proseMarkdown": "Three follow-ups are queued behind this PR:\n\n1. **Remove the deprecated wrapper** at `packages/http/src/HttpRouter.ts:142-158` in `4.0.0-beta.78`. The wrapper exists only so the major bump can be a single, isolated PR.\n2. **Constructor-time route compilation**. With the FiberRef gone, the router's hot path is dominated by `route.match` calls. A planned follow-up compiles routes into a single regex on `make()`, which the benchmark suggests would cut another 1.2ms off median latency.\n3. **Cancellation telemetry**. The abort signal now flows through `ctx.signal`. The observability package will add a span event when a handler exits via abort, which is currently invisible."
+    }
+  ],
+  "collapsedFiles": [
+    "packages/http/test/__snapshots__/HttpRouter.test.ts.snap",
+    "packages/http/dist/HttpRouter.d.ts"
+  ],
+  "diagramSpecs": [
+    {
+      "id": "ctx-flow",
+      "kind": "mermaid-sequence",
+      "mermaidSource": "sequenceDiagram\n  participant C as Client\n  participant R as HttpRouter\n  participant M as Middleware\n  participant H as Handler\n  C->>R: HTTP Request\n  R->>R: build RequestContext\n  R->>M: dispatch(ctx)\n  M->>M: read ctx.req.headers\n  M->>H: next(ctx)\n  H->>H: read ctx.params\n  H-->>M: Response\n  M-->>R: Response\n  R-->>C: HTTP Response"
+    }
+  ],
+  "risks": [
+    {
+      "severity": "warn",
+      "category": "api-contract",
+      "summary": "Three public exports (`CurrentRequest`, `withRequest`, `getRequestRef`) are removed from `effect/unstable/http`. Downstream code importing them will fail to compile against this version. Eleven published dependents flagged via `npms.io`; all are listed in the CHANGELOG with the one-line replacement.",
+      "citations": [
+        { "file": "packages/http/src/index.ts", "lineStart": 88, "lineEnd": 94, "kind": "code" },
+        { "file": "packages/http/CHANGELOG.md", "lineStart": 14, "lineEnd": 22, "kind": "comment" }
+      ]
+    },
+    {
+      "severity": "info",
+      "category": "performance",
+      "summary": "Microbenchmark shows -28% median request latency on the included four-layer middleware stack (5.8ms → 4.1ms). No production telemetry yet; the win is from removing FiberRef clones, not from algorithmic changes, so the effect should be roughly linear in middleware depth.",
+      "citations": [
+        {
+          "file": "packages/http/bench/router.bench.ts",
+          "lineStart": 1,
+          "lineEnd": 44,
+          "kind": "code"
+        }
+      ]
+    },
+    {
+      "severity": "warn",
+      "category": "test-coverage",
+      "summary": "Eleven new tests cover nested middleware, header propagation, abort signals, path params, and 404 handling. One test for fiber-scoped cancellation was removed; the scenario is now exercised by the abort-signal test at line 130, but a corner case where the fiber is cancelled mid-middleware is no longer directly tested.",
+      "citations": [
+        {
+          "file": "packages/http/test/HttpRouter.test.ts",
+          "lineStart": 88,
+          "lineEnd": 201,
+          "kind": "test"
+        }
+      ]
+    },
+    {
+      "severity": "info",
+      "category": "dependency-change",
+      "summary": "No new dependencies. The `@effect/core` peer range is unchanged at `>=3.0.0`. The `effect/unstable/http` package version bumps to `0.4.0` to signal the breaking surface change.",
+      "citations": [
+        { "file": "packages/http/package.json", "lineStart": 18, "lineEnd": 22, "kind": "config" }
+      ]
+    }
+  ]
+}

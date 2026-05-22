@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Request context flow through router middleware">
+  <defs>
+    <marker id="ctx-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fill-opacity="0.7"/>
+    </marker>
+    <marker id="ctx-arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2b6cb0" fill-opacity="0.9"/>
+    </marker>
+  </defs>
+  <style>
+    .ctx-lifeline { stroke: currentColor; stroke-opacity: 0.22; stroke-dasharray: 4 4; }
+    .ctx-actor { fill: none; stroke: currentColor; stroke-opacity: 0.55; }
+    .ctx-arrow { stroke: currentColor; stroke-opacity: 0.7; stroke-width: 1.4; fill: none; }
+    .ctx-arrow-accent { stroke: #2b6cb0; stroke-opacity: 0.9; stroke-width: 1.6; fill: none; }
+    .ctx-return { stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.1; stroke-dasharray: 6 3; fill: none; }
+    .ctx-actor-label { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; fill: currentColor; font-weight: 600; }
+    .ctx-msg { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; fill: currentColor; fill-opacity: 0.85; }
+    .ctx-self { fill-opacity: 0.65; font-style: italic; }
+  </style>
+  <g>
+    <rect class="ctx-actor" x="30" y="18" width="100" height="32" rx="4"/>
+    <text class="ctx-actor-label" x="80" y="38" text-anchor="middle">Client</text>
+    <rect class="ctx-actor" x="200" y="18" width="100" height="32" rx="4"/>
+    <text class="ctx-actor-label" x="250" y="38" text-anchor="middle">HttpRouter</text>
+    <rect class="ctx-actor" x="380" y="18" width="100" height="32" rx="4"/>
+    <text class="ctx-actor-label" x="430" y="38" text-anchor="middle">Middleware</text>
+    <rect class="ctx-actor" x="550" y="18" width="100" height="32" rx="4"/>
+    <text class="ctx-actor-label" x="600" y="38" text-anchor="middle">Handler</text>
+  </g>
+  <line class="ctx-lifeline" x1="80" y1="50" x2="80" y2="365"/>
+  <line class="ctx-lifeline" x1="250" y1="50" x2="250" y2="365"/>
+  <line class="ctx-lifeline" x1="430" y1="50" x2="430" y2="365"/>
+  <line class="ctx-lifeline" x1="600" y1="50" x2="600" y2="365"/>
+  <text class="ctx-msg" x="162" y="78" text-anchor="middle">HTTP Request</text>
+  <line class="ctx-arrow-accent" x1="83" y1="86" x2="245" y2="86" marker-end="url(#ctx-arrow-accent)"/>
+  <path class="ctx-arrow" d="M 250 110 L 295 110 L 295 130 L 255 130" marker-end="url(#ctx-arrow)"/>
+  <text class="ctx-msg ctx-self" x="305" y="124">build RequestContext</text>
+  <text class="ctx-msg" x="337" y="155" text-anchor="middle">dispatch(ctx)</text>
+  <line class="ctx-arrow" x1="253" y1="163" x2="425" y2="163" marker-end="url(#ctx-arrow)"/>
+  <path class="ctx-arrow" d="M 430 188 L 475 188 L 475 208 L 435 208" marker-end="url(#ctx-arrow)"/>
+  <text class="ctx-msg ctx-self" x="485" y="202">read ctx.req.headers</text>
+  <text class="ctx-msg" x="512" y="232" text-anchor="middle">next(ctx)</text>
+  <line class="ctx-arrow" x1="433" y1="240" x2="595" y2="240" marker-end="url(#ctx-arrow)"/>
+  <path class="ctx-arrow" d="M 600 265 L 645 265 L 645 285 L 605 285" marker-end="url(#ctx-arrow)"/>
+  <text class="ctx-msg ctx-self" x="600" y="302" text-anchor="middle">read ctx.params</text>
+  <text class="ctx-msg" x="515" y="322" text-anchor="middle">Response</text>
+  <line class="ctx-return" x1="595" y1="330" x2="437" y2="330" marker-end="url(#ctx-arrow)"/>
+  <text class="ctx-msg" x="165" y="352" text-anchor="middle">HTTP Response</text>
+  <line class="ctx-return" x1="245" y1="360" x2="87" y2="360" marker-end="url(#ctx-arrow)"/>
+</svg>
