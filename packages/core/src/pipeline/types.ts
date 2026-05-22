@@ -10,6 +10,7 @@ import type {
   EvidenceGraph,
   ExplainerPlan,
   FileEntry,
+  HtmlBundle,
   RepoSnapshot,
 } from '../../../types/src/index.ts';
 import type { ProviderName } from '../providers/registry.ts';
@@ -138,5 +139,23 @@ export interface Stage2Output {
   costUsd: number;
   retried: boolean;
   fellBackToMinimal: boolean;
+  durationMs: number;
+}
+
+export interface ValidationSources {
+  mode: AzriMode;
+  change?: ChangeSet;
+  repo: RepoSnapshot;
+}
+
+export interface Stage5Deps {
+  logger: Stage0Logger;
+}
+
+export interface Stage5Output {
+  bundle: HtmlBundle;
+  warnings: ReadonlyArray<string>;
+  citationsValid: number;
+  citationsHallucinated: number;
   durationMs: number;
 }
