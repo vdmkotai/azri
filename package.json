@@ -21,9 +21,12 @@
     "check:all": "turbo check"
   },
   "devDependencies": {
+    "@ai-sdk/anthropic": "^3",
     "@types/bun": "latest",
+    "ai": "^6",
     "turbo": "^2.0.0",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "zod": "^3"
   },
   "engines": {
     "bun": ">=1.1.0"

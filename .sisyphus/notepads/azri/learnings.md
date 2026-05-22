@@ -107,3 +107,27 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - Initial commit SHA: 203db1140f199b4f6eb3f5f3f40454747e7b9310
 - Gotchas encountered: `bun tsc` needed a local `typescript` devDependency; `.oxfmtrc.json` needed broader ignore patterns for existing `.sisyphus/` artifacts and `azri-explainer.html`; oxlint regexes needed the `u` flag.
 - Files created: 46
+
+---
+
+## Task T2 complete (2026-05-22 19:39:44 +0400)
+
+- AI SDK version installed: 6.0.190
+- @ai-sdk/anthropic version: 3.0.78
+- Zod version: 3.25.76
+- Test outcomes:
+  - Test 1 (basic generateText): SKIP
+  - Test 2 (generateObject + jsonTool): SKIP
+  - Test 3 (generateObject WITHOUT jsonTool — negative): SKIP
+  - Test 4 (prompt caching): SKIP
+  - Test 5 (timeout safety): SKIP
+  - Test 6 (production mode): SKIP
+- Approximate cost of smoke run: $0.000 (live Anthropic calls skipped because `ANTHROPIC_API_KEY` was not set)
+- Gotchas/findings: zsh has a read-only `status` variable; evidence command uses `smoke_status` instead. Smoke script cleanly exits 0 and records SKIP records when the key is unavailable. Live bug reproduction remains pending until an operator runs with `ANTHROPIC_API_KEY`.
+
+## Task T4 complete (2026-05-22)
+
+- Locked literal counts confirmed: `SectionType = 7`, `RiskCategory = 7`.
+- `AzriRunOutput` kept as a discriminated union on `kind` with the required v1 variants only.
+- `packages/types/tsconfig.json` needed `compilerOptions.types = []` so the pure-types package could typecheck without Bun ambient types.
+- No forbidden v1 persona/audience or `SubPage` types were added.
