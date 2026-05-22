@@ -1,0 +1,74 @@
+name: publish-npm
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'azri@*'
+
+concurrency:
+  group: publish-npm-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish azri to npm
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.x
+
+      - name: Setup Node.js (for npm publish + OIDC provenance)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies (frozen)
+        run: bun install --frozen-lockfile
+
+      - name: Lint / typecheck / format / headers
+        run: bun run check
+
+      - name: Run tests
+        run: bun test
+
+      - name: Build CLI
+        run: bun run build:cli
+
+      - name: Verify built artifact
+        run: |
+          set -euo pipefail
+          DIST="apps/cli/dist/index.js"
+          VERSION="${GITHUB_REF#refs/tags/azri@}"
+
+          test -f "$DIST" || { echo "::error::missing $DIST"; exit 1; }
+          test -x "$DIST" || { echo "::error::$DIST is not executable"; exit 1; }
+
+          FIRST="$(sed -n '1p' "$DIST")"
+          if [ "$FIRST" != "#!/usr/bin/env bun" ]; then
+            echo "::error::missing shebang in $DIST (got: $FIRST)"
+            exit 1
+          fi
+
+          CLI_VERSION="$(bun "$DIST" --version)"
+          if [ "$CLI_VERSION" != "$VERSION" ]; then
+            echo "::error::CLI --version ($CLI_VERSION) != tag version ($VERSION)"
+            exit 1
+          fi
+
+          echo "Artifact verified: $DIST @ $VERSION"
+
+      - name: Publish to npm with provenance
+        working-directory: apps/cli
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access=public --provenance
