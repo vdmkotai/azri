@@ -124,3 +124,19 @@ export interface Stage3Output {
   perSectionFailures: number;
   durationMs: number;
 }
+
+export interface Stage2Deps {
+  logger: Stage0Logger;
+  provider: ProviderName;
+  reasoningModel: LanguageModel;
+}
+
+export interface Stage2Output {
+  plan: ExplainerPlan;
+  tokensIn: number;
+  tokensOut: number;
+  costUsd: number;
+  retried: boolean;
+  fellBackToMinimal: boolean;
+  durationMs: number;
+}

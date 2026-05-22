@@ -63,16 +63,15 @@ function baseName(path: string): string {
 }
 
 function pickInterestingFiles(tree: ReadonlyArray<FileEntry>): FileEntry[] {
-  const ranked = tree
+  const rankedInputs = tree
     .filter((f) => !f.path.includes('node_modules/') && !f.path.includes('dist/'))
     .map((f) => ({
       f,
       score: f.sizeBytes + (f.lastModifiedCommitsCount ?? 0) * COMMIT_WEIGHT,
-    }))
-    // oxlint-disable-next-line unicorn/no-array-sort
-    .toSorted((a, b) => b.score - a.score)
-    .slice(0, INTERESTING_LIMIT)
-    .map((x) => x.f);
+    }));
+  // oxlint-disable-next-line unicorn/no-array-sort
+  rankedInputs.sort((a, b) => b.score - a.score);
+  const ranked = rankedInputs.slice(0, INTERESTING_LIMIT).map((x) => x.f);
 
   const must: FileEntry[] = [];
   const seen = new Set(ranked.map((f) => f.path));
