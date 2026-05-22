@@ -96,3 +96,14 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - `noUncheckedIndexedAccess: true`, `exactOptionalPropertyTypes: true`
 - No path aliases — workspace `workspace:*` only
 - DCO sign-off required (`git commit -s`), NOT CLA
+
+---
+
+## Task T1 complete (2026-05-22 19:32:00 +04)
+
+- Bun version pinned: 1.3.14
+- Oxlint version: 1.66.0
+- Oxfmt version: 0.51.0
+- Initial commit SHA: 203db1140f199b4f6eb3f5f3f40454747e7b9310
+- Gotchas encountered: `bun tsc` needed a local `typescript` devDependency; `.oxfmtrc.json` needed broader ignore patterns for existing `.sisyphus/` artifacts and `azri-explainer.html`; oxlint regexes needed the `u` flag.
+- Files created: 46
