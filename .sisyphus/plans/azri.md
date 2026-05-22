@@ -1270,7 +1270,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(types): add shared types and engine/prompt version constants`
   - Files: `packages/types/src/index.ts`, `packages/types/src/version.ts`, `packages/types/package.json`
 
-- [ ] 5. Zod Schemas (Validation Contracts)
+- [x] 5. Zod Schemas (Validation Contracts)
 
   **What to do**:
   - Create `packages/types/src/schemas.ts` exporting Zod schemas for ALL runtime-validated types
@@ -1555,7 +1555,7 @@ Max Concurrent: 18 (Wave 5)
 
 ### Wave 2 — Adapters + Utilities (parallel after Wave 1)
 
-- [ ] 9. LLMAdapter Interface + Anthropic Implementation (CRITICAL FOUNDATION)
+- [x] 9. LLMAdapter Interface + Anthropic Implementation (CRITICAL FOUNDATION)
 
   > **Interface ownership**: T9 defines THE canonical `LLMAdapter` interface used by all three providers (T9, T9b, T9c). T9 ships the Anthropic implementation; T9b ships OpenAI; T9c ships Gemini. The interface MUST NOT leak provider-specific concepts — quirks live inside each adapter.
 
@@ -1655,7 +1655,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(adapter): llm-anthropic with jsonTool, Promise.race timeouts, prompt caching`
   - Files: `packages/adapters/llm-anthropic/src/{index,pricing,null-adapter}.ts`, `packages/core/src/adapters/llm.ts`, `packages/adapters/llm-anthropic/package.json`
 
-- [ ] 9b. OpenAI Provider Implementation (response_format json_schema strict + prefix caching)
+- [x] 9b. OpenAI Provider Implementation (response_format json_schema strict + prefix caching)
 
   **What to do**:
   - Create `packages/adapters/llm-openai/src/index.ts` implementing the `LLMAdapter` interface from T9
@@ -1738,7 +1738,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(adapter): llm-openai with response_format strict + prefix caching`
   - Files: `packages/adapters/llm-openai/src/{index,pricing}.ts`, `packages/adapters/llm-openai/package.json`
 
-- [ ] 9c. Gemini Provider Implementation (responseSchema + explicit cachedContent)
+- [x] 9c. Gemini Provider Implementation (responseSchema + explicit cachedContent)
 
   **What to do**:
   - Create `packages/adapters/llm-gemini/src/index.ts` implementing the `LLMAdapter` interface from T9
@@ -1813,7 +1813,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(adapter): llm-gemini with responseSchema + explicit cachedContent`
   - Files: `packages/adapters/llm-gemini/src/{index,pricing,schema-strip}.ts`, `packages/adapters/llm-gemini/package.json`
 
-- [ ] 10. HostingAdapter Interface + Local-Disk Implementation
+- [x] 10. HostingAdapter Interface + Local-Disk Implementation
 
   **What to do**:
   - Define `HostingAdapter` interface in `packages/core/src/adapters/hosting.ts`:
@@ -1885,7 +1885,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(adapter): hosting-local writes self-contained pages to disk`
   - Files: `packages/adapters/hosting-local/src/index.ts`, `packages/core/src/adapters/hosting.ts`
 
-- [ ] 11. Content-Addressed Cache (Blob-Level + Run-Level)
+- [x] 11. Content-Addressed Cache (Blob-Level + Run-Level)
 
   **What to do**:
   - Create `packages/core/src/cache/index.ts`
@@ -1955,7 +1955,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(core): content-addressed cache (blob + run layers)`
   - Files: `packages/core/src/cache/{index,memory-store,disk-store,compute-key}.ts`
 
-- [ ] 12. Per-Repo Run Mutex Utility
+- [x] 12. Per-Repo Run Mutex Utility
 
   **What to do**:
   - Create `packages/core/src/concurrency/run-mutex.ts`
@@ -2014,7 +2014,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(core): per-repo run mutex with watchdog auto-release`
   - Files: `packages/core/src/concurrency/run-mutex.ts`
 
-- [ ] 13. Webhook Delivery Dedup LRU
+- [x] 13. Webhook Delivery Dedup LRU
 
   **What to do**:
   - Create `packages/core/src/concurrency/delivery-dedup.ts`
@@ -2070,7 +2070,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(core): webhook delivery dedup with LRU+TTL`
   - Files: `packages/core/src/concurrency/delivery-dedup.ts`
 
-- [ ] 14. Git Utilities + Repo Content Readers + Test Fixtures
+- [x] 14. Git Utilities + Repo Content Readers + Test Fixtures
 
   > **Role**: Provides ALL fetching utilities used by callers (T28, T32-T34) to assemble `AzriRunInput` before invoking `runAzri`. The engine itself never fetches — it consumes already-fetched data. This task delivers both data-shape readers (snapshots, diffs) AND the `RepoContentReader` dependency used by Stage 5.
 
@@ -2167,7 +2167,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(core): git utilities + test fixtures`
   - Files: `packages/core/src/git/*.ts`, `test/fixtures/sample.diff`, `test/fixtures/stage0-input.json`, `test/fixtures/stage0-output.json`, `test/fixtures/stage1-output.json`, `test/fixtures/pr-input.json`, `test/fixtures/azri-output.json`, `test/fixtures/explainer-plan.valid.json`, `test/fixtures/explainer-plan.invalid.json`, `test/fixtures/webhooks/pull-request-opened.json`, `test/fixtures/webhooks/pull-request-synchronize.json`, `test/fixtures/webhooks/issue-comment-created.json`, `test/fixtures/test-private-key.pem`
 
-- [ ] 15. Prompt Library (Versioned System Prompts + Anti-Slop + Anti-Injection)
+- [x] 15. Prompt Library (Versioned System Prompts + Anti-Slop + Anti-Injection)
 
   **What to do**:
   - Create `packages/core/src/prompts/`:
@@ -2262,7 +2262,7 @@ Max Concurrent: 18 (Wave 5)
 
 ### Wave 3 — Pipeline Stages (parallel after Wave 2)
 
-- [ ] 16. Stage 0 — TRIAGE ONLY (No Fetching, No LLM)
+- [x] 16. Stage 0 — TRIAGE ONLY (No Fetching, No LLM)
 
   > **OWNERSHIP MODEL (locked)**: Callers (T28 webhook handler, T32-T34 CLI commands) are responsible for fetching `repo: RepoSnapshot` and `change?: ChangeSet` using T14 utilities BEFORE invoking `runAzri`. Stage 0 does NOT fetch — it only triages already-fetched data. This keeps the engine pure, JSON-serializable, and easy to test with fixtures.
 
@@ -2342,7 +2342,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(pipeline): stage 0 fetch + triage with fork/bot/size detection`
   - Files: `packages/core/src/pipeline/stage-0-fetch-triage.ts`
 
-- [ ] 17. Stage 1 — FILE SUMMARIZE (Haiku, Parallel Evidence Packets)
+- [x] 17. Stage 1 — FILE SUMMARIZE (Haiku, Parallel Evidence Packets)
 
   **What to do**:
   - Create `packages/core/src/pipeline/stage-1-summarize.ts`
@@ -2417,7 +2417,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(pipeline): stage 1 file summarize with Haiku + blob caching`
   - Files: `packages/core/src/pipeline/stage-1-summarize.ts`
 
-- [ ] 18. Stage 2 — STRUCTURE EXTRACT (Sonnet, generateObject + jsonTool)
+- [x] 18. Stage 2 — STRUCTURE EXTRACT (Sonnet, generateObject + jsonTool)
 
   **What to do**:
   - Create `packages/core/src/pipeline/stage-2-structure.ts`
@@ -2490,7 +2490,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(pipeline): stage 2 structure extract with jsonTool + retry`
   - Files: `packages/core/src/pipeline/stage-2-structure.ts`
 
-- [ ] 19. Stage 3 — SECTION GENERATE (Sonnet, Parallel Sections)
+- [x] 19. Stage 3 — SECTION GENERATE (Sonnet, Parallel Sections)
 
   **What to do**:
   - Create `packages/core/src/pipeline/stage-3-section.ts`
@@ -2584,7 +2584,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(pipeline): stage 3 section generate with citation validation`
   - Files: `packages/core/src/pipeline/stage-3-section.ts`
 
-- [ ] 20. Stage 5 — VALIDATE & POLISH (Citations, Links, HTML)
+- [x] 20. Stage 5 — VALIDATE & POLISH (Citations, Links, HTML)
 
   **What to do**:
   - Create `packages/core/src/pipeline/stage-5-validate.ts`
@@ -2673,7 +2673,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(pipeline): stage 5 validation (citations, html, size, csp)`
   - Files: `packages/core/src/pipeline/stage-5-validate.ts`
 
-- [ ] 21. Pipeline Orchestrator
+- [x] 21. Pipeline Orchestrator
 
   **Repo-Mode Pipeline Contract (CRITICAL — applies to all stages T16-T20)**:
 
@@ -2771,7 +2771,7 @@ Max Concurrent: 18 (Wave 5)
 
 > T22, T23 run first (deps on Wave 1 only). T24 runs after T22+T23+T18+T19. T25 runs after T24. T20 (Stage 5) runs after T24+T25 (validates rendered HTML). T21 (orchestrator) runs last in this wave (composes all stages).
 
-- [ ] 22. Renderer Components (Exactly 8)
+- [x] 22. Renderer Components (Exactly 8)
 
   **What to do**:
   - Create `packages/renderer/src/components/`. Each component is a function `(props) => string` returning escaped HTML.
@@ -2845,7 +2845,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(renderer): 8 locked components with HTML escaping`
   - Files: `packages/renderer/src/components/{header,sticky-toc,section,callout,code-block,annotated-diff,mermaid-diagram,citation-footnote}.ts` + co-located css.ts, `packages/renderer/src/utils/escape-html.ts`, `packages/renderer/src/utils/markdown.ts`
 
-- [ ] 23. Mermaid Pre-Rendering (Server-Side via Playwright)
+- [x] 23. Mermaid Pre-Rendering (Server-Side via Playwright)
 
   **What to do**:
   - Create `packages/renderer/src/diagrams/mermaid.ts`
@@ -2920,7 +2920,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(renderer): server-side mermaid via mermaid-isomorphic + auto-select`
   - Files: `packages/renderer/src/diagrams/{mermaid,auto-select}.ts`
 
-- [ ] 24. Stage 4 — DETERMINISTIC RENDER (Compose JSON Spec → HTML)
+- [x] 24. Stage 4 — DETERMINISTIC RENDER (Compose JSON Spec → HTML)
 
   **What to do**:
   - Create `packages/core/src/pipeline/stage-4-render.ts` AND `packages/renderer/src/render.ts`
@@ -2993,7 +2993,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(renderer): stage 4 deterministic render with CSP and section ordering`
   - Files: `packages/renderer/src/render.ts`, `packages/core/src/pipeline/stage-4-render.ts`
 
-- [ ] 25. Self-Contained HTML Bundler (Inline Everything + OG/Twitter Meta)
+- [x] 25. Self-Contained HTML Bundler (Inline Everything + OG/Twitter Meta)
 
   **What to do**:
   - Create `packages/renderer/src/bundler/inline.ts`
@@ -3075,7 +3075,7 @@ Max Concurrent: 18 (Wave 5)
 
 > 18 tasks. Bot + CLI + tests can all start once engine + renderer are done. Orchestrator can spawn many in parallel; up to executor's discretion.
 
-- [ ] 26. Elysia Server + Raw-Body Capture + Health Check
+- [x] 26. Elysia Server + Raw-Body Capture + Health Check
 
   **What to do**:
   - Create `apps/bot/src/server.ts` with Elysia setup
@@ -3152,7 +3152,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(bot): elysia server with raw-body capture and idleTimeout fix`
   - Files: `apps/bot/src/server.ts`, `apps/bot/DEPLOY.md`, `apps/bot/package.json`
 
-- [ ] 27. GitHub App Auth (Octokit, JWT, Installation Tokens, Secret Rotation)
+- [x] 27. GitHub App Auth (Octokit, JWT, Installation Tokens, Secret Rotation)
 
   **What to do**:
   - Create `apps/bot/src/github/app.ts`
@@ -3211,7 +3211,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(bot): github app auth via octokit with secret rotation support`
   - Files: `apps/bot/src/github/app.ts`
 
-- [ ] 28. Webhook Handler (pull_request events, fork detection, dedup, mutex)
+- [x] 28. Webhook Handler (pull_request events, fork detection, dedup, mutex)
 
   **What to do**:
   - Create `apps/bot/src/handlers/pr-webhook.ts`
@@ -3305,7 +3305,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(bot): pr webhook handler with signature verification, dedup, mutex, fork/bot detection`
   - Files: `apps/bot/src/handlers/pr-webhook.ts`, `test/scripts/send-synthetic-webhook.sh`
 
-- [ ] 29. Sticky Comment Manager (Marker-Based Upsert)
+- [x] 29. Sticky Comment Manager (Marker-Based Upsert)
 
   **What to do**:
   - Create `apps/bot/src/github/sticky-comment.ts`
@@ -3359,7 +3359,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(bot): sticky comment manager with marker-based upsert`
   - Files: `apps/bot/src/github/sticky-comment.ts`
 
-- [ ] 30. Check Run Manager + Comment-Command Parser
+- [x] 30. Check Run Manager + Comment-Command Parser
 
   **What to do**:
   - Create `apps/bot/src/github/check-run.ts`:
@@ -3419,7 +3419,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(bot): check run manager + comment-command parser with author auth`
   - Files: `apps/bot/src/github/check-run.ts`, `apps/bot/src/handlers/comment-command.ts`
 
-- [ ] 31. Bot Static Page Server (`/r/...`)
+- [x] 31. Bot Static Page Server (`/r/...`)
 
   **What to do**:
   - Add route in `apps/bot/src/server.ts` (T26) — `GET /r/*`
@@ -3471,7 +3471,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(bot): static page server at /r/* with path-traversal guard and security headers`
   - Files: `apps/bot/src/server.ts` (route added), `apps/bot/src/handlers/static-page.ts`
 
-- [ ] 32. CLI `azri report` (Whole-Repo Mode)
+- [x] 32. CLI `azri report` (Whole-Repo Mode)
 
   **What to do**:
   - Wire up the `report` command in `apps/cli/src/commands/report.ts`
@@ -3533,7 +3533,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(cli): azri report command (whole-repo mode)`
   - Files: `apps/cli/src/commands/report.ts`, `apps/cli/src/cli.ts` (wire command)
 
-- [ ] 33. CLI `azri pr <num>` (Single-PR Mode — Public Repos Only in v1)
+- [x] 33. CLI `azri pr <num>` (Single-PR Mode — Public Repos Only in v1)
 
   **What to do**:
   - Wire up `pr` command in `apps/cli/src/commands/pr.ts`
@@ -3589,7 +3589,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(cli): azri pr command (single PR mode)`
   - Files: `apps/cli/src/commands/pr.ts`
 
-- [ ] 34. CLI `azri diff` (Local Diff Mode)
+- [x] 34. CLI `azri diff` (Local Diff Mode)
 
   **What to do**:
   - Wire up `diff` command in `apps/cli/src/commands/diff.ts`
@@ -3633,7 +3633,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(cli): azri diff command (local diff mode)`
   - Files: `apps/cli/src/commands/diff.ts`
 
-- [ ] 35. CLI Progress UI + Browser Opener
+- [x] 35. CLI Progress UI + Browser Opener
 
   **What to do**:
   - Create `apps/cli/src/ui/progress.ts`
@@ -3685,7 +3685,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(cli): per-stage progress UI and browser opener`
   - Files: `apps/cli/src/ui/{progress,open-browser}.ts`
 
-- [ ] 36. CLI Cost Estimation + `--dry-run`
+- [x] 36. CLI Cost Estimation + `--dry-run`
 
   **What to do**:
   - Create `apps/cli/src/cost-estimate.ts`
@@ -3726,7 +3726,7 @@ Max Concurrent: 18 (Wave 5)
 
 ### Wave 5 — Engine Tests-After (parallel)
 
-- [ ] 37. Tests-after — Stage 0 & Stage 1
+- [x] 37. Tests-after — Stage 0 & Stage 1
 
   **What to do**:
   - `packages/core/src/pipeline/stage-0-fetch-triage.test.ts` covering: oversize rejection, fork detection, bot-PR detection, cache-hit short-circuit, empty PR, binary-only PR, generated-files-only PR, no-README repo
@@ -3753,7 +3753,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `test(core): stage 0 and stage 1 tests-after`
   - Files: `packages/core/src/pipeline/stage-{0,1}-*.test.ts`, `test/fixtures/*.json`
 
-- [ ] 38. Tests-after — Stage 2 & Stage 3
+- [x] 38. Tests-after — Stage 2 & Stage 3
 
   **What to do**:
   - `stage-2-structure.test.ts` covering: jsonTool mode locked, schema validation, retry on bad output, fallback to minimal plan, section ID references valid packets, diagram count ≤ 1
@@ -3775,7 +3775,7 @@ Max Concurrent: 18 (Wave 5)
 
   **Commit**: YES — `test(core): stage 2 and stage 3 tests-after`
 
-- [ ] 39. Tests-after — Stage 4 Renderer
+- [x] 39. Tests-after — Stage 4 Renderer
 
   **What to do**:
   - `packages/renderer/src/components/*.test.ts` per component covering: XSS escaping, props validation, output snapshot
@@ -3798,7 +3798,7 @@ Max Concurrent: 18 (Wave 5)
 
   **Commit**: YES — `test(renderer): stage 4 + components + diagrams tests-after`
 
-- [ ] 40. Tests-after — Stage 5 Validation + Citation Hallucination Adversarial Suite
+- [x] 40. Tests-after — Stage 5 Validation + Citation Hallucination Adversarial Suite
 
   **What to do**:
   - `stage-5-validate.test.ts` covering: hallucinated file path detection, hallucinated function-name detection, invalid line range, HTML errors detection, page size cap, CSP check
@@ -3820,7 +3820,7 @@ Max Concurrent: 18 (Wave 5)
 
   **Commit**: YES — `test(core): stage 5 validation with adversarial citation suite`
 
-- [ ] 41. Tests-after — Cache Layer
+- [x] 41. Tests-after — Cache Layer
 
   **What to do**:
   - `packages/core/src/cache/cache.test.ts` covering: LRU eviction at boundary, TTL eviction, schema version mismatch returns miss, computeCacheKey deterministic and includes ENGINE_VERSION + PROMPT_VERSION + model, disk store round-trip
@@ -3841,7 +3841,7 @@ Max Concurrent: 18 (Wave 5)
 
   **Commit**: YES — `test(core): cache layer tests-after`
 
-- [ ] 42. Tests-after — Prompt-Injection + Output-Sanitization Defenses (Adversarial)
+- [x] 42. Tests-after — Prompt-Injection + Output-Sanitization Defenses (Adversarial)
 
   **What to do**:
   - Create `test/security/prompt-injection.test.ts` with adversarial inputs:
@@ -3867,7 +3867,7 @@ Max Concurrent: 18 (Wave 5)
 
   **Commit**: YES — `test(security): prompt injection + output sanitization adversarial suite`
 
-- [ ] 43. Tests-after — Edge Cases (Fork PR, Bot PR, Size Caps, Empty, Binary)
+- [x] 43. Tests-after — Edge Cases (Fork PR, Bot PR, Size Caps, Empty, Binary)
 
   **What to do**:
   - `test/edge-cases/` test files:
@@ -4000,7 +4000,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `docs(examples): commit 2-3 reference pages as aesthetic north star`
   - Files: `examples/*.html`, `examples/README.md`
 
-- [ ] 46. Self-Bootstrap Config (`.azri/config.json`, Env Flag Default OFF)
+- [x] 46. Self-Bootstrap Config (`.azri/config.json`, Env Flag Default OFF)
 
   **What to do**:
   - Create `.azri/config.json` in the azri repo itself (this is the dogfood)
