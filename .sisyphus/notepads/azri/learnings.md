@@ -357,3 +357,14 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 ## T27 GitHub App auth
 - @octokit/app v16 exposes app JWT through app.octokit.auth({ type: "app" }); a small compatibility method can keep tests expecting getSignedJsonWebToken() while preserving lazy PEM parsing until JWT/installation use.
 - Boot-time GitHub App validation should call verifyConfig() for env presence only; constructing/using the App remains lazy so invalid PEM does not break /healthz.
+
+## Task T28+T29+T30 complete (2026-05-22)
+
+- `packages/core/dist/` (stale compiled output from earlier composite project ref builds) shadowed source resolution when adding new exports (`readRepoSnapshotFromGitHub`, `runAzri`). Fix: run `bun tsc -p packages/core --emitDeclarationOnly` after editing `git/index.ts` so the referenced project sees the new typings.
+- Added `@azri/adapter-hosting-local` to `apps/bot/package.json` deps + `apps/bot/tsconfig.json` references so the bot can import the hosting adapter via the workspace alias rather than relative cross-package paths (matches T15 wisdom).
+- Created `packages/core/src/git/read-repo-from-github.ts` with a minimal Octokit-based `RepoSnapshot` (owner, name, default_branch, optional README). Sufficient for PR-mode runs where the `ChangeSet` carries per-file data; a richer repo-mode snapshot is out of scope here.
+- Sticky-comment marker is `<!-- azri-marker:v1 -->`. `findExistingComment` prefers GraphQL (single round trip for 100 comments) with a REST `listComments` fallback. Both honour the marker.
+- Webhook handler returns 200 within the request lifecycle by deferring pipeline work via `setImmediate` + a global error sink (`metricsError`). Dedup keyed on `X-GitHub-Delivery` with TTL + LRU eviction.
+- Comment-command parser uses one regex `/^\/azri\s+(\w+)(?:\s+(.+))?/iu`; `focus` requires an argument. Author auth restricted to `OWNER | MEMBER | COLLABORATOR`; unauthorized = 👀 reaction + no pipeline invoke.
+- TypeScript structural composition: when several helpers expect overlapping but not identical `rest` shapes (`StickyOctokit`, `CheckRunOctokit`, `CommentCommandOctokit`, ...), an intersection type `& {…}` fails because TS sees each `rest` object as exclusive. Solution: declare a single explicit interface that merges every `rest` namespace we touch.
+- `pr-process.ts` extracted from `pr-webhook.ts` to satisfy `oxlint(max-lines)` and `import(max-dependencies)`. Verification handler stays minimal; orchestration lives in its own file.

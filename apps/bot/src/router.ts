@@ -4,12 +4,12 @@
 import { Effect } from 'effect';
 import { HttpRouter } from 'effect/unstable/http';
 import { healthzHandler } from './handlers/healthz.ts';
+import { prWebhookHandler } from './handlers/pr-webhook.ts';
 import { staticPageHandler } from './handlers/static-page.ts';
-import { webhookHandler } from './handlers/webhook-stub.ts';
 
 export const appLayer = HttpRouter.addAll([
   HttpRouter.route('GET', '/healthz', healthzHandler),
-  HttpRouter.route('POST', '/webhooks/github', webhookHandler),
+  HttpRouter.route('POST', '/webhooks/github', prWebhookHandler),
   HttpRouter.route(
     'GET',
     '/r/*',

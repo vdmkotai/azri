@@ -28,6 +28,7 @@
       "name": "@azri/bot",
       "version": "0.0.0",
       "dependencies": {
+        "@azri/adapter-hosting-local": "workspace:*",
         "@azri/core": "workspace:*",
         "@azri/types": "workspace:*",
         "effect": "4.0.0-beta.70",

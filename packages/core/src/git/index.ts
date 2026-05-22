@@ -10,6 +10,12 @@ export type { GetDefaultBranchOptions, OctokitLike } from './default-branch.ts';
 export { fetchPrFromGitHub } from './fetch-pr-from-github.ts';
 export type { FetchPrFromGitHubOptions, OctokitGitHubClient } from './fetch-pr-from-github.ts';
 
+export { readRepoSnapshotFromGitHub } from './read-repo-from-github.ts';
+export type {
+  OctokitRepoClient,
+  ReadRepoSnapshotFromGitHubOptions,
+} from './read-repo-from-github.ts';
+
 export { fetchPrLocally } from './fetch-pr-locally.ts';
 export type { FetchPrLocallyOptions } from './fetch-pr-locally.ts';
 
