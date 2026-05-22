@@ -3,7 +3,7 @@
 
 import { createHash } from 'node:crypto';
 
-export interface RenderOptions {
+export interface MermaidRenderOptions {
   theme?: 'light' | 'dark';
 }
 
@@ -45,7 +45,7 @@ function makeFallbackSvg(source: string, reason: string): string {
 
 export async function renderMermaidToSvg(
   source: string,
-  _opts: RenderOptions = {},
+  _opts: MermaidRenderOptions = {},
 ): Promise<string> {
   const key = createHash('sha256').update(source).digest('hex');
   const cached = cache.get(key);
