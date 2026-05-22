@@ -24,6 +24,11 @@
     "apps/bot": {
       "name": "@azri/bot",
       "version": "0.0.0",
+      "dependencies": {
+        "@azri/core": "workspace:*",
+        "@azri/types": "workspace:*",
+        "effect": "4.0.0-beta.70",
+      },
     },
     "apps/cli": {
       "name": "azri",

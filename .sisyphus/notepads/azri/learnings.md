@@ -311,3 +311,31 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - Component count: exactly 8 (excluding `index.ts`)
 - XSS test: HAS_RAW_SCRIPT=false, HAS_ONERROR=false, OK=true; meaningful SECURE check also true
 - Forbidden imports grep → CLEAN
+
+## T25: Self-Contained Bundler
+
+- `Buffer.byteLength(str, 'utf8')` works in Bun without import (Node global).
+- `node:crypto.createHash('sha256').digest('hex')` for content hashing.
+- All regex literals MUST have `u` flag (oxlint `require-unicode-regexp`).
+- `Array#toSorted()` requires lib ES2023+ (not in our ES2022 base). Use `Array.from(x).sort()` pattern for readonly arrays.
+- `filter((s): s is string => Boolean(s))` triggers `prefer-native-coercion-functions`. Use `!!s` instead to preserve narrowing.
+- Pre-commit hook runs full repo lint/fmt/headers — uncommitted parallel work from other agents can block T25 commit.
+
+## T26: HTTP Server (effect/unstable/http + Bun.serve)
+
+- `HttpRouter.toWebHandler(appLayer)` returns `{ handler, dispose }` — a Fetch-compatible `(req: Request) => Promise<Response>`. Wire into `Bun.serve({ fetch: handler })`. Don't manually build `HttpServerRequest.fromWeb()` + `HttpServerResponse.toWeb()`; let `toWebHandler` handle it.
+- `appLayer` is built with `HttpRouter.addAll([HttpRouter.route(method, path, handler), ...])`. This returns a `Layer.Layer<never, never, HttpRouter | ...>`.
+- Wildcard routes: `'/r/*'` is a valid `PathInput`. The captured wildcard appears in `HttpRouter.params` under key `'*'`.
+- Raw body for HMAC: in handler, use `yield* request.text` (where `request: HttpServerRequest`). `request.text` is `Effect<string, HttpServerError>`. Do NOT use `request.json` before signature verification.
+- Route handlers can be passed as `(request) => Effect<HttpServerResponse, E, R>` — Effect auto-flatMaps with the request from context. Simpler than `Effect.gen` + manual `yield* HttpServerRequest`.
+- Bun.serve gotchas: set `idleTimeout: 0` for long-running webhook processing. Always run with `bun run` (NOT `bun build` per oven-sh/bun#25630).
+- Workspace imports: `@azri/core` and `@azri/types` work via root `workspaces` array. Declare as `"workspace:*"` in apps/bot/package.json so it's explicit; also add tsconfig `references` for project-references composite builds.
+- Metrics field name collision: `metrics.ts` puts `event` (metric name) on the line, then spreads `fields` which can overwrite `event`. Always name domain fields differently — e.g. `githubEvent` not `event`.
+
+
+## T24 — Stage 4 Render
+- Cross-package composite project refs: `packages/core` referencing `packages/renderer` requires the referenced project's dist (.d.ts) to be present. Pre-built via `bun tsc -p packages/renderer --emitDeclarationOnly`. Root `bun tsc --noEmit` handles this transparently because root tsconfig orchestrates all refs.
+- `allowImportingTsExtensions` + `composite: true` conflict prevents `tsc -b`; use `--emitDeclarationOnly` for declaration-only builds when ref'd projects need d.ts.
+- Renamed `RenderOptions` in `diagrams/mermaid.ts` → `MermaidRenderOptions` to avoid namespace collision with `renderPage`'s `RenderOptions` (both bubble up via `renderer/src/index.ts`).
+- Determinism: avoid timestamps in deterministic body. `generatedAt` is opt-in via `RenderOptions.generatedAt` and only appears inside `runMeta` block when caller provides it. SHA256 over final HTML byte string.
+- CSP via `<meta http-equiv>` with `script-src 'none'` works because we emit zero `<script>` tags (all logic is server-side pre-rendered HTML+CSS).
