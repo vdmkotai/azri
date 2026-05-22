@@ -1,0 +1,3 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`AnnotatedDiff output snapshot 1`] = `"<div class="azri-annotated-diff"><div class="azri-diff-file"><div class="diff-filename">src/a.ts</div><div class="diff-body"><div class="diff-line diff-line-add">+x</div></div></div></div>"`;

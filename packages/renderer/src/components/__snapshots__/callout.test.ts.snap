@@ -1,0 +1,3 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Callout output snapshot 1`] = `"<aside class="azri-callout azri-callout-info"><div class="callout-label">Note</div><div class="callout-body"><p>Body</p></div></aside>"`;

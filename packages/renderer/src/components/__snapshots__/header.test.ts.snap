@@ -1,0 +1,3 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Header output snapshot 1`] = `"<header class="azri-header"><h1>T</h1><p class="header-summary">S</p></header>"`;
