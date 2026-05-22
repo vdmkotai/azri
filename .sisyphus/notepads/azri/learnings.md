@@ -198,6 +198,19 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 
 ---
 
+## Task T9 complete (2026-05-22)
+
+- Effect version installed: `4.0.0-beta.70`.
+- `@effect/platform-bun` version installed: `4.0.0-beta.20`.
+- `@ai-sdk/openai` version installed: `3.0.65`.
+- `@ai-sdk/google` version installed: `3.0.79`.
+- `Context.Service` works as expected on `effect@4.0.0-beta.70` for `LlmService`.
+- `ManagedRuntime` exists in this beta and works via `ManagedRuntime.make(layer)` with `runPromise`, `runPromiseExit`, and `dispose`.
+- API surface difference vs plan: `Layer.effect(LlmService, Effect<shape>)` should return the raw service shape directly; `LlmService.of(...)` was not needed for Effect 4.x beta.70.
+- `bun tsc --noEmit -p packages/core` passed after removing direct cross-package source imports from core (`packages/types/src/*`) that caused `rootDir`/project-file-list errors under package-level typecheck.
+
+---
+
 ## Task T10 complete (2026-05-22)
 
 - HostingAdapter abstraction lives in `packages/core/src/adapters/hosting.ts` as a pure interface + `pathForKey()` helper; the discriminated `PublishKey` union covers `pr` and `repo` modes only.
