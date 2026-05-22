@@ -3,6 +3,7 @@
 
 export * from './context.ts';
 export * from './cache/index.ts';
+export * from './concurrency/index.ts';
 export * from './effect/index.ts';
 export * from './git/index.ts';
 export * from './metrics.ts';
