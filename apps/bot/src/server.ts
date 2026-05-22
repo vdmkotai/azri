@@ -4,9 +4,11 @@
 import { metricsInfo, metricsWarn } from '@azri/core';
 import { HttpRouter } from 'effect/unstable/http';
 import { loadBotConfig } from './config.ts';
+import { verifyConfig } from './github/index.ts';
 import { appLayer } from './router.ts';
 
 const cfg = loadBotConfig();
+verifyConfig();
 
 if (!cfg.githubWebhookSecret) {
   metricsWarn('bot.webhook-secret-missing', {

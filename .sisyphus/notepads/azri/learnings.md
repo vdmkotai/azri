@@ -147,6 +147,12 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - Bun quirk: `bunx oxfmt@latest` touched the lockfile when formatting the new CLI file, so I re-ran `bun run check` afterward to confirm everything stayed green.
 - `detectGitContext()` returns `null` when the repo has no `origin` remote; the GitHub owner/repo detection path is working for repos that do.
 
+## Task T36 complete (2026-05-22)
+
+- `apps/cli/tsconfig.json` needs to include workspace package sources plus `package.json` when the CLI imports shared source directly; otherwise `tsc -p apps/cli` trips TS6307/rootDir errors.
+- `bun run check` caught a formatting issue in the new cost-estimate module; running `bunx oxfmt@latest <file>` fixed it cleanly without changing behavior.
+- Heuristic cost estimates for a 20-file PR landed in the expected range: Anthropic $0.1225, OpenAI $0.1261, Google $0.0368.
+
 ## Task T5 complete (2026-05-22)
 
 - Added `packages/types/src/schemas.ts` with Zod schemas for public contracts and `validateAzriConfig()`; keeping schemas parallel to handwritten TS types worked fine as long as schema constants were left unannotated.
@@ -181,6 +187,12 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - `bun -e` with absolute paths to TS files fails module resolution; use a temp `.mjs` file that imports the absolute TS path, then run with `bun /tmp/script.mjs`.
 - `bun run check` at the monorepo root will fail if any sibling package has lint warnings or missing headers — even untracked files. Use targeted `bunx oxlint <path>` / `bunx oxfmt --check <path>` for per-package verification.
 - `oxfmt` reformats HTML files too — initial preview-tokens.html needed an auto-format pass.
+
+## Task T35 CLI progress UI + browser opener (2026-05-22)
+
+- `apps/cli/tsconfig.json` needs to include workspace package sources plus `apps/cli/package.json` when the CLI imports shared source directly; otherwise `tsc -p apps/cli` trips TS6307/rootDir errors.
+- `bun run check` surfaced pre-existing lint/format issues in unrelated files (`apps/bot/src/github/app.ts`, `apps/bot/src/self-bootstrap.ts`, `apps/cli/src/cost-estimate.ts`) that had to be cleaned before the repo gate would pass.
+- The progress UI is safest when it defaults to `process.stdout.isTTY && !process.env.CI` but writes to `stderr`, keeping stdout clean for JSON mode.
 
 ### Files added (T6)
 - `packages/renderer/src/design-system/tokens.ts` (TS-typed token objects)
@@ -339,3 +351,9 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - Renamed `RenderOptions` in `diagrams/mermaid.ts` → `MermaidRenderOptions` to avoid namespace collision with `renderPage`'s `RenderOptions` (both bubble up via `renderer/src/index.ts`).
 - Determinism: avoid timestamps in deterministic body. `generatedAt` is opt-in via `RenderOptions.generatedAt` and only appears inside `runMeta` block when caller provides it. SHA256 over final HTML byte string.
 - CSP via `<meta http-equiv>` with `script-src 'none'` works because we emit zero `<script>` tags (all logic is server-side pre-rendered HTML+CSS).
+
+- T46: `selfBootstrap` must stay default-off in `.azri/config.json`; `shouldProcessPr` should gate only Azri's own repo on `AZRI_SELF_BOOTSTRAP=true`, and reuse `validateAzriConfig` via `@azri/types`.
+
+## T27 GitHub App auth
+- @octokit/app v16 exposes app JWT through app.octokit.auth({ type: "app" }); a small compatibility method can keep tests expecting getSignedJsonWebToken() while preserving lazy PEM parsing until JWT/installation use.
+- Boot-time GitHub App validation should call verifyConfig() for env presence only; constructing/using the App remains lazy so invalid PEM does not break /healthz.
