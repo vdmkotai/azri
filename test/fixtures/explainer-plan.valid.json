@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "title": "Add WebSocket upgrade handler to HttpRouter",
+  "summary": "Introduces HttpRouter.upgrade() method.",
+  "sections": [
+    {
+      "id": "s1",
+      "title": "Overview",
+      "importance": "critical",
+      "sectionType": "overview",
+      "files": ["packages/http/src/HttpRouter.ts"],
+      "proseMarkdown": "See HttpRouter.ts:418 for the new upgrade() method.",
+      "evidencePacketIds": ["p1"]
+    }
+  ],
+  "collapsedFiles": [],
+  "diagramSpecs": [],
+  "risks": []
+}
