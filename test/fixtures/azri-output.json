@@ -1,0 +1,130 @@
+{
+  "kind": "ok",
+  "htmlBundle": {
+    "html": "<!doctype html><html><head><meta charset=\"utf-8\"><title>Azri — test-org/test-repo PR #42</title></head><body><main><h1>Harden session tokens and add initial users migration</h1><p>Stub HTML body used by cache-hit tests.</p></main></body></html>",
+    "sizeBytes": 248,
+    "contentHash": "sha256:1f2e3d4c5b6a7980abcdef0123456789012345678901234567890abcdefabcdef"
+  },
+  "explainerPlan": {
+    "schemaVersion": 1,
+    "title": "Harden session tokens and add initial users migration",
+    "summary": "Switches session token generation to `crypto.randomBytes`, adds an `issuedAt` timestamp to Session, gates `/health` behind `authenticate`, and introduces the first `users` migration.",
+    "sections": [
+      {
+        "id": "sec_overview",
+        "title": "Overview",
+        "importance": "critical",
+        "sectionType": "overview",
+        "files": ["src/auth/session.ts", "src/api/handlers.ts", "src/db/migrations/0001_initial.ts"],
+        "proseMarkdown": "Three coordinated changes that tighten authentication and seed the user data model.",
+        "evidencePacketIds": ["pkt_session_create", "pkt_handlers_auth", "pkt_initial_migration"]
+      },
+      {
+        "id": "sec_narrative",
+        "title": "What changed",
+        "importance": "important",
+        "sectionType": "narrative",
+        "files": ["src/auth/session.ts"],
+        "proseMarkdown": "`createSession` now produces a 64-character hex token from 32 random bytes and stamps the issue time onto the returned record.",
+        "evidencePacketIds": ["pkt_session_create"]
+      },
+      {
+        "id": "sec_diff",
+        "title": "Annotated diff",
+        "importance": "important",
+        "sectionType": "annotated-diff",
+        "files": ["src/auth/session.ts", "src/api/handlers.ts", "src/db/migrations/0001_initial.ts"],
+        "evidencePacketIds": ["pkt_session_create", "pkt_handlers_auth", "pkt_initial_migration"]
+      }
+    ],
+    "collapsedFiles": [],
+    "diagramSpecs": [],
+    "risks": [
+      {
+        "severity": "warn",
+        "category": "auth",
+        "summary": "Existing sessions issued under the old UUID scheme will continue to be accepted; consider invalidating them in a follow-up.",
+        "citations": [
+          { "file": "src/auth/session.ts", "lineStart": 12, "lineEnd": 22, "kind": "code" }
+        ]
+      },
+      {
+        "severity": "info",
+        "category": "schema-migration",
+        "summary": "First migration creates the `users` table; verify the migration runner picks up `0001_initial` in CI.",
+        "citations": [
+          { "file": "src/db/migrations/0001_initial.ts", "lineStart": 1, "lineEnd": 18, "kind": "code" }
+        ]
+      }
+    ]
+  },
+  "evidenceGraph": {
+    "packets": {
+      "pkt_session_create": {
+        "id": "pkt_session_create",
+        "path": "src/auth/session.ts",
+        "lineRange": { "start": 12, "end": 22 },
+        "symbols": ["createSession", "Session"],
+        "summary": "Token generation switched to crypto.randomBytes; adds issuedAt.",
+        "riskSignals": ["auth", "secrets-exposure"],
+        "importance": 0.92,
+        "citations": [
+          { "file": "src/auth/session.ts", "lineStart": 12, "lineEnd": 22, "kind": "code" }
+        ]
+      },
+      "pkt_handlers_auth": {
+        "id": "pkt_handlers_auth",
+        "path": "src/api/handlers.ts",
+        "lineRange": { "start": 1, "end": 7 },
+        "symbols": ["router", "authenticate"],
+        "summary": "Adds authenticate middleware to /health; file renamed from routes.ts.",
+        "riskSignals": ["api-contract", "auth"],
+        "importance": 0.71,
+        "citations": [
+          { "file": "src/api/handlers.ts", "lineStart": 1, "lineEnd": 7, "kind": "code" }
+        ]
+      },
+      "pkt_initial_migration": {
+        "id": "pkt_initial_migration",
+        "path": "src/db/migrations/0001_initial.ts",
+        "lineRange": { "start": 1, "end": 18 },
+        "symbols": ["migration"],
+        "summary": "Initial users-table migration.",
+        "riskSignals": ["schema-migration"],
+        "importance": 0.88,
+        "citations": [
+          { "file": "src/db/migrations/0001_initial.ts", "lineStart": 1, "lineEnd": 18, "kind": "code" }
+        ]
+      }
+    },
+    "citations": [
+      { "file": "src/auth/session.ts", "lineStart": 12, "lineEnd": 22, "kind": "code" },
+      { "file": "src/api/handlers.ts", "lineStart": 1, "lineEnd": 7, "kind": "code" },
+      { "file": "src/db/migrations/0001_initial.ts", "lineStart": 1, "lineEnd": 18, "kind": "code" }
+    ],
+    "lookupByFile": {
+      "src/auth/session.ts": ["pkt_session_create"],
+      "src/api/handlers.ts": ["pkt_handlers_auth"],
+      "src/db/migrations/0001_initial.ts": ["pkt_initial_migration"]
+    }
+  },
+  "metadata": {
+    "runId": "run_test_fixture_0001",
+    "engineVersion": "0.0.0-test",
+    "promptVersion": "0.0.0-test",
+    "model": "claude-sonnet-4-5",
+    "durationMs": 12340,
+    "tokensIn": 8123,
+    "tokensOut": 1842,
+    "costUsd": 0.0241,
+    "cacheHit": false,
+    "stageDurations": {
+      "stage0": 120,
+      "stage1": 3210,
+      "stage2": 2104,
+      "stage3": 2840,
+      "stage4": 3500,
+      "stage5": 566
+    }
+  }
+}

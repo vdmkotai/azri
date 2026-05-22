@@ -1,0 +1,41 @@
+{
+  "kept": [
+    {
+      "path": "src/auth/session.ts",
+      "status": "modified",
+      "patch": "@@ -10,7 +10,12 @@ export interface Session {\n }\n \n export function createSession(userId: string): Session {\n-  const token = crypto.randomUUID();\n+  const token = crypto.randomBytes(32).toString('hex');\n   const expiresAt = Date.now() + 24 * 60 * 60 * 1000;\n-  return { userId, token, expiresAt };\n+  return {\n+    userId,\n+    token,\n+    expiresAt,\n+    issuedAt: Date.now(),\n+  };\n }",
+      "additions": 7,
+      "deletions": 2,
+      "isBinary": false,
+      "isGenerated": false
+    },
+    {
+      "path": "src/api/handlers.ts",
+      "status": "renamed",
+      "patch": "@@ -1,5 +1,6 @@\n import { Router } from 'express';\n+import { authenticate } from '../auth/session.ts';\n \n export const router = Router();\n \n-router.get('/health', (_req, res) => res.json({ status: 'ok' }));\n+router.get('/health', authenticate, (_req, res) => res.json({ status: 'ok' }));",
+      "additions": 2,
+      "deletions": 1,
+      "isBinary": false,
+      "isGenerated": false
+    },
+    {
+      "path": "src/db/migrations/0001_initial.ts",
+      "status": "added",
+      "patch": "@@ -0,0 +1,18 @@\n+import type { Migration } from '../types.ts';\n+\n+export const migration: Migration = {\n+  id: '0001_initial',\n+  up: async (db) => {\n+    await db.schema.createTable('users', (t) => {\n+      t.uuid('id').primaryKey();\n+      t.string('email').unique().notNullable();\n+      t.timestamp('created_at').defaultTo(db.fn.now());\n+    });\n+  },\n+  down: async (db) => {\n+    await db.schema.dropTable('users');\n+  },\n+};\n+\n+export default migration;",
+      "additions": 17,
+      "deletions": 0,
+      "isBinary": false,
+      "isGenerated": false
+    }
+  ],
+  "skipped": [],
+  "stats": {
+    "totalFiles": 3,
+    "totalAdditions": 26,
+    "totalDeletions": 3,
+    "binaryFiles": 0,
+    "generatedFiles": 0,
+    "submoduleChanges": 0
+  },
+  "outcome": "proceed"
+}

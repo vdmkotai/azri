@@ -828,7 +828,7 @@ Max Concurrent: 18 (Wave 5)
 
 ### Wave 1 — Foundation (all parallel, start immediately)
 
-- [ ] 1. Project Scaffolding + Bun Workspaces + TypeScript + Oxlint + Oxfmt
+- [x] 1. Project Scaffolding + Bun Workspaces + TypeScript + Oxlint + Oxfmt
 
   **What to do**:
   - Initialize `package.json` at repo root with Bun workspaces config (`workspaces: ["packages/*", "apps/*"]`)
@@ -985,7 +985,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `chore: init bun workspaces monorepo with tsconfig + oxlint + oxfmt`
   - Files: `package.json`, `tsconfig.json`, `tsconfig.base.json`, `bun.lockb`, `.gitignore`, `.oxlintrc.json`, `.oxfmtrc.json`, `.editorconfig`, `scripts/pre-commit.ts`, `packages/*/package.json`, `apps/*/package.json`, directory `.gitkeep` files
 
-- [ ] 2. SMOKE TEST: AI SDK + Bun + jsonTool + Prompt Caching (CRITICAL BLOCKER)
+- [x] 2. SMOKE TEST: AI SDK + Bun + jsonTool + Prompt Caching (CRITICAL BLOCKER)
 
   **What to do**:
   - Create `scripts/smoke-ai-sdk.ts`
@@ -1058,7 +1058,7 @@ Max Concurrent: 18 (Wave 5)
   - Files: `scripts/smoke-ai-sdk.ts`, `scripts/SMOKE_NOTES.md`, `package.json` (add `ai`, `@ai-sdk/anthropic`, `zod` deps)
   - Pre-commit: `bun tsc --noEmit scripts/smoke-ai-sdk.ts`
 
-- [ ] 3. Apache 2.0 License + Per-File Header Enforcement (Custom Bun Script — Oxlint Has No Plugin)
+- [x] 3. Apache 2.0 License + Per-File Header Enforcement (Custom Bun Script — Oxlint Has No Plugin)
 
   **What to do**:
   - Add `LICENSE` (Apache 2.0 full text) to repo root
@@ -1161,7 +1161,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `chore: enforce apache-2.0 headers via custom bun script`
   - Files: `LICENSE`, `NOTICE`, `scripts/check-headers.ts`, `scripts/fix-headers.ts`, any source files with headers applied during bootstrap
 
-- [ ] 4. Shared TypeScript Types (`packages/types`)
+- [x] 4. Shared TypeScript Types (`packages/types`)
 
   **What to do**:
   - Create `packages/types/src/index.ts` exporting:
@@ -1340,7 +1340,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(types): add zod schemas with jsonTool-friendly shape`
   - Files: `packages/types/src/schemas.ts`, `test/fixtures/explainer-plan.{valid,invalid}.json`
 
-- [ ] 6. Design System Tokens (Typography, Palette, Spacing, CSS Reset)
+- [x] 6. Design System Tokens (Typography, Palette, Spacing, CSS Reset)
 
   **What to do**:
   - Create `packages/renderer/src/design-system/tokens.ts` with TypeScript-typed token objects:
@@ -1421,7 +1421,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(renderer): design system tokens (2 typefaces, 4 colors, 3 severity)`
   - Files: `packages/renderer/src/design-system/{tokens.ts,css.ts}`, `packages/renderer/src/fonts/*.woff2.base64.ts`, `packages/renderer/dev/preview-tokens.html`
 
-- [ ] 7. Logging Utility (pino with required fields)
+- [x] 7. Logging Utility (pino with required fields)
 
   **What to do**:
   - Create `packages/core/src/logging.ts` exporting `createLogger(context: { runId?: string, repoId?: string, prNumber?: number })`
@@ -1481,7 +1481,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(core): pino logger with redaction of code/secrets`
   - Files: `packages/core/src/logging.ts`, `packages/core/package.json` (add `pino`, `pino-pretty` deps)
 
-- [ ] 8. CLI Scaffold (`apps/cli`)
+- [x] 8. CLI Scaffold (`apps/cli`)
 
   **What to do**:
   - Create `apps/cli/src/cli.ts` as the binary entrypoint

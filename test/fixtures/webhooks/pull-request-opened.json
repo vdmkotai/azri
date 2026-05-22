@@ -1,0 +1,82 @@
+{
+  "action": "opened",
+  "number": 42,
+  "pull_request": {
+    "url": "https://api.github.com/repos/test-org/test-repo/pulls/42",
+    "id": 9876543210,
+    "node_id": "PR_kwDOTESTNODE42",
+    "html_url": "https://github.com/test-org/test-repo/pull/42",
+    "number": 42,
+    "state": "open",
+    "locked": false,
+    "title": "Harden session tokens and add initial users migration",
+    "user": {
+      "login": "pat-contributor",
+      "id": 1001,
+      "node_id": "MDQ6VXNlcjEwMDE=",
+      "type": "User",
+      "site_admin": false
+    },
+    "body": "Switches session token generation to `crypto.randomBytes` and introduces the first users migration. Wires `authenticate` middleware in front of `/health`.",
+    "created_at": "2026-05-22T11:55:30Z",
+    "updated_at": "2026-05-22T11:55:30Z",
+    "merged_at": null,
+    "head": {
+      "label": "test-org:feat/harden-session",
+      "ref": "feat/harden-session",
+      "sha": "f9e8d7c6b5a4938271605142536475869708abcd",
+      "user": { "login": "test-org", "id": 9001, "type": "Organization" },
+      "repo": {
+        "id": 123,
+        "node_id": "R_kgDOTESTREPO123",
+        "name": "test-repo",
+        "full_name": "test-org/test-repo",
+        "private": false,
+        "owner": { "login": "test-org", "id": 9001, "type": "Organization" },
+        "html_url": "https://github.com/test-org/test-repo",
+        "default_branch": "main"
+      }
+    },
+    "base": {
+      "label": "test-org:main",
+      "ref": "main",
+      "sha": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+      "user": { "login": "test-org", "id": 9001, "type": "Organization" },
+      "repo": {
+        "id": 123,
+        "node_id": "R_kgDOTESTREPO123",
+        "name": "test-repo",
+        "full_name": "test-org/test-repo",
+        "private": false,
+        "owner": { "login": "test-org", "id": 9001, "type": "Organization" },
+        "html_url": "https://github.com/test-org/test-repo",
+        "default_branch": "main"
+      }
+    },
+    "draft": false,
+    "merged": false,
+    "additions": 26,
+    "deletions": 3,
+    "changed_files": 3
+  },
+  "repository": {
+    "id": 123,
+    "node_id": "R_kgDOTESTREPO123",
+    "name": "test-repo",
+    "full_name": "test-org/test-repo",
+    "private": false,
+    "owner": { "login": "test-org", "id": 9001, "type": "Organization" },
+    "html_url": "https://github.com/test-org/test-repo",
+    "default_branch": "main"
+  },
+  "sender": {
+    "login": "pat-contributor",
+    "id": 1001,
+    "type": "User",
+    "site_admin": false
+  },
+  "installation": {
+    "id": 555000,
+    "node_id": "MDIzOkluc3RhbGxhdGlvbjU1NTAwMA=="
+  }
+}

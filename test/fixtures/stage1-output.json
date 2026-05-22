@@ -1,0 +1,54 @@
+{
+  "evidenceGraph": {
+    "packets": {
+      "pkt_session_create": {
+        "id": "pkt_session_create",
+        "path": "src/auth/session.ts",
+        "lineRange": { "start": 12, "end": 22 },
+        "symbols": ["createSession", "Session"],
+        "summary": "Session token generation switched from `crypto.randomUUID()` to `crypto.randomBytes(32).toString('hex')`. Adds an `issuedAt` timestamp to the returned Session payload.",
+        "riskSignals": ["auth", "secrets-exposure"],
+        "importance": 0.92,
+        "citations": [
+          { "file": "src/auth/session.ts", "lineStart": 12, "lineEnd": 22, "kind": "code" }
+        ]
+      },
+      "pkt_handlers_auth": {
+        "id": "pkt_handlers_auth",
+        "path": "src/api/handlers.ts",
+        "lineRange": { "start": 1, "end": 7 },
+        "symbols": ["router", "authenticate"],
+        "summary": "Adds `authenticate` middleware to the `/health` route. The file was also renamed from `src/api/routes.ts`.",
+        "riskSignals": ["api-contract", "auth"],
+        "importance": 0.71,
+        "citations": [
+          { "file": "src/api/handlers.ts", "lineStart": 1, "lineEnd": 7, "kind": "code" },
+          { "file": "src/auth/session.ts", "lineStart": 1, "lineEnd": 5, "kind": "code" }
+        ]
+      },
+      "pkt_initial_migration": {
+        "id": "pkt_initial_migration",
+        "path": "src/db/migrations/0001_initial.ts",
+        "lineRange": { "start": 1, "end": 18 },
+        "symbols": ["migration", "Migration"],
+        "summary": "Introduces the first schema migration: creates a `users` table with `id`, `email` (unique, not null), and `created_at`.",
+        "riskSignals": ["schema-migration"],
+        "importance": 0.88,
+        "citations": [
+          { "file": "src/db/migrations/0001_initial.ts", "lineStart": 1, "lineEnd": 18, "kind": "code" }
+        ]
+      }
+    },
+    "citations": [
+      { "file": "src/auth/session.ts", "lineStart": 12, "lineEnd": 22, "kind": "code" },
+      { "file": "src/api/handlers.ts", "lineStart": 1, "lineEnd": 7, "kind": "code" },
+      { "file": "src/auth/session.ts", "lineStart": 1, "lineEnd": 5, "kind": "code" },
+      { "file": "src/db/migrations/0001_initial.ts", "lineStart": 1, "lineEnd": 18, "kind": "code" }
+    ],
+    "lookupByFile": {
+      "src/auth/session.ts": ["pkt_session_create", "pkt_handlers_auth"],
+      "src/api/handlers.ts": ["pkt_handlers_auth"],
+      "src/db/migrations/0001_initial.ts": ["pkt_initial_migration"]
+    }
+  }
+}

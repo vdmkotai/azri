@@ -1,0 +1,77 @@
+{
+  "mode": "pr",
+  "repo": {
+    "owner": "test-org",
+    "name": "test-repo",
+    "defaultBranch": "main",
+    "readme": "# test-repo\n\nA synthetic repository used by Azri's test suite.\n",
+    "languages": {
+      "TypeScript": 18432,
+      "JSON": 1240
+    },
+    "packageManifests": {
+      "package.json": "{\n  \"name\": \"test-repo\",\n  \"version\": \"0.1.0\",\n  \"type\": \"module\"\n}\n"
+    },
+    "fileTree": [
+      { "path": "src/auth/session.ts", "sizeBytes": 1240, "lineCount": 48, "lastModifiedAt": "2026-05-20T10:14:00Z", "lastModifiedCommitsCount": 4 },
+      { "path": "src/api/handlers.ts", "sizeBytes": 980, "lineCount": 32, "lastModifiedAt": "2026-05-19T08:30:00Z", "lastModifiedCommitsCount": 2 },
+      { "path": "src/db/migrations/0001_initial.ts", "sizeBytes": 540, "lineCount": 18, "lastModifiedAt": "2026-05-22T11:00:00Z", "lastModifiedCommitsCount": 1 },
+      { "path": "package.json", "sizeBytes": 220, "lineCount": 8, "lastModifiedAt": "2026-04-01T00:00:00Z", "lastModifiedCommitsCount": 1 }
+    ],
+    "capturedAt": "2026-05-22T12:00:00Z"
+  },
+  "change": {
+    "baseSha": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678",
+    "headSha": "f9e8d7c6b5a4938271605142536475869708abcd",
+    "files": [
+      {
+        "path": "src/auth/session.ts",
+        "status": "modified",
+        "patch": "@@ -10,7 +10,12 @@ export interface Session {\n }\n \n export function createSession(userId: string): Session {\n-  const token = crypto.randomUUID();\n+  const token = crypto.randomBytes(32).toString('hex');\n   const expiresAt = Date.now() + 24 * 60 * 60 * 1000;\n-  return { userId, token, expiresAt };\n+  return {\n+    userId,\n+    token,\n+    expiresAt,\n+    issuedAt: Date.now(),\n+  };\n }",
+        "additions": 7,
+        "deletions": 2,
+        "isBinary": false,
+        "isGenerated": false
+      },
+      {
+        "path": "src/api/handlers.ts",
+        "status": "renamed",
+        "patch": "@@ -1,5 +1,6 @@\n import { Router } from 'express';\n+import { authenticate } from '../auth/session.ts';\n \n export const router = Router();\n \n-router.get('/health', (_req, res) => res.json({ status: 'ok' }));\n+router.get('/health', authenticate, (_req, res) => res.json({ status: 'ok' }));",
+        "additions": 2,
+        "deletions": 1,
+        "isBinary": false,
+        "isGenerated": false
+      },
+      {
+        "path": "src/db/migrations/0001_initial.ts",
+        "status": "added",
+        "patch": "@@ -0,0 +1,18 @@\n+import type { Migration } from '../types.ts';\n+\n+export const migration: Migration = {\n+  id: '0001_initial',\n+  up: async (db) => {\n+    await db.schema.createTable('users', (t) => {\n+      t.uuid('id').primaryKey();\n+      t.string('email').unique().notNullable();\n+      t.timestamp('created_at').defaultTo(db.fn.now());\n+    });\n+  },\n+  down: async (db) => {\n+    await db.schema.dropTable('users');\n+  },\n+};\n+\n+export default migration;",
+        "additions": 17,
+        "deletions": 0,
+        "isBinary": false,
+        "isGenerated": false
+      }
+    ],
+    "commits": [
+      {
+        "sha": "f9e8d7c6b5a4938271605142536475869708abcd",
+        "message": "feat(auth): harden session token + add migration",
+        "authorName": "Pat Contributor",
+        "authoredAt": "2026-05-22T11:55:00Z"
+      }
+    ],
+    "prMetadata": {
+      "number": 42,
+      "title": "Harden session tokens and add initial users migration",
+      "body": "Switches session token generation to `crypto.randomBytes` and introduces the first users migration. Wires `authenticate` middleware in front of `/health` to validate auth coverage in tests.",
+      "head": { "sha": "f9e8d7c6b5a4938271605142536475869708abcd", "repo": { "id": 12345 } },
+      "base": { "sha": "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678", "repo": { "id": 12345 } },
+      "user": { "type": "User" }
+    }
+  },
+  "config": {
+    "maxFiles": 100,
+    "maxLines": 5000,
+    "telemetry": false
+  }
+}

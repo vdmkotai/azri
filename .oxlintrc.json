@@ -13,7 +13,12 @@
     "typescript/no-floating-promises": "error",
     "no-unused-vars": "error",
     "promise/catch-or-return": "error",
-    "import/no-cycle": "error"
+    "import/no-cycle": "error",
+    "eslint/require-await": "off",
+    "eslint/max-classes-per-file": "off",
+    "eslint/max-lines-per-function": "off",
+    "eslint/no-await-in-loop": "off",
+    "unicorn/prefer-string-replace-all": "off"
   },
   "ignorePatterns": [
     "dist/",

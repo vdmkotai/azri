@@ -18,6 +18,11 @@
     ".sisyphus/",
     "azri-out/",
     "pages-data/",
+    "test/fixtures/README.md",
+    "test/fixtures/azri-output.json",
+    "test/fixtures/pr-input.json",
+    "test/fixtures/stage0-input.json",
+    "test/fixtures/stage1-output.json",
     "test/fixtures/test-private-key.pem",
     "examples/*.html",
     "azri-explainer.html"
