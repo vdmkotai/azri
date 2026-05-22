@@ -108,6 +108,12 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - Gotchas encountered: `bun tsc` needed a local `typescript` devDependency; `.oxfmtrc.json` needed broader ignore patterns for existing `.sisyphus/` artifacts and `azri-explainer.html`; oxlint regexes needed the `u` flag.
 - Files created: 46
 
+## Task T7 complete (2026-05-22)
+
+- Custom structured JSON logger added in `packages/core/src/metrics.ts` with `AsyncLocalStorage` request context from `packages/core/src/context.ts`.
+- Verified `requestId` propagation, span timing, quiet mode suppression, forbidden-key filtering, and secret redaction.
+- `bun run check` passes after fixing pre-existing lint/format/header issues surfaced during validation.
+
 ---
 
 ## Task T2 complete (2026-05-22 19:39:44 +0400)
@@ -131,3 +137,46 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - `AzriRunOutput` kept as a discriminated union on `kind` with the required v1 variants only.
 - `packages/types/tsconfig.json` needed `compilerOptions.types = []` so the pure-types package could typecheck without Bun ambient types.
 - No forbidden v1 persona/audience or `SubPage` types were added.
+
+---
+
+## Task T6 complete (2026-05-22)
+
+### Design system locked vocabulary
+- **Base colors**: 4 buckets (`text`, `background`, `accent`, `severity`)
+- **Severity sub-tokens**: 3 (`info`, `warn`, `critical`)
+- **Typefaces**: 2 (`serif` = EB Garamond fallback stack, `mono` = system mono stack)
+- **Spacing scale**: 8 steps (xs:4 → 4xl:64) on a 4px-flexible grid
+- **Radii**: 3 (sm:4, md:8, lg:12)
+- **Shadows**: 2 (subtle, lifted)
+- **Breakpoints**: 2 (mobile:480, desktop:768)
+
+### Palette choices
+- Light theme uses a warm off-white background (`#fdfcf7`) instead of pure white — paired with a deep slate text (`#1a202c`) for editorial feel.
+- Accent is a balanced blue (`#2b6cb0`) that doesn't fight serif typography (avoids the AI-slop purple).
+- Severity tones in light theme are deliberately desaturated (terra-cotta warn, oxblood critical) — these read as "thoughtful" rather than "alarming dashboard".
+- Dark theme uses `#161616` (true near-black) not the usual blue-gray; severities brighten for legibility.
+
+### CSS architecture
+- `RESET_CSS` is intentionally minimal (5 rules) — only `box-sizing`, smooth scroll, body defaults, fluid images, button font inheritance.
+- `tokenCss(ds, dark)` generates `:root` CSS variables + a `@media (prefers-color-scheme:dark)` block.
+- `applyDesignTokens(user?)` merges `UserTokens` partials onto defaults with explicit `??` fallbacks (no deep-merge libs).
+
+### Gotchas
+- `bun -e` with absolute paths to TS files fails module resolution; use a temp `.mjs` file that imports the absolute TS path, then run with `bun /tmp/script.mjs`.
+- `bun run check` at the monorepo root will fail if any sibling package has lint warnings or missing headers — even untracked files. Use targeted `bunx oxlint <path>` / `bunx oxfmt --check <path>` for per-package verification.
+- `oxfmt` reformats HTML files too — initial preview-tokens.html needed an auto-format pass.
+
+### Files added (T6)
+- `packages/renderer/src/design-system/tokens.ts` (TS-typed token objects)
+- `packages/renderer/src/design-system/css.ts` (RESET_CSS, tokenCss(), TOKEN_CSS, applyDesignTokens())
+- `packages/renderer/src/design-system/index.ts` (barrel)
+- `packages/renderer/dev/preview-tokens.html` (visual QA aid, committed under dev/)
+
+### Acceptance verified
+- `bun tsc --noEmit -p packages/renderer` → exit 0
+- BASE_COLOR_KEYS count = 4 ✓
+- SEVERITY_KEYS count = 3 ✓
+- TYPEFACE_KEYS count = 2 ✓
+- Forbidden imports (tailwind/@apply/lucide/heroicons/fontawesome/emotion/styled-components) → CLEAN
+- Preview HTML exists at dev/preview-tokens.html ✓

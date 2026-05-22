@@ -1,0 +1,401 @@
+<!-- SPDX-License-Identifier: Apache-2.0 -->
+<!-- Copyright (c) 2026 Azri contributors -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Azri — Design Token Preview</title>
+    <style>
+      /* Locked design tokens — kept literal here for static QA aid. */
+      :root {
+        --color-text: #1a202c;
+        --color-bg: #fdfcf7;
+        --color-accent: #2b6cb0;
+        --severity-info: #2c5282;
+        --severity-warn: #9c4221;
+        --severity-critical: #9b2c2c;
+
+        --typeface-serif: 'EB Garamond', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+        --typeface-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+        --space-xs: 4px;
+        --space-sm: 8px;
+        --space-md: 12px;
+        --space-lg: 16px;
+        --space-xl: 24px;
+        --space-2xl: 32px;
+        --space-3xl: 48px;
+        --space-4xl: 64px;
+
+        --radius-sm: 4px;
+        --radius-md: 8px;
+        --radius-lg: 12px;
+
+        --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.04);
+        --shadow-lifted: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+        --dark-text: #e2e8f0;
+        --dark-bg: #161616;
+        --dark-accent: #63b3ed;
+        --dark-info: #4299e1;
+        --dark-warn: #ed8936;
+        --dark-critical: #fc8181;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        background: var(--color-bg);
+        color: var(--color-text);
+        font-family: var(--typeface-serif);
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        padding: var(--space-3xl) var(--space-xl);
+        line-height: 1.6;
+      }
+
+      main {
+        max-width: 880px;
+        margin: 0 auto;
+      }
+
+      header {
+        border-bottom: 1px solid rgba(26, 32, 44, 0.12);
+        padding-bottom: var(--space-xl);
+        margin-bottom: var(--space-3xl);
+      }
+      header h1 {
+        font-family: var(--typeface-serif);
+        font-size: 48px;
+        margin: 0 0 var(--space-sm);
+        letter-spacing: -0.02em;
+      }
+      header p {
+        font-family: var(--typeface-mono);
+        font-size: 13px;
+        color: var(--color-accent);
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      section {
+        margin-bottom: var(--space-3xl);
+      }
+      section > h2 {
+        font-family: var(--typeface-serif);
+        font-size: 28px;
+        font-weight: 600;
+        margin: 0 0 var(--space-lg);
+        padding-bottom: var(--space-xs);
+        border-bottom: 2px solid var(--color-text);
+        letter-spacing: -0.01em;
+      }
+
+      .swatch-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: var(--space-md);
+      }
+      .swatch {
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        box-shadow: var(--shadow-subtle);
+        border: 1px solid rgba(26, 32, 44, 0.08);
+      }
+      .swatch .chip {
+        height: 80px;
+      }
+      .swatch .meta {
+        padding: var(--space-sm) var(--space-md);
+        font-family: var(--typeface-mono);
+        font-size: 12px;
+        background: var(--color-bg);
+        display: flex;
+        justify-content: space-between;
+      }
+      .swatch .meta strong {
+        font-weight: 600;
+      }
+
+      .dark-frame {
+        background: var(--dark-bg);
+        padding: var(--space-xl);
+        border-radius: var(--radius-lg);
+        margin-top: var(--space-md);
+      }
+      .dark-frame .swatch .meta {
+        background: var(--dark-bg);
+        color: var(--dark-text);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      h1.demo,
+      h2.demo,
+      h3.demo,
+      h4.demo,
+      p.demo {
+        margin: 0 0 var(--space-md);
+        font-family: var(--typeface-serif);
+      }
+      h1.demo {
+        font-size: 56px;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+      }
+      h2.demo {
+        font-size: 36px;
+        letter-spacing: -0.01em;
+        line-height: 1.15;
+      }
+      h3.demo {
+        font-size: 24px;
+        line-height: 1.25;
+      }
+      h4.demo {
+        font-size: 18px;
+        line-height: 1.35;
+      }
+      p.demo {
+        font-size: 18px;
+        max-width: 60ch;
+      }
+      pre.demo {
+        font-family: var(--typeface-mono);
+        font-size: 14px;
+        background: #f3efe2;
+        padding: var(--space-md) var(--space-lg);
+        border-radius: var(--radius-sm);
+        border-left: 3px solid var(--color-accent);
+        overflow-x: auto;
+        margin: var(--space-md) 0;
+      }
+
+      .spacing-row {
+        display: flex;
+        align-items: flex-end;
+        gap: var(--space-sm);
+        flex-wrap: wrap;
+      }
+      .spacing-box {
+        background: var(--color-accent);
+        border-radius: var(--radius-sm);
+        position: relative;
+        min-width: 4px;
+      }
+      .spacing-box::after {
+        content: attr(data-label);
+        position: absolute;
+        bottom: -22px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-family: var(--typeface-mono);
+        font-size: 11px;
+        white-space: nowrap;
+        color: var(--color-text);
+      }
+
+      .radii-row,
+      .shadow-row {
+        display: flex;
+        gap: var(--space-xl);
+        flex-wrap: wrap;
+      }
+      .radii-box {
+        width: 96px;
+        height: 96px;
+        background: var(--color-text);
+        color: var(--color-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--typeface-mono);
+        font-size: 12px;
+      }
+      .shadow-box {
+        width: 140px;
+        height: 96px;
+        background: var(--color-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--typeface-mono);
+        font-size: 12px;
+        border-radius: var(--radius-md);
+      }
+
+      .severity-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-md);
+      }
+      .severity-card {
+        padding: var(--space-md) var(--space-lg);
+        border-radius: var(--radius-md);
+        font-family: var(--typeface-mono);
+        font-size: 13px;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Azri Design Tokens</h1>
+        <p>Locked vocabulary · 2 typefaces · 4 colors + 3 severity</p>
+      </header>
+
+      <section>
+        <h2>Color · Base (light)</h2>
+        <div class="swatch-row">
+          <div class="swatch">
+            <div class="chip" style="background: #1a202c"></div>
+            <div class="meta"><strong>text</strong><span>#1a202c</span></div>
+          </div>
+          <div class="swatch">
+            <div
+              class="chip"
+              style="background: #fdfcf7; border-bottom: 1px solid rgba(0, 0, 0, 0.08)"
+            ></div>
+            <div class="meta"><strong>background</strong><span>#fdfcf7</span></div>
+          </div>
+          <div class="swatch">
+            <div class="chip" style="background: #2b6cb0"></div>
+            <div class="meta"><strong>accent</strong><span>#2b6cb0</span></div>
+          </div>
+          <div class="swatch">
+            <div
+              class="chip"
+              style="
+                background: linear-gradient(90deg, #2c5282 0 33%, #9c4221 33% 66%, #9b2c2c 66%);
+              "
+            ></div>
+            <div class="meta"><strong>severity</strong><span>3 tones</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Color · Severity (light)</h2>
+        <div class="severity-row">
+          <div class="severity-card" style="background: #2c5282">info · #2c5282</div>
+          <div class="severity-card" style="background: #9c4221">warn · #9c4221</div>
+          <div class="severity-card" style="background: #9b2c2c">critical · #9b2c2c</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Color · Base (dark)</h2>
+        <div class="dark-frame">
+          <div class="swatch-row">
+            <div class="swatch">
+              <div class="chip" style="background: #e2e8f0"></div>
+              <div class="meta"><strong>text</strong><span>#e2e8f0</span></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background: #161616"></div>
+              <div class="meta"><strong>background</strong><span>#161616</span></div>
+            </div>
+            <div class="swatch">
+              <div class="chip" style="background: #63b3ed"></div>
+              <div class="meta"><strong>accent</strong><span>#63b3ed</span></div>
+            </div>
+            <div class="swatch">
+              <div
+                class="chip"
+                style="
+                  background: linear-gradient(90deg, #4299e1 0 33%, #ed8936 33% 66%, #fc8181 66%);
+                "
+              ></div>
+              <div class="meta"><strong>severity</strong><span>3 tones</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Color · Severity (dark)</h2>
+        <div class="dark-frame">
+          <div class="severity-row">
+            <div class="severity-card" style="background: #4299e1; color: #161616">
+              info · #4299e1
+            </div>
+            <div class="severity-card" style="background: #ed8936; color: #161616">
+              warn · #ed8936
+            </div>
+            <div class="severity-card" style="background: #fc8181; color: #161616">
+              critical · #fc8181
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Typography · Serif (EB Garamond)</h2>
+        <h1 class="demo">The quick brown fox jumps over the lazy dog.</h1>
+        <h2 class="demo">The quick brown fox jumps over the lazy dog.</h2>
+        <h3 class="demo">The quick brown fox jumps over the lazy dog.</h3>
+        <h4 class="demo">The quick brown fox jumps over the lazy dog.</h4>
+        <p class="demo">
+          Body copy set in <em>EB Garamond</em>. A revival of Claude Garamont's 16th-century roman,
+          optimized for digital screens. Pairs with a clean monospaced face for code, diagrams, and
+          metadata. Long-form reading is a first-class concern in the Azri renderer.
+        </p>
+      </section>
+
+      <section>
+        <h2>Typography · Mono (system mono stack)</h2>
+        <pre class="demo">
+// example commit
++ export const designSystem: DesignSystem = {
++   colors,
++   typefaces,
++   spacing,
++   radii,
++   shadows,
++   breakpoints,
++ };</pre
+        >
+      </section>
+
+      <section>
+        <h2>Spacing scale</h2>
+        <div class="spacing-row" style="margin-bottom: var(--space-xl)">
+          <div class="spacing-box" data-label="xs · 4" style="width: 4px; height: 64px"></div>
+          <div class="spacing-box" data-label="sm · 8" style="width: 8px; height: 64px"></div>
+          <div class="spacing-box" data-label="md · 12" style="width: 12px; height: 64px"></div>
+          <div class="spacing-box" data-label="lg · 16" style="width: 16px; height: 64px"></div>
+          <div class="spacing-box" data-label="xl · 24" style="width: 24px; height: 64px"></div>
+          <div class="spacing-box" data-label="2xl · 32" style="width: 32px; height: 64px"></div>
+          <div class="spacing-box" data-label="3xl · 48" style="width: 48px; height: 64px"></div>
+          <div class="spacing-box" data-label="4xl · 64" style="width: 64px; height: 64px"></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Radii</h2>
+        <div class="radii-row">
+          <div class="radii-box" style="border-radius: var(--radius-sm)">sm · 4</div>
+          <div class="radii-box" style="border-radius: var(--radius-md)">md · 8</div>
+          <div class="radii-box" style="border-radius: var(--radius-lg)">lg · 12</div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Shadows</h2>
+        <div class="shadow-row">
+          <div class="shadow-box" style="box-shadow: var(--shadow-subtle)">subtle</div>
+          <div class="shadow-box" style="box-shadow: var(--shadow-lifted)">lifted</div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
