@@ -261,3 +261,25 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - `effect@4.0.0-beta.70` already exports `PartitionedSemaphore`; `makeUnsafe({ permits: 1 })` is enough for a sync run-mutex wrapper keyed by `${owner}/${repo}#${pr}`.
 - `Cache.Success<T>` is the correct success-type helper for cache wrapper results; `Effect.Effect.Success` is not valid.
 - `packages/core` needs a project reference to `../types` so `bun tsc --noEmit -p packages/core` can consume `@azri/types` without rootDir/TS6307 errors.
+
+## T18 Stage 2 structure extract - 2026-05-22
+- Stage 2 uses AI SDK generateObject with Anthropic structuredOutputMode locked to jsonTool and a mode-scoped Zod schema.
+- Repo mode section enum excludes annotated-diff and test-impact; PR mode permits all seven section types.
+- ExplainerPlan is parsed against the shared schema after adding schemaVersion, then evidencePacketIds are validated against Stage 1 packet IDs.
+
+## T17 Stage 1 summarize - 2026-05-22
+- Stage 1 is a plain async pipeline boundary: accept a pre-built cheap-tier `LanguageModel`, call `generateObject`, isolate per-file failures into `EvidencePacket.summarizeError`, and leave Effect wrapping to the later service layer.
+- Manual chunking with `Promise.all` over batches is sufficient for the Stage 1 concurrency cap; avoid adding `p-limit`.
+- AI SDK v6 `generateObject` usage accounting is available as `result.usage.inputTokens` and `result.usage.outputTokens`; convert pricing estimates with `computeCost(...).totalUsd`.
+
+## T19 Stage 3 section generation (2026-05-22T16:33:24Z)
+- Implemented runStage3 as plain async TypeScript with manual chunks of 5, per-section timeout/failure isolation, reasoning-tier generateText, brief-mode token cap, focus area prompt prefix, and anti-slop post-processing.
+- Stage 3 returns a copied ExplainerPlan with proseMarkdown filled while preserving section order across batches.
+
+## T23 Mermaid SSR (2026-05-22)
+
+- `mermaid-isomorphic@3.1.0` exports `createMermaidRenderer(options?)` -> `MermaidRenderer`.
+- `MermaidRenderer(diagrams: string[]): Promise<PromiseSettledResult<RenderResult>[]>`. Each `RenderResult` has `svg: string` plus `height`, `width`, optional `title`/`description`/`screenshot`. The task template assumed `r.value` was the SVG string directly; in 3.x it is the full `RenderResult` object, so use `r.value.svg`.
+- Composite TypeScript references: when a package imports `'../../../types/src/index.ts'`, the importing package's `tsconfig.json` MUST add `"references": [{ "path": "../types" }]` to satisfy `rootDir`/project boundaries; `@azri/types` package alias is the documented production path but the existing monorepo also uses the relative form.
+- Lazy `import()` of `mermaid-isomorphic` keeps Playwright cold-start cost off the hot path and lets the fallback SVG short-circuit completely when `AZRI_DISABLE_MERMAID=true`.
+- Cache hits via `sha256(source)`: a `Map<string, string>` with `crypto.createHash('sha256').update(source).digest('hex')` matched the second render in 0 ms vs 1 ms cold.

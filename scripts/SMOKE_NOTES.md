@@ -43,3 +43,13 @@ Local run in this task did not have `ANTHROPIC_API_KEY`, so the script exited 0 
 - To run: `ANTHROPIC_API_KEY=... bun run scripts/smoke-ai-sdk.ts`
 - Production-mode check: `NODE_ENV=production ANTHROPIC_API_KEY=... bun run scripts/smoke-ai-sdk.ts`
 - If any test FAILs, do NOT proceed to T9. Document the failure and consult oracle.
+
+## Mermaid SSR (T23)
+
+- `mermaid-isomorphic@3.1.0` is installed and renders diagrams via Playwright Chromium under the hood.
+- Operators MUST install the browser once per environment before relying on real diagram rendering:
+  - `bunx playwright install chromium --with-deps`
+- The renderer is graceful by design:
+  - `AZRI_DISABLE_MERMAID=true` short-circuits to a fallback `<svg>` (no browser launch).
+  - Render or parse failures also return a fallback `<svg>` without throwing.
+- Cached by `sha256(source)`; repeated renders of the same diagram are free.
