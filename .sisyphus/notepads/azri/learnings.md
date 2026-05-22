@@ -253,3 +253,11 @@ scripts/, evals/, examples/, docs/, test/fixtures/
   - `safeReadPath` uses `path.resolve()` + prefix check to prevent traversal outside `repoPath` (rejected `..`, absolute paths, and any resolved path escaping the root).
   - All Octokit-shaped types (`OctokitLike`, `OctokitGitHubClient`) are local structural interfaces — they declare only the methods we call, so they typecheck without `@octokit/*` in core's deps. T27 can swap in the real Octokit type later without rewrites.
   - `Bun.$` is used for git shellouts (`git ls-files -z`, `git log`, `git symbolic-ref`); `.quiet()` is required to suppress stderr leakage during tests.
+
+---
+
+## Task T11-T13 complete (2026-05-22)
+
+- `effect@4.0.0-beta.70` already exports `PartitionedSemaphore`; `makeUnsafe({ permits: 1 })` is enough for a sync run-mutex wrapper keyed by `${owner}/${repo}#${pr}`.
+- `Cache.Success<T>` is the correct success-type helper for cache wrapper results; `Effect.Effect.Success` is not valid.
+- `packages/core` needs a project reference to `../types` so `bun tsc --noEmit -p packages/core` can consume `@azri/types` without rootDir/TS6307 errors.
