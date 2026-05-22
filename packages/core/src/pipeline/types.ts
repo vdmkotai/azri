@@ -3,10 +3,12 @@
 
 import type { LanguageModel } from 'ai';
 import type {
+  AzriConfig,
   AzriMode,
   ChangedFile,
   ChangeSet,
   EvidenceGraph,
+  ExplainerPlan,
   FileEntry,
   RepoSnapshot,
 } from '../../../types/src/index.ts';
@@ -95,5 +97,30 @@ export interface Stage1Output {
   tokensOut: number;
   costUsd: number;
   cacheHits: number;
+  durationMs: number;
+}
+
+export interface Stage3Input {
+  mode: AzriMode;
+  plan: ExplainerPlan;
+  evidenceGraph: EvidenceGraph;
+  repo: RepoSnapshot;
+  change?: ChangeSet;
+  config: AzriConfig;
+}
+
+export interface Stage3Deps {
+  logger: Stage0Logger;
+  provider: ProviderName;
+  reasoningModel: LanguageModel;
+}
+
+export interface Stage3Output {
+  /** ExplainerPlan with proseMarkdown filled on every section. */
+  plan: ExplainerPlan;
+  tokensIn: number;
+  tokensOut: number;
+  costUsd: number;
+  perSectionFailures: number;
   durationMs: number;
 }
