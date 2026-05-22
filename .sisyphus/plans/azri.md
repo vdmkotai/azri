@@ -3901,7 +3901,7 @@ Max Concurrent: 18 (Wave 5)
 
 ### Wave 6 — Quality + DX (parallel after Wave 5)
 
-- [ ] 44. Eval Harness — 20-PR Golden Set + Scoring
+- [x] 44. Eval Harness — 20-PR Golden Set + Scoring
 
   **What to do**:
   - Create `evals/` directory
@@ -3950,7 +3950,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `chore(eval): 20-pr golden set + scoring + regression check`
   - Files: `evals/{dataset.json,run.ts,score.ts,regression.ts,baseline.json}`
 
-- [ ] 45. Example Pages (Aesthetic North Star)
+- [x] 45. Example Pages (Aesthetic North Star)
 
   **What to do**:
   - Generate 2-3 example HTML pages and commit to `examples/`:
@@ -4043,7 +4043,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `chore(self-bootstrap): config with selfBootstrap=false default`
   - Files: `.azri/config.json`, `apps/bot/src/handlers/pr-webhook.ts` (flag check + shouldProcessPr export)
 
-- [ ] 46b. CLI Build Script + npm Publish Workflow (`azri` package on npm)
+- [x] 46b. CLI Build Script + npm Publish Workflow (`azri` package on npm)
 
   > **PRE-REQ**: The npm name `azri` must already be claimed via the v0.0.0 placeholder published before T1 (see "📦 NPM PUBLISH STRATEGY" at top of plan). This task ships the real v0.1.0+ releases.
 
@@ -4270,7 +4270,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `docs: README with hero, install, examples, architecture, roadmap`
   - Files: `README.md`
 
-- [ ] 48. CONTRIBUTING.md + Operator Docs (Self-Host, .env, Railway primary + Fly.io alternative)
+- [x] 48. CONTRIBUTING.md + Operator Docs (Self-Host, .env, Railway primary + Fly.io alternative)
 
   **What to do**:
   - `CONTRIBUTING.md`:
