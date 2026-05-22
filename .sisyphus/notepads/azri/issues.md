@@ -30,3 +30,7 @@
 ## T28+T29+T30 (2026-05-22)
 - `bun run check` blocked by `packages/core/src/pipeline/orchestrator.ts:342` (`max-lines` > 300). That file is untracked T21 output landed before this task. Per T17/T20/T25 precedent, committed with `--no-verify` after confirming MY files individually pass `oxlint`, `oxfmt --check`, `check-headers`, and `bun tsc --noEmit -p apps/bot`.
 - Stale `packages/core/dist/*.d.ts` masked freshly-added exports. Workaround: run `bun tsc -p packages/core --emitDeclarationOnly` whenever a new symbol is added to `packages/core/src/**`.
+
+## T48 (2026-05-23)
+- `bun run check` surfaced formatting drift in new docs and generated eval JSON; running `oxfmt` on the affected files cleared it.
+- The repo's `apps/cli/package.json` also needed a formatting pass before the global check would go green.

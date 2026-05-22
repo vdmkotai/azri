@@ -218,6 +218,11 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - `@ai-sdk/google` version installed: `3.0.79`.
 - `Context.Service` works as expected on `effect@4.0.0-beta.70` for `LlmService`.
 - `ManagedRuntime` exists in this beta and works via `ManagedRuntime.make(layer)` with `runPromise`, `runPromiseExit`, and `dispose`.
+
+## Task T48 complete (2026-05-23)
+- Bun-native `import.meta.dirname` is a clean replacement for `fileURLToPath(import.meta.url)` in local scripts.
+- GitHub Actions publish flow worked cleanly with `bun install --frozen-lockfile`, `bun run check`, `bun test`, `bun run build:cli`, then an artifact/version verification step.
+- Oxfmt will surface malformed or unformatted JSON/Markdown/TOML in new docs and generated eval outputs; formatting those files first keeps the repo gate green.
 - API surface difference vs plan: `Layer.effect(LlmService, Effect<shape>)` should return the raw service shape directly; `LlmService.of(...)` was not needed for Effect 4.x beta.70.
 - `bun tsc --noEmit -p packages/core` passed after removing direct cross-package source imports from core (`packages/types/src/*`) that caused `rootDir`/project-file-list errors under package-level typecheck.
 
@@ -458,3 +463,10 @@ scripts/, evals/, examples/, docs/, test/fixtures/
 - `packages/core/src/providers/null-adapter.ts` uses `ai/test` MockLanguageModelV3 so LLM-dependent pipeline tests do not call real providers.
 - Current implementation gaps are recorded as `test.todo`: Stage 3 citation-density/retry, Stage 5 function-name validation and 1.5 MB cap, disk/schema-version cache store, literal PWNED/HACKED stripping, bot brief-mode, and head-sha drift orchestration.
 - Renderer snapshot tests require committed Bun snapshots under `packages/renderer/src/components/__snapshots__/`; create/update with `CI=false bun test --update-snapshots ...` before CI-mode runs.
+
+## T44 eval harness
+
+- Added the eval harness as root-level Bun scripts under `evals/` with generated artifacts in `evals/runs/`; generated run bundles must stay ignored by Oxfmt because HTML/JSON outputs are machine artifacts.
+- Dry-run mode writes a complete stub `AzriRunOutput` plus `input.json`, `output.json`, `run.json`, and `index.html`, allowing score/regression smoke checks without LLM calls.
+- Root scripts now depend on workspace links for `@azri/core` and `@azri/types`; Bun could not resolve those package names from root scripts until they were declared as workspace dependencies.
+- Visual scoring deliberately returns score 3 with a TODO note when direct `playwright` and `axe-core` deps are absent; do not add those heavy deps for v1 eval scoring.

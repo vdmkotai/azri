@@ -28,3 +28,8 @@
 - Webhook handler is split: `pr-webhook.ts` does signature verification + dedup + dispatch only; `pr-process.ts` owns the long-running pipeline orchestration. Keeps lint caps satisfied and makes the request hot path easy to reason about.
 - `processPullRequest` is detached via `setImmediate` rather than `Effect.fork`. The HTTP handler is currently expressed as a plain Effect; staying in plain async for the background lane avoids dragging the Effect runtime through pipeline orchestration. We retain the option to swap to `Effect.fork` once the rest of the bot graduates to a managed runtime.
 - `readRepoSnapshotFromGitHub` lives in `@azri/core` (`packages/core/src/git/`) so both the bot and future CLI integrations can fetch a snapshot via Octokit; the implementation is intentionally minimal — anything that needs a populated file tree should add a follow-up helper rather than expanding this one.
+
+## T48 publish/docs cleanup (2026-05-23)
+- Kept the npm publish workflow explicit and linear: checkout → Bun/Node setup → install → check → test → build → artifact verification → publish.
+- Added the docs deployment templates under `docs/` so container and platform configuration live alongside the repo docs instead of application code.
+- Used a multi-stage Dockerfile with a Bun runtime and no `bun build`, matching the CLI's source-run deployment path.
