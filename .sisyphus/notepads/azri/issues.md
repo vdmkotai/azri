@@ -34,3 +34,6 @@
 ## T48 (2026-05-23)
 - `bun run check` surfaced formatting drift in new docs and generated eval JSON; running `oxfmt` on the affected files cleared it.
 - The repo's `apps/cli/package.json` also needed a formatting pass before the global check would go green.
+
+## Synthetic webhook e2e smoke (2026-05-23)
+- `bun run check` still fails at `oxfmt --check` on pre-existing `examples/big-pr.plan.json` and `examples/repo-overview.plan.json`; the new `test/e2e/synthetic-pr.test.ts` has clean LSP diagnostics and passes its direct `bun test` run.
