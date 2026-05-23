@@ -4203,7 +4203,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `feat(cli): build script + npm publish workflow (azri package)`
   - Files: `scripts/build-cli.ts`, `scripts/bump-version.ts`, `scripts/release.ts`, `.github/workflows/publish-npm.yml`, `apps/cli/package.json` (publish fields), `apps/cli/README.md`, `apps/cli/LICENSE` (copy or symlink)
 
-- [ ] 47. README (Hero + Install + Demo + Examples + Roadmap)
+- [x] 47. README (Hero + Install + Demo + Examples + Roadmap)
 
   **What to do**:
   - Create `README.md` at repo root with this structure:
@@ -4367,7 +4367,7 @@ Max Concurrent: 18 (Wave 5)
 
 ### Wave 7 — Integration + Audit (parallel after Wave 6)
 
-- [ ] 49. End-to-End Integration Smoke Test
+- [x] 49. End-to-End Integration Smoke Test
 
   **What to do**:
   - Create `test/e2e/synthetic-pr.test.ts`
@@ -4410,7 +4410,7 @@ Max Concurrent: 18 (Wave 5)
   - Message: `test(e2e): synthetic webhook end-to-end integration smoke`
   - Files: `test/e2e/synthetic-pr.test.ts`, `test/fixtures/webhooks/*.json`
 
-- [ ] 50. Accessibility + Security Audit
+- [x] 50. Accessibility + Security Audit
 
   **What to do**:
   - Accessibility:
