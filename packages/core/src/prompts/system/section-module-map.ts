@@ -12,13 +12,7 @@ TASK:
 - Describe which modules changed and how they depend on each other. 150-200 words.
 - Name the specific packages, directories, or layers involved (e.g., "packages/core/src/pipeline" depends on "packages/types").
 - Identify whether the change is additive (new module), structural (moved/renamed), or behavioral (logic changed in existing module).
-- Recommend exactly one Mermaid diagram kind based on the change type:
-  - sequence: for API flows, request/response chains, event-driven interactions
-  - er: for schema or data model changes
-  - class: for type hierarchy or interface changes
-  - flow: for control flow, branching logic, or pipeline stages
-- State the recommended kind explicitly: "Recommended diagram: mermaid-sequence".
-- Do NOT generate the Mermaid source here; that is handled separately.
+- Focus on module relationships and dependencies only; diagram planning happens separately.
 
 INPUT YOU RECEIVE:
 - EvidencePacket array with file paths, symbols, and summaries

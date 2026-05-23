@@ -127,6 +127,7 @@ async function runAzriInner(
     () =>
       stages.runStage4(stage3.value.plan, stage0.change, stage0.repo, {
         runMeta: metadata,
+        generatedAt: new Date().toISOString(),
         ...(input.config.theme ? { theme: input.config.theme } : {}),
         ...(input.config.tokens ? { tokens: input.config.tokens } : {}),
       }),

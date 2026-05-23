@@ -1,3 +1,10 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`MermaidDiagram output snapshot 1`] = `"<figure class="azri-mermaid"><svg><circle /></svg><figcaption>Flow</figcaption></figure>"`;
+exports[`MermaidDiagram output snapshot 1`] = `
+"
+    <figure class="azri-mermaid-fallback">
+      <pre class="azri-mermaid-source">graph TD; A--&gt;B</pre>
+      <figcaption>Flow</figcaption>
+    </figure>
+  "
+`;

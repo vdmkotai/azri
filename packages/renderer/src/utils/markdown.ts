@@ -18,11 +18,20 @@ function sanitize(html: string): string {
   return html.replace(FORBIDDEN_TAG_RE, '').replace(ON_ATTR_RE, '').replace(JS_PROTO_RE, '');
 }
 
+function normalizeSectionHeadings(html: string): string {
+  const withoutH1 = html.replace(/<\/?h1\b[^>]*>/giu, '');
+  return withoutH1
+    .replace(/<h3\b([^>]*)>/giu, '<h4$1>')
+    .replace(/<\/h3>/giu, '</h4>')
+    .replace(/<h2\b([^>]*)>/giu, '<h3$1>')
+    .replace(/<\/h2>/giu, '</h3>');
+}
+
 export function markdownToHtml(md: string): string {
   if (!md) return '';
   try {
     const rendered = marked.parse(md, { async: false }) as string;
-    return sanitize(rendered);
+    return normalizeSectionHeadings(sanitize(rendered));
   } catch {
     return `<p>${escapeHtml(md)}</p>`;
   }

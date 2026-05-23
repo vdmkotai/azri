@@ -4,25 +4,26 @@
 import { describe, expect, test } from 'bun:test';
 
 import packageJson from '../../../../package.json' with { type: 'json' };
-import { clearMermaidCache, renderMermaidToSvg } from './mermaid.ts';
+import { clearMermaidCache, renderMermaidFallback, renderMermaidToSvg } from './mermaid.ts';
 
-describe('renderMermaidToSvg', () => {
-  test('returns SVG fallback without throwing when renderer is disabled', async () => {
-    process.env['AZRI_DISABLE_MERMAID'] = 'true';
+describe('renderMermaidFallback', () => {
+  test('returns styled source fallback without throwing', () => {
     clearMermaidCache();
-    const svg = await renderMermaidToSvg('graph TD; A-->B');
-    expect(svg).toContain('<svg');
-    expect(svg).toContain('renderer unavailable');
-    delete process.env['AZRI_DISABLE_MERMAID'];
+    const html = renderMermaidFallback('graph TD; A-->B');
+    expect(html).toContain('azri-mermaid-fallback');
+    expect(html).toContain('graph TD; A--&gt;B');
   });
 
-  test('escapes bad source in fallback path', async () => {
-    process.env['AZRI_DISABLE_MERMAID'] = 'true';
+  test('escapes bad source in fallback path', () => {
     clearMermaidCache();
-    const svg = await renderMermaidToSvg('<script>alert(1)</script>');
-    expect(svg).not.toContain('<script>');
-    expect(svg).toContain('&lt;script&gt;');
-    delete process.env['AZRI_DISABLE_MERMAID'];
+    const html = renderMermaidFallback('<script>alert(1)</script>');
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&lt;script&gt;');
+  });
+
+  test('legacy async renderer returns the same fallback', async () => {
+    const html = await renderMermaidToSvg('graph TD; A-->B');
+    expect(html).toContain('azri-mermaid-fallback');
   });
 
   test('uses mermaid-isomorphic without a direct Puppeteer dependency', () => {

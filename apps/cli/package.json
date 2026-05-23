@@ -1,6 +1,6 @@
 {
   "name": "@vdmkotai/azri",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "AI-powered CLI that turns PRs and repos into beautiful, shareable HTML explainers.",
   "keywords": [
     "ai",

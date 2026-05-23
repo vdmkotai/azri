@@ -148,7 +148,7 @@ describe('runStage3 — section generation', () => {
     ).toBe(true);
   });
 
-  test('brief: true resolves to concise verbosity and caps maxOutputTokens at 200', async () => {
+  test('brief: true resolves to concise verbosity and caps maxOutputTokens at 300', async () => {
     let maxOutputTokens: unknown;
     const model = makeNullModel({ text: 'Brief [src/a.ts:1-2].' });
     const original = model.doGenerate.bind(model);
@@ -162,10 +162,10 @@ describe('runStage3 — section generation', () => {
       provider: 'anthropic',
       reasoningModel: model,
     });
-    expect(maxOutputTokens).toBe(200);
+    expect(maxOutputTokens).toBe(300);
   });
 
-  test('verbosity: detailed forwards maxOutputTokens=1200', async () => {
+  test('verbosity: detailed forwards maxOutputTokens=1800', async () => {
     let maxOutputTokens: unknown;
     const model = makeNullModel({ text: 'Detailed [src/a.ts:1-2].' });
     const original = model.doGenerate.bind(model);
@@ -179,10 +179,10 @@ describe('runStage3 — section generation', () => {
       provider: 'anthropic',
       reasoningModel: model,
     });
-    expect(maxOutputTokens).toBe(1200);
+    expect(maxOutputTokens).toBe(1800);
   });
 
-  test('default (no verbosity, no brief) uses standard maxOutputTokens=500', async () => {
+  test('default (no verbosity, no brief) uses standard maxOutputTokens=750', async () => {
     let maxOutputTokens: unknown;
     const model = makeNullModel({ text: 'Std [src/a.ts:1-2].' });
     const original = model.doGenerate.bind(model);
@@ -196,7 +196,7 @@ describe('runStage3 — section generation', () => {
       provider: 'anthropic',
       reasoningModel: model,
     });
-    expect(maxOutputTokens).toBe(500);
+    expect(maxOutputTokens).toBe(750);
   });
 
   test.todo('enforces citation density >=1 citation per paragraph');

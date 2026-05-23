@@ -19,6 +19,7 @@ const CONCURRENCY = 5;
 const TIMEOUT_MS = 45_000;
 const FAILURE_PLACEHOLDER = '_(section generation failed; see file list)_';
 const REPO_MODE_UNSUPPORTED_PLACEHOLDER = '_(section type not supported in repo mode)_';
+const COMPLETE_PROSE_RE = /(?:[.!?)}\]]|```)$/u;
 
 function chunk<T>(arr: ReadonlyArray<T>, size: number): T[][] {
   const out: T[][] = [];
@@ -49,6 +50,20 @@ function stripAntiSlop(text: string): string {
     .replace(/[ \t]{2,}/gu, ' ')
     .replace(/[ \t]+\n/gu, '\n')
     .trim();
+}
+
+function maxOutputTokensForVerbosity(verb: Verbosity): number {
+  return Math.round(VERBOSITY_CONFIG[verb].maxTokens * 1.5);
+}
+
+function warnIfPossiblyTruncated(proseMarkdown: string, section: Section, deps: Stage3Deps): void {
+  const trimmed = proseMarkdown.trim();
+  if (!trimmed || COMPLETE_PROSE_RE.test(trimmed)) return;
+  deps.logger.warn('stage3.section.possibly_truncated', {
+    sectionId: section.id,
+    sectionType: section.sectionType,
+    lastChars: trimmed.slice(-80),
+  });
 }
 
 function verbosityLine(verb: Verbosity): string {
@@ -133,7 +148,7 @@ async function generateOneSection(
     .map((id) => input.evidenceGraph.packets[id])
     .filter((packet): packet is EvidencePacket => packet !== undefined);
   const userPrompt = buildUserPrompt(section, packets, input, verb);
-  const maxOutputTokens = VERBOSITY_CONFIG[verb].maxTokens;
+  const maxOutputTokens = maxOutputTokensForVerbosity(verb);
 
   try {
     const result = await withTimeout(
@@ -146,6 +161,7 @@ async function generateOneSection(
       TIMEOUT_MS,
     );
     const proseMarkdown = stripAntiSlop(result.text);
+    warnIfPossiblyTruncated(proseMarkdown, section, deps);
     return {
       section: { ...section, proseMarkdown },
       tokensIn: result.usage.inputTokens ?? 0,

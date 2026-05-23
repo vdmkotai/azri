@@ -7,7 +7,6 @@ import { createHash } from 'node:crypto';
 import type {
   ChangeSet,
   DesignTokens,
-  DiagramSpec,
   ExplainerPlan,
   HtmlBundle,
   Importance,
@@ -25,7 +24,6 @@ import {
   type TocSection,
 } from './components/index.ts';
 import { applyDesignTokens, RESET_CSS, resolveTheme, tokenCss } from './design-system/index.ts';
-import { renderMermaidToSvg } from './diagrams/index.ts';
 import { escapeAttr, escapeHtml } from './utils/escape-html.ts';
 import { markdownToHtml } from './utils/markdown.ts';
 
@@ -88,6 +86,10 @@ body{margin:0;font-family:var(--typeface-serif);background:var(--color-bg);color
 .azri-mermaid{margin:24px 0;padding:16px;background:color-mix(in srgb, var(--color-text) 4%, transparent);border-radius:6px;text-align:center;}
 .azri-mermaid svg{max-width:100%;height:auto;display:inline-block;}
 .azri-mermaid figcaption{font-style:italic;opacity:.7;font-size:13px;margin-top:8px;}
+.azri-mermaid-fallback{margin:24px 0;padding:16px;background:#111827;color:#e5e7eb;border-radius:8px;border:1px solid rgba(255,255,255,.12);}
+.azri-mermaid-fallback::before{content:"Diagram (rendered client-side in v0.3)";display:block;font-family:var(--typeface-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#93c5fd;margin-bottom:10px;}
+.azri-mermaid-source{margin:0;font-family:var(--typeface-mono);font-size:13px;line-height:1.5;white-space:pre-wrap;overflow-x:auto;}
+.azri-mermaid-fallback figcaption{font-style:italic;opacity:.75;font-size:13px;margin-top:10px;}
 .azri-citations{margin-top:48px;padding-top:24px;border-top:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
 .azri-citations h3{font-family:var(--typeface-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
 .azri-citations ol{font-family:var(--typeface-mono);font-size:13px;}
@@ -100,11 +102,7 @@ function sortByImportance(sections: ReadonlyArray<Section>): Section[] {
   return copy;
 }
 
-function renderSection(
-  section: Section,
-  plan: ExplainerPlan,
-  diagramSvgById: ReadonlyMap<string, string>,
-): string {
+function renderSection(section: Section, plan: ExplainerPlan): string {
   const prose = section.proseMarkdown
     ? markdownToHtml(section.proseMarkdown)
     : '<p><em>(no content)</em></p>';
@@ -123,14 +121,13 @@ function renderSection(
   }
 
   if (section.diagramId) {
-    const svg = diagramSvgById.get(section.diagramId);
-    if (svg) {
-      const spec = plan.diagramSpecs.find((d) => d.id === section.diagramId);
+    const spec = plan.diagramSpecs.find((d) => d.id === section.diagramId);
+    if (spec) {
       parts.push(
         MermaidDiagram({
-          svgString: svg,
+          source: spec.mermaidSource,
           ariaLabel: 'Section diagram',
-          ...(spec ? { caption: `Diagram: ${spec.kind}` } : {}),
+          caption: `Diagram: ${spec.kind}`,
         }),
       );
     }
@@ -142,6 +139,11 @@ function renderSection(
     importance: section.importance,
     children: parts.join('\n'),
   });
+}
+
+function githubBaseUrlFromRepo(repo: RepoSnapshot): string | undefined {
+  if (!repo.owner || !repo.name || !repo.defaultBranch) return undefined;
+  return `https://github.com/${encodeURIComponent(repo.owner)}/${encodeURIComponent(repo.name)}/blob/${encodeURIComponent(repo.defaultBranch)}`;
 }
 
 function buildMetaTags(plan: ExplainerPlan): string {
@@ -166,19 +168,11 @@ function buildMetaTags(plan: ExplainerPlan): string {
 export async function renderPage(
   plan: ExplainerPlan,
   _change: ChangeSet | undefined,
-  _repo: RepoSnapshot,
+  repo: RepoSnapshot,
   opts: RenderOptions = {},
 ): Promise<HtmlBundle> {
   const baseTokens = resolveTheme(opts.theme);
   const tokensCss = tokenCss(applyDesignTokens(opts.tokens, baseTokens));
-
-  const diagramRenders = await Promise.all(
-    plan.diagramSpecs.map(async (d: DiagramSpec) => {
-      const svg = d.renderedSvg ?? (await renderMermaidToSvg(d.mermaidSource));
-      return [d.id, svg] as const;
-    }),
-  );
-  const diagramSvgById = new Map<string, string>(diagramRenders);
 
   const sortedSections = sortByImportance(plan.sections);
 
@@ -196,7 +190,7 @@ export async function renderPage(
       ? {
           runMeta: {
             runId: opts.runMeta.runId ?? 'unknown',
-            generatedAt: opts.generatedAt ?? '',
+            generatedAt: opts.generatedAt ?? new Date().toISOString(),
             ...(opts.runMeta.costUsd === undefined ? {} : { costUsd: opts.runMeta.costUsd }),
           },
         }
@@ -204,14 +198,15 @@ export async function renderPage(
   });
 
   const tocHtml = StickyTOC({ sections: tocItems });
-  const sectionsHtml = sortedSections.map((s) => renderSection(s, plan, diagramSvgById)).join('\n');
+  const sectionsHtml = sortedSections.map((s) => renderSection(s, plan)).join('\n');
 
   const allCitations = plan.risks.flatMap((r) => r.citations);
+  const githubBaseUrl = opts.githubBaseUrl ?? githubBaseUrlFromRepo(repo);
   const citationsHtml =
     allCitations.length > 0
       ? CitationFootnote({
           citations: allCitations,
-          ...(opts.githubBaseUrl ? { githubBaseUrl: opts.githubBaseUrl } : {}),
+          ...(githubBaseUrl ? { githubBaseUrl } : {}),
         })
       : '';
 
