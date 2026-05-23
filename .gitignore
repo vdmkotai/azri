@@ -9,9 +9,7 @@ pages-data
 .turbo
 .DS_Store
 *.log
-.sisyphus/drafts/
-.sisyphus/evidence/
-.sisyphus/boulder.json
+.sisyphus/
 .playwright-mcp/
 azri-explainer.html
 evals/runs/
