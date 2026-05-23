@@ -3,7 +3,7 @@
 
 import { createHash, randomUUID } from 'node:crypto';
 
-import { renderPageV3 } from '../../../../renderer/src/v3/render.ts';
+import { renderPageV3, renderSectionV3Bytes } from '../../../../renderer/src/v3/render.ts';
 import type {
   AzriRunInput,
   AzriRunOutput,
@@ -16,8 +16,8 @@ import { PROVIDER_REGISTRY } from '../../providers/registry.ts';
 import type { ProducedSection } from '../../sections/types.ts';
 import * as stages from '../stages.ts';
 import type { Stage0OkOutput, Stage1Output } from '../types.ts';
-import { runStage2Plan, type Stage2PlanTriage } from './stage-2-plan.ts';
-import { runStage3Produce } from './stage-3-produce.ts';
+import { runStage2PlanDetailed, type Stage2PlanTriage } from './stage-2-plan.ts';
+import { runStage3ProduceDetailed } from './stage-3-produce.ts';
 
 function addDuration(meta: RunMetadata, label: string, started: number): void {
   meta.stageDurations[label] = Date.now() - started;
@@ -157,8 +157,8 @@ export async function runAzriV3(
     metadata.costUsd += stage1.costUsd;
 
     const stage2Started = Date.now();
-    const planned = await stages.withTimeout(
-      runStage2Plan(
+    const planResult = await stages.withTimeout(
+      runStage2PlanDetailed(
         { mode: stage0.mode, triage: triageFrom(stage0) },
         { logger, provider, reasoningModel },
       ),
@@ -166,11 +166,14 @@ export async function runAzriV3(
       'stage-2',
     );
     addDuration(metadata, 'stage-2', stage2Started);
+    metadata.tokensIn += planResult.tokensIn;
+    metadata.tokensOut += planResult.tokensOut;
+    metadata.costUsd += planResult.costUsd;
 
     const stage3Started = Date.now();
-    const produced = await stages.withTimeout(
-      runStage3Produce(
-        planned,
+    const produceResult = await stages.withTimeout(
+      runStage3ProduceDetailed(
+        planResult.sections,
         {
           mode: stage0.mode,
           repo: stage0.repo,
@@ -183,7 +186,11 @@ export async function runAzriV3(
       stages.STAGE_TIMEOUTS_MS.stage3,
       'stage-3',
     );
+    const produced = produceResult.produced;
     addDuration(metadata, 'stage-3', stage3Started);
+    metadata.tokensIn += produceResult.tokensIn;
+    metadata.tokensOut += produceResult.tokensOut;
+    metadata.costUsd += produceResult.costUsd;
 
     const title =
       stage0.mode === 'pr'
@@ -234,7 +241,19 @@ export async function runAzriV3(
       explainerPlan: plan,
       evidenceGraph: stage1.evidenceGraph,
       metadata,
-    };
+      plannedSections: planResult.sections,
+      producedSections: produced.map((section) => ({
+        id: section.id,
+        rationale: section.rationale,
+        htmlBytes: renderSectionV3Bytes(section, input.config.theme),
+      })),
+      failedSections: produceResult.failed,
+      cost: {
+        tokensIn: metadata.tokensIn,
+        tokensOut: metadata.tokensOut,
+        usd: metadata.costUsd,
+      },
+    } as AzriRunOutput;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     return stages.failureOutput(message, 'v3', metadata, startMs);

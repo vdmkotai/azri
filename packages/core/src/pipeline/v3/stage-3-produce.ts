@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import { resolveV3Theme } from '../../../../renderer/src/design-system/presets-v3/index.ts';
 import { metricsWarn } from '../../metrics.ts';
+import { computeCost } from '../../providers/pricing.ts';
 import type { ProviderName } from '../../providers/registry.ts';
 import { getSection } from '../../sections/registry.ts';
 import type { PlannedSection, ProducedSection, SectionInput } from '../../sections/types.ts';
@@ -18,6 +19,34 @@ export interface PipelineDeps {
   readonly provider: ProviderName;
   readonly reasoningModel: Parameters<typeof generateObject>[0]['model'];
   readonly logger?: Stage0Logger;
+}
+
+export interface FailedSection {
+  readonly id: string;
+  readonly error: string;
+}
+
+interface SectionAttempt {
+  readonly section: ProducedSection | null;
+  readonly failure?: FailedSection;
+  readonly tokensIn: number;
+  readonly tokensOut: number;
+}
+
+export interface Stage3ProduceDetailedOutput {
+  readonly produced: readonly ProducedSection[];
+  readonly failed: readonly FailedSection[];
+  readonly tokensIn: number;
+  readonly tokensOut: number;
+  readonly costUsd: number;
+}
+
+function tokensFrom(result: unknown): { tokensIn: number; tokensOut: number } {
+  const usage = (result as { usage?: { inputTokens?: number; outputTokens?: number } }).usage;
+  return {
+    tokensIn: usage?.inputTokens ?? 0,
+    tokensOut: usage?.outputTokens ?? 0,
+  };
 }
 
 async function withConcurrency<T, R>(
@@ -53,7 +82,10 @@ function prettyZodError(error: z.ZodError): string {
     .join('; ');
 }
 
-async function callSectionLlm(prompt: string, deps: PipelineDeps): Promise<unknown> {
+async function callSectionLlm(
+  prompt: string,
+  deps: PipelineDeps,
+): Promise<{ object: unknown; tokensIn: number; tokensOut: number }> {
   const result = await withTimeout(
     generateObject({
       model: deps.reasoningModel,
@@ -66,29 +98,43 @@ async function callSectionLlm(prompt: string, deps: PipelineDeps): Promise<unkno
     }),
     TIMEOUT_MS,
   );
-  return result.object;
+  return { object: result.object, ...tokensFrom(result) };
 }
 
 async function produceOne(
   planned: PlannedSection,
   input: SectionInput,
   deps: PipelineDeps,
-): Promise<ProducedSection | null> {
+): Promise<SectionAttempt> {
+  let tokensIn = 0;
+  let tokensOut = 0;
   try {
     const section = getSection(planned.id);
     const themeTokens = resolveV3Theme(input.config.theme);
     const prompt = section.prompt(input, themeTokens);
     const first = await callSectionLlm(prompt, deps);
-    const parsed = section.schema.safeParse(first);
+    tokensIn += first.tokensIn;
+    tokensOut += first.tokensOut;
+    const parsed = section.schema.safeParse(first.object);
     if (parsed.success) {
-      return { id: planned.id, rationale: planned.rationale, data: parsed.data };
+      return {
+        section: { id: planned.id, rationale: planned.rationale, data: parsed.data },
+        tokensIn,
+        tokensOut,
+      };
     }
 
     const retryPrompt = `${prompt}\n\nYour previous output failed validation: ${prettyZodError(parsed.error)}. Re-emit ONLY valid JSON matching the schema.`;
     const second = await callSectionLlm(retryPrompt, deps);
-    const retried = section.schema.safeParse(second);
+    tokensIn += second.tokensIn;
+    tokensOut += second.tokensOut;
+    const retried = section.schema.safeParse(second.object);
     if (retried.success) {
-      return { id: planned.id, rationale: planned.rationale, data: retried.data };
+      return {
+        section: { id: planned.id, rationale: planned.rationale, data: retried.data },
+        tokensIn,
+        tokensOut,
+      };
     }
 
     const message = prettyZodError(retried.error);
@@ -101,13 +147,13 @@ async function produceOne(
         sectionId: planned.id,
         error: message,
       });
-    return null;
+    return { section: null, failure: { id: planned.id, error: message }, tokensIn, tokensOut };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     deps.logger?.warn('stage3-produce.section.failed', { sectionId: planned.id, error: message });
     if (!deps.logger)
       metricsWarn('stage3-produce.section.failed', { sectionId: planned.id, error: message });
-    return null;
+    return { section: null, failure: { id: planned.id, error: message }, tokensIn, tokensOut };
   }
 }
 
@@ -116,8 +162,29 @@ export async function runStage3Produce(
   input: SectionInput,
   deps: PipelineDeps,
 ): Promise<ProducedSection[]> {
+  return [...(await runStage3ProduceDetailed(planned, input, deps)).produced];
+}
+
+export async function runStage3ProduceDetailed(
+  planned: readonly PlannedSection[],
+  input: SectionInput,
+  deps: PipelineDeps,
+): Promise<Stage3ProduceDetailedOutput> {
   const results = await withConcurrency(planned, CONCURRENCY, (section) =>
     produceOne(section, input, deps),
   );
-  return results.filter((section): section is ProducedSection => section !== null);
+  const tokensIn = results.reduce((sum, result) => sum + result.tokensIn, 0);
+  const tokensOut = results.reduce((sum, result) => sum + result.tokensOut, 0);
+  const costUsd = computeCost(deps.provider, 'reasoning', tokensIn, tokensOut, 0).totalUsd;
+  return {
+    produced: results
+      .map((result) => result.section)
+      .filter((section): section is ProducedSection => section !== null),
+    failed: results
+      .map((result) => result.failure)
+      .filter((failure): failure is FailedSection => failure !== undefined),
+    tokensIn,
+    tokensOut,
+    costUsd,
+  };
 }

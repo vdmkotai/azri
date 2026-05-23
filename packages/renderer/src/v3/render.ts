@@ -40,6 +40,13 @@ function renderSection(section: ProducedSection, theme: ReturnType<typeof resolv
 </section>`;
 }
 
+export function renderSectionV3Bytes(
+  section: ProducedSection,
+  themeName: string | undefined,
+): number {
+  return Buffer.byteLength(renderSection(section, resolveV3Theme(themeName)), 'utf8');
+}
+
 export function renderPageV3(input: V3RenderInput): string {
   const theme = resolveV3Theme(input.themeName);
   const tocHtml = renderToc(input.sections);

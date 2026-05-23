@@ -5,6 +5,7 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 
 import type { AzriMode } from '../../../../types/src/index.ts';
+import { computeCost } from '../../providers/pricing.ts';
 import { getManifest, getSection } from '../../sections/registry.ts';
 import type { PlannedSection, SectionManifestEntry } from '../../sections/types.ts';
 import type { Stage0Logger, Stage2Deps } from '../types.ts';
@@ -39,6 +40,22 @@ export interface Stage2PlanInput {
   readonly mode: AzriMode;
   readonly triage: Stage2PlanTriage;
   readonly manifest?: readonly SectionManifestEntry[];
+}
+
+export interface Stage2PlanDetailedOutput {
+  readonly sections: readonly PlannedSection[];
+  readonly tokensIn: number;
+  readonly tokensOut: number;
+  readonly costUsd: number;
+  readonly fellBackToMinimal: boolean;
+}
+
+function tokensFrom(result: unknown): { tokensIn: number; tokensOut: number } {
+  const usage = (result as { usage?: { inputTokens?: number; outputTokens?: number } }).usage;
+  return {
+    tokensIn: usage?.inputTokens ?? 0,
+    tokensOut: usage?.outputTokens ?? 0,
+  };
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -155,9 +172,18 @@ export async function runStage2Plan(
   input: Stage2PlanInput,
   deps: Stage2Deps & { logger?: Stage0Logger },
 ): Promise<PlannedSection[]> {
+  return [...(await runStage2PlanDetailed(input, deps)).sections];
+}
+
+export async function runStage2PlanDetailed(
+  input: Stage2PlanInput,
+  deps: Stage2Deps & { logger?: Stage0Logger },
+): Promise<Stage2PlanDetailedOutput> {
   const manifest = input.manifest ?? getManifest(input.mode);
   const logger = deps.logger;
-  if (manifest.length === 0) return [];
+  if (manifest.length === 0) {
+    return { sections: [], tokensIn: 0, tokensOut: 0, costUsd: 0, fellBackToMinimal: false };
+  }
 
   try {
     const result = await withTimeout(
@@ -172,11 +198,31 @@ export async function runStage2Plan(
       }),
       TIMEOUT_MS,
     );
-    return validateAndNormalize(result.object.sections, input, manifest);
+    const tokens = tokensFrom(result);
+    const costUsd = computeCost(
+      deps.provider,
+      'reasoning',
+      tokens.tokensIn,
+      tokens.tokensOut,
+      0,
+    ).totalUsd;
+    return {
+      sections: validateAndNormalize(result.object.sections, input, manifest),
+      tokensIn: tokens.tokensIn,
+      tokensOut: tokens.tokensOut,
+      costUsd,
+      fellBackToMinimal: false,
+    };
   } catch (error) {
     logger?.warn('stage2-plan.fallback', {
       error: error instanceof Error ? error.message : String(error),
     });
-    return fallbackPlan(manifest);
+    return {
+      sections: fallbackPlan(manifest),
+      tokensIn: 0,
+      tokensOut: 0,
+      costUsd: 0,
+      fellBackToMinimal: true,
+    };
   }
 }
