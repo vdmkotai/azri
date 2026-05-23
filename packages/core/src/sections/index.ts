@@ -14,3 +14,8 @@ export { dataTableSection } from './data-table/index.ts';
 export { comparisonTableSection } from './comparison-table/index.ts';
 export { riskCalloutSection } from './risk-callout/index.ts';
 export { linkCalloutSection } from './link-callout/index.ts';
+
+export { tldrSection } from './tldr/index.ts';
+export { stackGridSection } from './stack-grid/index.ts';
+export { entityGridSection } from './entity-grid/index.ts';
+export { entityCardSection } from './entity-card/index.ts';

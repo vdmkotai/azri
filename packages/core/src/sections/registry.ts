@@ -3,7 +3,6 @@
 
 import type { AzriMode } from '../../../types/src/index.ts';
 import { SectionNotFoundError } from './errors.ts';
-import { tldrStubSection } from './tldr-stub/index.ts';
 import type { SectionManifestEntry, SectionType } from './types.ts';
 
 const sections = new Map<string, SectionType<unknown>>();
@@ -39,5 +38,3 @@ export function getManifest(mode: AzriMode): SectionManifestEntry[] {
     applicableFor: section.applicableFor,
   }));
 }
-
-registerSection(tldrStubSection);

@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
 
-import { afterEach, describe, expect, test } from 'bun:test';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, test } from 'bun:test';
 import { z } from 'zod';
 
 import { silentLogger } from '../../src/pipeline/_test-fixtures.ts';
 import { runStage2Plan, type Stage2PlanInput } from '../../src/pipeline/v3/stage-2-plan.ts';
 import { makeNullModel } from '../../src/providers/null-adapter.ts';
-import { registerSection, unregisterSection } from '../../src/sections/registry.ts';
+import { listSections, registerSection, unregisterSection } from '../../src/sections/registry.ts';
 import type { SectionType } from '../../src/sections/types.ts';
 
 const registered = new Set<string>();
+let snapshot: SectionType<unknown>[] = [];
 
 function section(
   id: string,
@@ -50,9 +51,24 @@ function input(mode: 'pr' | 'repo' = 'repo'): Stage2PlanInput {
   };
 }
 
+beforeAll(() => {
+  snapshot = listSections();
+});
+
+beforeEach(() => {
+  for (const entry of listSections()) unregisterSection(entry.id);
+});
+
 afterEach(() => {
   for (const id of registered) unregisterSection(id);
   registered.clear();
+});
+
+afterAll(() => {
+  for (const entry of listSections()) unregisterSection(entry.id);
+  for (const entry of snapshot) {
+    registerSection(entry);
+  }
 });
 
 describe('runStage2Plan', () => {
@@ -78,6 +94,8 @@ describe('runStage2Plan', () => {
   });
 
   test('falls back when LLM returns an invalid id', async () => {
+    add('tldr');
+
     const out = await runStage2Plan(input(), {
       logger: silentLogger,
       provider: 'anthropic',
@@ -85,7 +103,7 @@ describe('runStage2Plan', () => {
     });
 
     expect(out).toHaveLength(1);
-    expect(out[0]?.id).toBe('tldr-stub');
+    expect(out[0]?.id).toBe('tldr');
   });
 
   test('enforces registered required repo sections', async () => {
