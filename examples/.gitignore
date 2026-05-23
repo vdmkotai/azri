@@ -1,0 +1,11 @@
+# Local artifacts; committed plan files are `*.plan.json` (without `.draft`/`.wip`).
+*.draft.json
+*.wip.json
+*.tmp.json
+
+# Stray browser-injected helpers (axe, devtools).
+_axe.min.js
+
+# Cached or in-progress HTML drafts.
+*.draft.html
+*.tmp.html

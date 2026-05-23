@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="generator" content="azri">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src data: 'self' https://github.com; base-uri 'none'; form-action 'none';">
+<title>test: node:test compatibility shim on top of bun:test</title>
+<meta name="description" content="Maps node:test&#39;s test(), describe(), and the before/after lifecycle hooks onto Bun&#39;s existing test graph. ~1,400 lines added across the runner, the JS bindings, and the C++ TestRunner module. 47 new t">
+<meta property="og:title" content="test: node:test compatibility shim on top of bun:test">
+<meta property="og:description" content="Maps node:test&#39;s test(), describe(), and the before/after lifecycle hooks onto Bun&#39;s existing test graph. ~1,400 lines added across the runner, the JS bindings, and the C++ TestRunner module. 47 new t">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="test: node:test compatibility shim on top of bun:test">
+<meta name="twitter:description" content="Maps node:test&#39;s test(), describe(), and the before/after lifecycle hooks onto Bun&#39;s existing test graph. ~1,400 lines added across the runner, the JS bindings, and the C++ TestRunner module. 47 new t">
+<style>
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+img,svg{display:block;max-width:100%;height:auto}
+button{font:inherit}
+
+
+:root{
+  --color-text:#1a202c;
+  --color-bg:#fdfcf7;
+  --color-accent:#2b6cb0;
+  --severity-info:#2c5282;
+  --severity-warn:#9c4221;
+  --severity-critical:#9b2c2c;
+  --typeface-serif:"EB Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --typeface-mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --space-xs:4px;
+  --space-sm:8px;
+  --space-md:12px;
+  --space-lg:16px;
+  --space-xl:24px;
+  --space-2xl:32px;
+  --space-3xl:48px;
+  --space-4xl:64px;
+  --radius-sm:4px;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --shadow-subtle:0 1px 3px rgba(0,0,0,.04);
+  --shadow-lifted:0 4px 12px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --color-text:#e2e8f0;
+    --color-bg:#161616;
+    --color-accent:#63b3ed;
+    --severity-info:#4299e1;
+    --severity-warn:#ed8936;
+    --severity-critical:#fc8181;
+  }
+}
+
+body{margin:0;font-family:var(--typeface-serif);background:var(--color-bg);color:var(--color-text);line-height:1.55;}
+.shell{display:grid;grid-template-columns:260px 1fr;gap:48px;max-width:1180px;margin:0 auto;padding:32px 28px;}
+@media (max-width:900px){.shell{grid-template-columns:1fr;}}
+.azri-toc{position:sticky;top:24px;align-self:start;font-size:14px;line-height:1.5;border-right:1px solid color-mix(in srgb, var(--color-text) 20%, transparent);padding-right:20px;}
+.azri-toc .toc-title{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin:0 0 12px;}
+.azri-toc ol{list-style:none;margin:0;padding:0;}
+.azri-toc li{margin:6px 0;}
+.azri-toc a{color:inherit;text-decoration:none;}
+.azri-toc a:hover{color:var(--color-accent);}
+.azri-toc .toc-num{font-family:var(--typeface-mono);font-size:12px;opacity:.6;margin-right:6px;}
+.azri-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
+.azri-header h1{font-size:42px;line-height:1.1;margin:0 0 12px;}
+.azri-header .header-summary{font-size:20px;opacity:.8;}
+.azri-header .header-link{display:inline-block;margin-top:12px;color:var(--color-accent);}
+.azri-header .header-meta{font-family:var(--typeface-mono);font-size:12px;opacity:.6;margin-top:12px;}
+.azri-section{margin-bottom:48px;}
+.azri-section h2{font-size:28px;margin:32px 0 16px;}
+.azri-section[data-importance="critical"] h2::before{content:"●";color:var(--severity-critical);margin-right:8px;font-size:14px;vertical-align:middle;}
+.azri-section[data-importance="important"] h2::before{content:"●";color:var(--severity-warn);margin-right:8px;font-size:14px;vertical-align:middle;}
+.azri-section .section-body p{margin:0 0 14px;}
+.azri-callout{border-left:3px solid;padding:14px 18px;margin:18px 0;background:color-mix(in srgb, var(--color-text) 5%, transparent);border-radius:0 4px 4px 0;}
+.azri-callout-info{border-color:var(--severity-info);}
+.azri-callout-warn{border-color:var(--severity-warn);}
+.azri-callout-critical{border-color:var(--severity-critical);}
+.azri-callout .callout-label{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:6px;opacity:.85;}
+.azri-code{font-family:var(--typeface-mono);font-size:13px;background:#1a202c;color:#e2e8f0;padding:16px;border-radius:4px;overflow-x:auto;}
+.azri-code code{background:none;color:inherit;font:inherit;}
+.azri-annotated-diff{margin:18px 0;}
+.azri-diff-file{margin:12px 0;border:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);border-radius:4px;overflow:hidden;}
+.azri-diff-file .diff-filename{font-family:var(--typeface-mono);font-size:12px;padding:6px 12px;background:color-mix(in srgb, var(--color-text) 6%, transparent);}
+.diff-annotation{font-family:var(--typeface-mono);font-size:12px;padding:6px 12px;border-top:1px solid color-mix(in srgb, var(--color-text) 10%, transparent);}
+.diff-annotation-info{background:color-mix(in srgb, var(--severity-info) 8%, transparent);}
+.diff-annotation-warn{background:color-mix(in srgb, var(--severity-warn) 10%, transparent);}
+.diff-annotation-critical{background:color-mix(in srgb, var(--severity-critical) 12%, transparent);}
+.diff-body{font-family:var(--typeface-mono);font-size:12px;line-height:1.5;}
+.diff-line{padding:0 12px;white-space:pre;}
+.diff-line-add{background:color-mix(in srgb, var(--severity-info) 6%, transparent);}
+.diff-line-del{background:color-mix(in srgb, var(--severity-critical) 6%, transparent);}
+.diff-line-meta{opacity:.6;}
+.azri-mermaid{margin:24px 0;padding:16px;background:color-mix(in srgb, var(--color-text) 4%, transparent);border-radius:6px;text-align:center;}
+.azri-mermaid svg{max-width:100%;height:auto;display:inline-block;}
+.azri-mermaid figcaption{font-style:italic;opacity:.7;font-size:13px;margin-top:8px;}
+.azri-citations{margin-top:48px;padding-top:24px;border-top:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
+.azri-citations h3{font-family:var(--typeface-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
+.azri-citations ol{font-family:var(--typeface-mono);font-size:13px;}
+.azri-citations a{color:var(--color-accent);}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="azri-toc" aria-label="Contents"><p class="toc-title">Contents</p><ol><li><a href="#overview"><span class="toc-num">1.</span> Overview</a></li><li><a href="#surface"><span class="toc-num">2.</span> Compatibility surface</a></li><li><a href="#risks"><span class="toc-num">3.</span> Risks we&#39;re watching</a></li><li><a href="#diff-shim"><span class="toc-num">4.</span> The new test() shim</a></li><li><a href="#diff-runner"><span class="toc-num">5.</span> Test runner refactors</a></li><li><a href="#tests"><span class="toc-num">6.</span> Test coverage</a></li><li><a href="#module-map"><span class="toc-num">7.</span> Module impact</a></li><li><a href="#next"><span class="toc-num">8.</span> Follow-ups</a></li></ol></nav>
+<main>
+<header class="azri-header"><h1>test: node:test compatibility shim on top of bun:test</h1><p class="header-summary">Maps node:test&#39;s test(), describe(), and the before/after lifecycle hooks onto Bun&#39;s existing test graph. ~1,400 lines added across the runner, the JS bindings, and the C++ TestRunner module. 47 new tests in test/cli/test/. The shim is opt-in via --test-runner&#61;node-compat; the default runner is unchanged.</p><a class="header-link" href="https://github.com/oven-sh/bun/pull/14188" rel="noopener">View on GitHub →</a><div class="header-meta">Run example-big-pr · 2026-05-22T10:31:00Z</div></header>
+<section id="overview" class="azri-section" data-importance="critical"><h2>Overview</h2><div class="section-body"><p>Bun ships its own test runner (<code>bun:test</code>). Node 18+ ships <code>node:test</code>. The two have overlapping APIs and incompatible expectations: <code>node:test</code> reports via TAP, treats every callback as a subtest scope, and runs hooks per-test by default. <code>bun:test</code> reports via a custom format, uses Jest-style describe blocks, and runs hooks per-block.</p>
+<p>This change adds a compatibility shim so existing Node test suites run under Bun without a rewrite. The shim is gated behind <code>--test-runner=node-compat</code> (a new flag). The default <code>bun test</code> behavior is unchanged.</p>
+<p>Numbers from the included compatibility matrix (<code>test/cli/test/node-compat.matrix.test.ts</code>):</p>
+<ul>
+<li><strong><code>node:test</code> example suites that pass without changes</strong>: 18 of 24 from the official Node test docs</li>
+<li><strong>Failing suites and why</strong>:<ul>
+<li>3 rely on <code>t.diagnostic()</code> (not yet implemented — see follow-ups)</li>
+<li>2 rely on <code>--test-name-pattern</code> regex syntax that differs from Bun&#39;s glob</li>
+<li>1 mixes <code>before</code> and <code>beforeEach</code> in a way the shim normalizes to <code>beforeEach</code>, changing test order</li>
+</ul>
+</li>
+</ul>
+<p>The shim does not change <code>process.argv</code>, the exit code semantics, or the TAP output format that Node consumers depend on.</p>
+</div></section>
+<section id="surface" class="azri-section" data-importance="critical"><h2>Compatibility surface</h2><div class="section-body"><p>The shim covers four entry points and four lifecycle hooks. Everything else falls through to the existing <code>bun:test</code> graph or throws a <code>NotImplementedError</code> with a CHANGELOG link.</p>
+<p><strong>Supported entry points</strong> (mapped to bun:test):</p>
+<ul>
+<li><code>test(name, fn)</code> — registered as a leaf test in the current describe scope</li>
+<li><code>test(name, opts, fn)</code> — <code>opts.skip</code>, <code>opts.only</code>, <code>opts.timeout</code>, <code>opts.concurrency</code> are honored; unknown keys log a warning</li>
+<li><code>describe(name, fn)</code> — pushes a new scope; same as bun:test</li>
+<li><code>it(name, fn)</code> — alias for <code>test()</code>, same semantics</li>
+</ul>
+<p><strong>Supported lifecycle hooks</strong>:</p>
+<ul>
+<li><code>before(fn)</code> → maps to <code>beforeAll(fn)</code></li>
+<li><code>after(fn)</code> → maps to <code>afterAll(fn)</code></li>
+<li><code>beforeEach(fn)</code> → unchanged</li>
+<li><code>afterEach(fn)</code> → unchanged</li>
+</ul>
+<p>The <code>before</code>/<code>after</code> → <code>beforeAll</code>/<code>afterAll</code> mapping is the one place the semantics shift. In <code>node:test</code>, <code>before</code> runs once before the first subtest under its scope. In <code>bun:test</code>, <code>beforeAll</code> runs once before the entire describe block. For 95% of suites these are observationally identical. For the other 5% — suites that mix <code>before</code> and <code>beforeEach</code> and care about ordering — the shim emits a deprecation notice the first time it sees the pattern, with a pointer to the workaround.</p>
+</div></section>
+<section id="risks" class="azri-section" data-importance="critical"><h2>Risks we&#39;re watching</h2><div class="section-body"><p>Six risks were flagged. Two are blockers if uncovered in production; the rest are watch-list items with documented workarounds.</p>
+
+<aside class="azri-callout azri-callout-critical"><div class="callout-label">api-contract</div><div class="callout-body"><p>The shim claims compatibility with node:test but covers only 75% (18/24) of the official examples. Suites using &#96;t.diagnostic()&#96;, regex &#96;--test-name-pattern&#96;, or mixed &#96;before&#96;/&#96;beforeEach&#96; will either fail outright or behave differently. The CHANGELOG entry must list the gaps explicitly; the docs PR is queued as follow-up #2.</p></div></aside>
+<aside class="azri-callout azri-callout-warn"><div class="callout-label">test-coverage</div><div class="callout-body"><p>Hook normalization (before → beforeAll) silently changes test ordering for suites that mix before and beforeEach. A deprecation notice is emitted on first encounter, but suites that suppress warnings will see incorrect behavior with no signal. Recommend escalating the notice to an error in a future minor.</p></div></aside>
+<aside class="azri-callout azri-callout-warn"><div class="callout-label">performance</div><div class="callout-body"><p>The transpiler injection path adds ~180μs to module load for files importing node:test (measured on M2 Pro with --test-runner&#61;node-compat). For typical suites of &lt;100 test files this is invisible; for suites with thousands of small test files the overhead is observable. The follow-up bundling pass would cut this to ~30μs.</p></div></aside>
+<aside class="azri-callout azri-callout-info"><div class="callout-label">dependency-change</div><div class="callout-body"><p>No third-party dependencies added. The shim is implemented in Zig and C++ against Bun&#39;s existing runtime. The TAP reporter reuses the existing &#96;tap.zig&#96; module, which is unchanged.</p></div></aside>
+<aside class="azri-callout azri-callout-info"><div class="callout-label">secrets-exposure</div><div class="callout-body"><p>The telemetry counter (follow-up #4) writes to &#96;~/.bun/telemetry/test-runner.count&#96; and never leaves the machine. The local-only design was reviewed against the Bun privacy policy; see the linked design note in the PR description for the threat model.</p></div></aside>
+<aside class="azri-callout azri-callout-warn"><div class="callout-label">auth</div><div class="callout-body"><p>The shim has no auth surface, but the new &#96;--test-runner&#96; flag interacts with the existing &#96;--preload&#96; script path. A preload script can swap the active runner at runtime via &#96;process.argv&#96; manipulation; downstream CI configs that pin &#96;--test-runner&#61;default&#96; for security reasons should add an assertion in their preload script.</p></div></aside></div></section>
+<section id="diff-shim" class="azri-section" data-importance="important"><h2>The new test() shim</h2><div class="section-body"><p><strong><code>src/bun.js/test/jest.zig</code></strong> — the shim lives in a new <code>node_compat</code> module. The existing <code>bun:test</code> graph is untouched.</p>
+<pre><code class="language-diff">+const node_compat = struct {
++    fn registerTest(
++        globalObject: *JSGlobalObject,
++        callframe: *CallFrame,
++    ) callconv(.C) JSValue {
++        const args = callframe.arguments(3);
++        const name = args.ptr[0];
++        const opts_or_fn = args.ptr[1];
++        const maybe_fn = args.ptr[2];
++
++        // Two-arg form: test(name, fn)
++        if (maybe_fn.isUndefined()) {
++            return jest.describe.test_(globalObject, name, opts_or_fn, .{});
++        }
++        // Three-arg form: test(name, opts, fn)
++        const opts = parseNodeTestOpts(globalObject, opts_or_fn);
++        return jest.describe.test_(globalObject, name, maybe_fn, opts);
++    }
++};
+</code></pre>
+<p>The shim does not duplicate the test scheduling logic. It parses node:test&#39;s option shape (<code>{ skip, only, timeout, concurrency }</code>), converts it to bun:test&#39;s internal <code>TestOpts</code> struct, and forwards to the same <code>jest.describe.test_</code> function the existing code uses.</p>
+<p><strong><code>src/bun.js/api/JSTranspiler.cpp</code></strong> — the transpiler injects the shim&#39;s globals into modules that import <code>node:test</code>.</p>
+<pre><code class="language-diff">+    if (specifier == &quot;node:test&quot;_s) {
++        return makeNodeTestRecord(globalObject);
++    }
+</code></pre>
+<p>The <code>makeNodeTestRecord</code> helper returns a synthetic module exporting <code>test</code>, <code>describe</code>, <code>it</code>, and the four hooks. No bytecode is generated — the entries are pre-bound JSFunction values that route into the Zig shim.</p>
+</div></section>
+<section id="diff-runner" class="azri-section" data-importance="important"><h2>Test runner refactors</h2><div class="section-body"><p>The CLI gains a <code>--test-runner</code> flag with two values: <code>default</code> (current behavior) and <code>node-compat</code> (the new shim). The default is unchanged; suites built for <code>bun:test</code> continue to work.</p>
+<pre><code class="language-diff"> const TestCommand = struct {
+     pub fn exec(ctx: Command.Context) !void {
++        const runner = ctx.runtime_options.test_runner;
++        switch (runner) {
++            .default =&gt; try execDefault(ctx),
++            .node_compat =&gt; try execNodeCompat(ctx),
++        }
+-        // ... existing default-runner code ...
+     }
+ };
+</code></pre>
+<p>The <code>execNodeCompat</code> path differs from <code>execDefault</code> in three places:</p>
+<ol>
+<li><strong>Reporter selection</strong>: <code>--test-reporter=tap</code> is forced; other reporters print a warning and exit non-zero.</li>
+<li><strong>Hook normalization</strong>: a pre-pass on the registered test graph rewrites <code>before</code> → <code>beforeAll</code> and <code>after</code> → <code>afterAll</code>.</li>
+<li><strong>Test name pattern</strong>: the <code>--test-name-pattern</code> flag is interpreted as a JavaScript regex instead of a glob, matching node:test.</li>
+</ol>
+</div></section>
+<section id="tests" class="azri-section" data-importance="important"><h2>Test coverage</h2><div class="section-body"><p>47 new tests across three files. The matrix file is the headline check; it runs each of the 24 official <code>node:test</code> example suites under <code>bun test --test-runner=node-compat</code> and snapshots the TAP output.</p>
+<p>Breakdown:</p>
+<ul>
+<li><strong><code>node-compat.matrix.test.ts</code></strong> (24 tests): one per example suite from the Node test docs. 18 pass, 6 are marked <code>.skip</code> with an inline reason and a tracking issue link.</li>
+<li><strong><code>node-compat.hooks.test.ts</code></strong> (15 tests): exhaustive coverage of the <code>before</code>/<code>beforeEach</code>/<code>after</code>/<code>afterEach</code> matrix. Includes the deprecation-notice path for mixed <code>before</code> + <code>beforeEach</code>.</li>
+<li><strong><code>node-compat.tap.test.ts</code></strong> (8 tests): TAP output format conformance against the official spec. Validates ok/not-ok lines, diagnostic comments, and the bail-out behavior on the first failure.</li>
+</ul>
+<p>The default-runner test suite is untouched and continues to pass. The CI matrix gains a third axis for <code>--test-runner</code> values, taking the total CI test count from 12,400 to 14,200.</p>
+</div></section>
+<section id="module-map" class="azri-section" data-importance="supporting"><h2>Module impact</h2><div class="section-body"><p>Three files own the new code. Nothing else moves.</p>
+<ul>
+<li><strong><code>src/bun.js/test/jest.zig</code></strong> (+820 lines): the <code>node_compat</code> struct, the option-shape parser, the hook-normalization pre-pass.</li>
+<li><strong><code>src/cli/test_command.zig</code></strong> (+340 lines): the <code>--test-runner</code> flag, the <code>execNodeCompat</code> path, the TAP reporter routing.</li>
+<li><strong><code>src/bun.js/api/JSTranspiler.cpp</code></strong> (+240 lines): the <code>node:test</code> module synthesis and the pre-bound JSFunction values.</li>
+</ul>
+<p>No public C++ headers change. The Zig public API gains one new exported function (<code>Jest.shimNodeTest</code>) which the transpiler calls. The function is <code>pub</code> but not documented; downstream code embedding Bun&#39;s runtime should not call it directly.</p>
+</div></section>
+<section id="next" class="azri-section" data-importance="supporting"><h2>Follow-ups</h2><div class="section-body"><p>Four items are queued behind this PR:</p>
+<ol>
+<li><strong><code>t.diagnostic()</code> support</strong>. Three of the six failing suites need it. The implementation is small (~80 lines in the TAP reporter); separated to keep this PR focused on the shim itself.</li>
+<li><strong><code>--test-name-pattern</code> glob/regex unification</strong>. The current implementation switches behavior based on <code>--test-runner</code>. A planned follow-up exposes both syntaxes via a <code>--test-name-pattern-syntax</code> flag, defaulting per-runner.</li>
+<li><strong>Documentation</strong>. The <code>docs/cli/test.md</code> page gains a &#39;Compatibility with node:test&#39; section. The 18 passing suites are listed with copy-paste invocations; the 6 failing suites are listed with their tracking issues.</li>
+<li><strong>Telemetry</strong>. A counter increments on each invocation of <code>--test-runner=node-compat</code> so the team can track adoption. The counter is local-only and never sent off the machine; opt-out via <code>BUN_DISABLE_TELEMETRY=1</code> as today.</li>
+</ol>
+</div></section>
+<aside class="azri-citations"><h3>Citations</h3><ol><li class="citation citation-test"><a href="https://github.com/oven-sh/bun/blob/24f5a4f/test/cli/test/node-compat.matrix.test.ts#L1-L84" rel="noopener">test/cli/test/node-compat.matrix.test.ts:1-84</a></li><li class="citation citation-code"><a href="https://github.com/oven-sh/bun/blob/24f5a4f/src/bun.js/test/jest.zig#L1820-L1862" rel="noopener">src/bun.js/test/jest.zig:1820-1862</a></li><li class="citation citation-code"><a href="https://github.com/oven-sh/bun/blob/24f5a4f/src/bun.js/api/JSTranspiler.cpp#L488-L540" rel="noopener">src/bun.js/api/JSTranspiler.cpp:488-540</a></li><li class="citation citation-config"><a href="https://github.com/oven-sh/bun/blob/24f5a4f/package.json#L14-L24" rel="noopener">package.json:14-24</a></li><li class="citation citation-comment"><a href="https://github.com/oven-sh/bun/blob/24f5a4f/docs/cli/test.md#L220-L248" rel="noopener">docs/cli/test.md:220-248</a></li><li class="citation citation-code"><a href="https://github.com/oven-sh/bun/blob/24f5a4f/src/cli/test_command.zig#L712-L760" rel="noopener">src/cli/test_command.zig:712-760</a></li></ol></aside>
+</main>
+</div>
+</body>
+</html>

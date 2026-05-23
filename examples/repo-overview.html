@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="generator" content="azri">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src data: 'self' https://github.com; base-uri 'none'; form-action 'none';">
+<title>commander.js — a small, opinionated CLI parser</title>
+<meta name="description" content="An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page sh">
+<meta property="og:title" content="commander.js — a small, opinionated CLI parser">
+<meta property="og:description" content="An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page sh">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="commander.js — a small, opinionated CLI parser">
+<meta name="twitter:description" content="An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page sh">
+<style>
+
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+body{margin:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
+img,svg{display:block;max-width:100%;height:auto}
+button{font:inherit}
+
+
+:root{
+  --color-text:#1a202c;
+  --color-bg:#fdfcf7;
+  --color-accent:#2b6cb0;
+  --severity-info:#2c5282;
+  --severity-warn:#9c4221;
+  --severity-critical:#9b2c2c;
+  --typeface-serif:"EB Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --typeface-mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --space-xs:4px;
+  --space-sm:8px;
+  --space-md:12px;
+  --space-lg:16px;
+  --space-xl:24px;
+  --space-2xl:32px;
+  --space-3xl:48px;
+  --space-4xl:64px;
+  --radius-sm:4px;
+  --radius-md:8px;
+  --radius-lg:12px;
+  --shadow-subtle:0 1px 3px rgba(0,0,0,.04);
+  --shadow-lifted:0 4px 12px rgba(0,0,0,.08);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --color-text:#e2e8f0;
+    --color-bg:#161616;
+    --color-accent:#63b3ed;
+    --severity-info:#4299e1;
+    --severity-warn:#ed8936;
+    --severity-critical:#fc8181;
+  }
+}
+
+body{margin:0;font-family:var(--typeface-serif);background:var(--color-bg);color:var(--color-text);line-height:1.55;}
+.shell{display:grid;grid-template-columns:260px 1fr;gap:48px;max-width:1180px;margin:0 auto;padding:32px 28px;}
+@media (max-width:900px){.shell{grid-template-columns:1fr;}}
+.azri-toc{position:sticky;top:24px;align-self:start;font-size:14px;line-height:1.5;border-right:1px solid color-mix(in srgb, var(--color-text) 20%, transparent);padding-right:20px;}
+.azri-toc .toc-title{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin:0 0 12px;}
+.azri-toc ol{list-style:none;margin:0;padding:0;}
+.azri-toc li{margin:6px 0;}
+.azri-toc a{color:inherit;text-decoration:none;}
+.azri-toc a:hover{color:var(--color-accent);}
+.azri-toc .toc-num{font-family:var(--typeface-mono);font-size:12px;opacity:.6;margin-right:6px;}
+.azri-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
+.azri-header h1{font-size:42px;line-height:1.1;margin:0 0 12px;}
+.azri-header .header-summary{font-size:20px;opacity:.8;}
+.azri-header .header-link{display:inline-block;margin-top:12px;color:var(--color-accent);}
+.azri-header .header-meta{font-family:var(--typeface-mono);font-size:12px;opacity:.6;margin-top:12px;}
+.azri-section{margin-bottom:48px;}
+.azri-section h2{font-size:28px;margin:32px 0 16px;}
+.azri-section[data-importance="critical"] h2::before{content:"●";color:var(--severity-critical);margin-right:8px;font-size:14px;vertical-align:middle;}
+.azri-section[data-importance="important"] h2::before{content:"●";color:var(--severity-warn);margin-right:8px;font-size:14px;vertical-align:middle;}
+.azri-section .section-body p{margin:0 0 14px;}
+.azri-callout{border-left:3px solid;padding:14px 18px;margin:18px 0;background:color-mix(in srgb, var(--color-text) 5%, transparent);border-radius:0 4px 4px 0;}
+.azri-callout-info{border-color:var(--severity-info);}
+.azri-callout-warn{border-color:var(--severity-warn);}
+.azri-callout-critical{border-color:var(--severity-critical);}
+.azri-callout .callout-label{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:6px;opacity:.85;}
+.azri-code{font-family:var(--typeface-mono);font-size:13px;background:#1a202c;color:#e2e8f0;padding:16px;border-radius:4px;overflow-x:auto;}
+.azri-code code{background:none;color:inherit;font:inherit;}
+.azri-annotated-diff{margin:18px 0;}
+.azri-diff-file{margin:12px 0;border:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);border-radius:4px;overflow:hidden;}
+.azri-diff-file .diff-filename{font-family:var(--typeface-mono);font-size:12px;padding:6px 12px;background:color-mix(in srgb, var(--color-text) 6%, transparent);}
+.diff-annotation{font-family:var(--typeface-mono);font-size:12px;padding:6px 12px;border-top:1px solid color-mix(in srgb, var(--color-text) 10%, transparent);}
+.diff-annotation-info{background:color-mix(in srgb, var(--severity-info) 8%, transparent);}
+.diff-annotation-warn{background:color-mix(in srgb, var(--severity-warn) 10%, transparent);}
+.diff-annotation-critical{background:color-mix(in srgb, var(--severity-critical) 12%, transparent);}
+.diff-body{font-family:var(--typeface-mono);font-size:12px;line-height:1.5;}
+.diff-line{padding:0 12px;white-space:pre;}
+.diff-line-add{background:color-mix(in srgb, var(--severity-info) 6%, transparent);}
+.diff-line-del{background:color-mix(in srgb, var(--severity-critical) 6%, transparent);}
+.diff-line-meta{opacity:.6;}
+.azri-mermaid{margin:24px 0;padding:16px;background:color-mix(in srgb, var(--color-text) 4%, transparent);border-radius:6px;text-align:center;}
+.azri-mermaid svg{max-width:100%;height:auto;display:inline-block;}
+.azri-mermaid figcaption{font-style:italic;opacity:.7;font-size:13px;margin-top:8px;}
+.azri-citations{margin-top:48px;padding-top:24px;border-top:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
+.azri-citations h3{font-family:var(--typeface-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
+.azri-citations ol{font-family:var(--typeface-mono);font-size:13px;}
+.azri-citations a{color:var(--color-accent);}
+</style>
+</head>
+<body>
+<div class="shell">
+<nav class="azri-toc" aria-label="Contents"><p class="toc-title">Contents</p><ol><li><a href="#overview"><span class="toc-num">1.</span> Overview</a></li><li><a href="#tour"><span class="toc-num">2.</span> Where the work lives</a></li><li><a href="#core-types"><span class="toc-num">3.</span> The Command object</a></li><li><a href="#risks"><span class="toc-num">4.</span> Sharp edges to know about</a></li><li><a href="#next"><span class="toc-num">5.</span> Where to read next</a></li></ol></nav>
+<main>
+<header class="azri-header"><h1>commander.js — a small, opinionated CLI parser</h1><p class="header-summary">An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page shows where they live and which parts of the code carry the load.</p><div class="header-meta">Run example-repo-overview · 2026-05-22T10:24:00Z</div></header>
+<section id="overview" class="azri-section" data-importance="critical"><h2>Overview</h2><div class="section-body"><p>Commander is the workhorse argument parser behind Vercel CLI, Vue CLI, Storybook, and several thousand smaller tools. It does one thing: turn <code>process.argv</code> into typed options, positional arguments, and a tree of subcommands. It has done that since 2012.</p>
+<p>The repo is small. Three files do most of the work — <code>lib/command.js</code>, <code>lib/option.js</code>, and <code>lib/argument.js</code>. The rest are helpers, error types, and the package entry point. There are no runtime dependencies. The published bundle weighs in at 27 KB unminified.</p>
+<p>The public surface fits on one page: <code>new Command()</code>, <code>.option()</code>, <code>.argument()</code>, <code>.action()</code>, <code>.parse()</code>. Variadic options, custom parsers, conflicting flags, and subcommand inheritance are all expressed as fluent calls on the same <code>Command</code> object. That choice — one class doing many things — is the design decision the rest of the code orbits around.</p>
+</div></section>
+<section id="tour" class="azri-section" data-importance="critical"><h2>Where the work lives</h2><div class="section-body"><p>Three files hold the meaningful logic.</p>
+<p><code>lib/command.js</code> (1,840 lines) defines the <code>Command</code> class. It owns the option list, the positional argument list, the subcommand tree, and the parse loop. Every fluent call returns <code>this</code>, so chains read like a small DSL. The parse loop at <code>lib/command.js:1124-1248</code> is the hot path; it walks <code>process.argv</code> once and matches tokens against the option list, the argument list, and the subcommand map in that order.</p>
+<p><code>lib/option.js</code> (420 lines) defines <code>Option</code>. An <code>Option</code> holds a flag string (parsed into short and long forms), a description, a default value, and an optional custom-parse function. It does no I/O — building an Option never touches <code>process.argv</code>. That separation is what makes the test suite fast.</p>
+<p><code>lib/argument.js</code> (180 lines) is the positional counterpart. It is similar to Option but lacks the flag-parsing logic. Variadic arguments live here, gated by an <code>isVariadic</code> boolean set when the flag string ends in <code>...</code>.</p>
+<p><code>lib/help.js</code> (520 lines) renders the auto-generated help text. It is the only file that uses <code>process.stdout</code> directly.</p>
+
+<figure class="azri-mermaid" aria-label="Section diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Commander.js core type relationships">
+  <defs>
+    <marker id="ovw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fill-opacity="0.7"/>
+    </marker>
+    <marker id="ovw-arrow-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9b2c2c" fill-opacity="0.85"/>
+    </marker>
+  </defs>
+  <style>
+    .ovw-node { fill: none; stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.3; }
+    .ovw-node-accent { stroke: #2b6cb0; stroke-opacity: 0.9; stroke-width: 1.6; }
+    .ovw-node-err { stroke: #9b2c2c; stroke-opacity: 0.7; stroke-width: 1.2; }
+    .ovw-edge { stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.2; fill: none; }
+    .ovw-edge-err { stroke: #9b2c2c; stroke-opacity: 0.7; stroke-width: 1.1; stroke-dasharray: 5 3; fill: none; }
+    .ovw-edge-self { stroke: currentColor; stroke-opacity: 0.45; stroke-width: 1.1; fill: none; }
+    .ovw-label { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 14px; fill: currentColor; font-weight: 600; }
+    .ovw-label-err { fill: #9b2c2c; }
+    .ovw-edge-label { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; fill: currentColor; fill-opacity: 0.7; }
+    .ovw-edge-label-err { fill: #9b2c2c; fill-opacity: 0.85; }
+  </style>
+  <rect class="ovw-node ovw-node-accent" x="280" y="135" width="160" height="50" rx="6"/>
+  <text class="ovw-label" x="360" y="166" text-anchor="middle">Command</text>
+  <rect class="ovw-node" x="60" y="135" width="120" height="50" rx="6"/>
+  <text class="ovw-label" x="120" y="166" text-anchor="middle">Option</text>
+  <rect class="ovw-node" x="60" y="225" width="120" height="50" rx="6"/>
+  <text class="ovw-label" x="120" y="256" text-anchor="middle">Argument</text>
+  <rect class="ovw-node" x="540" y="135" width="120" height="50" rx="6"/>
+  <text class="ovw-label" x="600" y="166" text-anchor="middle">Help</text>
+  <rect class="ovw-node ovw-node-err" x="280" y="245" width="160" height="50" rx="6"/>
+  <text class="ovw-label ovw-label-err" x="360" y="276" text-anchor="middle">CommanderError</text>
+  <line class="ovw-edge" x1="280" y1="153" x2="185" y2="153" marker-end="url(#ovw-arrow)"/>
+  <text class="ovw-edge-label" x="232" y="146" text-anchor="middle">has many</text>
+  <path class="ovw-edge" d="M 280 175 L 240 175 L 240 240 L 185 240" marker-end="url(#ovw-arrow)"/>
+  <text class="ovw-edge-label" x="232" y="218" text-anchor="middle">has many</text>
+  <line class="ovw-edge" x1="445" y1="160" x2="535" y2="160" marker-end="url(#ovw-arrow)"/>
+  <text class="ovw-edge-label" x="490" y="153" text-anchor="middle">renders via</text>
+  <path class="ovw-edge-err" d="M 120 190 L 120 215 L 280 260" marker-end="url(#ovw-arrow-err)"/>
+  <text class="ovw-edge-label ovw-edge-label-err" x="195" y="234">throws</text>
+  <path class="ovw-edge-err" d="M 180 252 L 270 260" marker-end="url(#ovw-arrow-err)"/>
+  <text class="ovw-edge-label ovw-edge-label-err" x="220" y="248">throws</text>
+  <path class="ovw-edge-self" d="M 425 135 C 470 95 470 60 360 60 C 250 60 250 95 295 135" marker-end="url(#ovw-arrow)"/>
+  <text class="ovw-edge-label" x="360" y="55" text-anchor="middle">registers child</text>
+</svg>
+<figcaption>Diagram: mermaid-flow</figcaption></figure></div></section>
+<section id="core-types" class="azri-section" data-importance="important"><h2>The Command object</h2><div class="section-body"><p>Every public API call routes through <code>Command</code>. The class has 67 methods, but only twelve are used in 95% of programs (per a quick survey of the top-100 downstream packages).</p>
+<p>The core surface:</p>
+<ul>
+<li><strong>Constructor</strong>: <code>new Command(name?)</code> — the root command is unnamed; subcommands take their name as the first argument.</li>
+<li><strong><code>.option(flags, description, defaultValue?)</code></strong> — registers an <code>Option</code>. Flag strings follow the convention <code>-s, --long &lt;value&gt;</code>. Adding <code>...</code> after the placeholder marks the option variadic.</li>
+<li><strong><code>.argument(name, description, defaultValue?)</code></strong> — registers a positional. Same <code>...</code> suffix for variadic.</li>
+<li><strong><code>.command(name, description, opts?)</code></strong> — registers a subcommand. Returns the <em>child</em> <code>Command</code>, not <code>this</code>, breaking the chain pattern on purpose.</li>
+<li><strong><code>.action(fn)</code></strong> — registers the function called when this command matches. Receives the parsed values as arguments.</li>
+<li><strong><code>.parse(argv?)</code></strong> — runs the parse loop. Default argv is <code>process.argv</code>.</li>
+<li><strong><code>.parseAsync(argv?)</code></strong> — same, but awaits async actions before resolving.</li>
+</ul>
+<p>A small set of error types lives next to <code>Command</code>: <code>CommanderError</code>, <code>InvalidArgumentError</code>, <code>MissingArgumentError</code>. They all extend a shared base with a <code>code</code> field, which is what programs branch on for non-zero exit codes.</p>
+</div></section>
+<section id="risks" class="azri-section" data-importance="important"><h2>Sharp edges to know about</h2><div class="section-body"><p>Three years of issues distill to four recurring patterns. None are bugs. All are documented in the README, but each catches someone new every month.</p>
+
+<aside class="azri-callout azri-callout-info"><div class="callout-label">api-contract</div><div class="callout-body"><p>Boolean options without a value (&#96;-v&#96;) and option-value pairs (&#96;-p 8080&#96;) parse differently when the flag is grouped with others (&#96;-vp&#96;). The README documents this at the top of the &#39;Options&#39; section, but it surprises users coming from yargs.</p></div></aside>
+<aside class="azri-callout azri-callout-warn"><div class="callout-label">api-contract</div><div class="callout-body"><p>Subcommand registration via &#96;.command(name, description)&#96; returns the *child* command, not the parent. Chaining &#96;.option()&#96; after &#96;.command()&#96; will register the option on the child, which is rarely what the caller meant. The README calls this out explicitly; issues #1408 and #1670 are the canonical reports.</p></div></aside>
+<aside class="azri-callout azri-callout-info"><div class="callout-label">dependency-change</div><div class="callout-body"><p>Commander has no runtime dependencies and intends to stay that way. Pull requests adding dependencies are routinely closed with a pointer to the contributing guide. The internal &#96;pkg.dependencies&#96; field is empty.</p></div></aside>
+<aside class="azri-callout azri-callout-info"><div class="callout-label">performance</div><div class="callout-body"><p>The parse loop is O(n × m) where n is the argv length and m is the number of registered options. For a typical CLI (≤20 options, ≤10 args) this is a non-issue. For programs that register hundreds of options at runtime, the README recommends precomputing the option map and bypassing &#96;.parse()&#96; in favor of &#96;.parseOptions()&#96;.</p></div></aside></div></section>
+<section id="next" class="azri-section" data-importance="supporting"><h2>Where to read next</h2><div class="section-body"><p>Three entry points cover most questions:</p>
+<ol>
+<li><strong><code>README.md</code></strong> is unusually thorough. The table of contents at the top lists 47 worked examples covering option types, variadic flags, conflicting options, action handlers, and lifecycle hooks. If your problem looks common, the README probably solves it.</li>
+<li><strong><code>examples/</code></strong> has 33 runnable scripts, one per feature. Each one is a complete program — copy-paste, run, modify. The patterns under <code>examples/options-*.js</code> are the most-linked answers in old issues.</li>
+<li><strong><code>CHANGELOG.md</code></strong> is curated by hand. Breaking changes are flagged with <strong>(breaking)</strong> at the start of the line. When a new major lands, the diff against the previous major in the CHANGELOG is the fastest path to understanding the migration.</li>
+</ol>
+</div></section>
+<aside class="azri-citations"><h3>Citations</h3><ol><li class="citation citation-code"><a href="https://github.com/tj/commander.js/blob/v12.1.0/lib/option.js#L88-L120" rel="noopener">lib/option.js:88-120</a></li><li class="citation citation-test"><a href="https://github.com/tj/commander.js/blob/v12.1.0/tests/options.parse.test.js#L240-L288" rel="noopener">tests/options.parse.test.js:240-288</a></li><li class="citation citation-code"><a href="https://github.com/tj/commander.js/blob/v12.1.0/lib/command.js#L412-L458" rel="noopener">lib/command.js:412-458</a></li><li class="citation citation-config"><a href="https://github.com/tj/commander.js/blob/v12.1.0/package.json#L30-L38" rel="noopener">package.json:30-38</a></li><li class="citation citation-code"><a href="https://github.com/tj/commander.js/blob/v12.1.0/lib/command.js#L1124-L1248" rel="noopener">lib/command.js:1124-1248</a></li></ol></aside>
+</main>
+</div>
+</body>
+</html>

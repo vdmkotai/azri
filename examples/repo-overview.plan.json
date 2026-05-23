@@ -36,12 +36,7 @@
       "title": "Sharp edges to know about",
       "importance": "important",
       "sectionType": "risk-callouts",
-      "files": [
-        "lib/command.js",
-        "lib/option.js",
-        "package.json",
-        "tests/options.parse.test.js"
-      ],
+      "files": ["lib/command.js", "lib/option.js", "package.json", "tests/options.parse.test.js"],
       "evidencePacketIds": [],
       "proseMarkdown": "Three years of issues distill to four recurring patterns. None are bugs. All are documented in the README, but each catches someone new every month."
     },
@@ -55,12 +50,7 @@
       "proseMarkdown": "Three entry points cover most questions:\n\n1. **`README.md`** is unusually thorough. The table of contents at the top lists 47 worked examples covering option types, variadic flags, conflicting options, action handlers, and lifecycle hooks. If your problem looks common, the README probably solves it.\n2. **`examples/`** has 33 runnable scripts, one per feature. Each one is a complete program — copy-paste, run, modify. The patterns under `examples/options-*.js` are the most-linked answers in old issues.\n3. **`CHANGELOG.md`** is curated by hand. Breaking changes are flagged with **(breaking)** at the start of the line. When a new major lands, the diff against the previous major in the CHANGELOG is the fastest path to understanding the migration."
     }
   ],
-  "collapsedFiles": [
-    "examples/",
-    "tests/",
-    "typings/index.test-d.ts",
-    "Readme_zh-CN.md"
-  ],
+  "collapsedFiles": ["examples/", "tests/", "typings/index.test-d.ts", "Readme_zh-CN.md"],
   "diagramSpecs": [
     {
       "id": "core-types",
@@ -82,17 +72,13 @@
       "severity": "warn",
       "category": "api-contract",
       "summary": "Subcommand registration via `.command(name, description)` returns the *child* command, not the parent. Chaining `.option()` after `.command()` will register the option on the child, which is rarely what the caller meant. The README calls this out explicitly; issues #1408 and #1670 are the canonical reports.",
-      "citations": [
-        { "file": "lib/command.js", "lineStart": 412, "lineEnd": 458, "kind": "code" }
-      ]
+      "citations": [{ "file": "lib/command.js", "lineStart": 412, "lineEnd": 458, "kind": "code" }]
     },
     {
       "severity": "info",
       "category": "dependency-change",
       "summary": "Commander has no runtime dependencies and intends to stay that way. Pull requests adding dependencies are routinely closed with a pointer to the contributing guide. The internal `pkg.dependencies` field is empty.",
-      "citations": [
-        { "file": "package.json", "lineStart": 30, "lineEnd": 38, "kind": "config" }
-      ]
+      "citations": [{ "file": "package.json", "lineStart": 30, "lineEnd": 38, "kind": "config" }]
     },
     {
       "severity": "info",
