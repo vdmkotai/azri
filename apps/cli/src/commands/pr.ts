@@ -21,7 +21,12 @@ import type {
   Verbosity,
 } from '../../../../packages/types/src/index.ts';
 import { estimateCost, formatCostEstimate } from '../cost-estimate.ts';
-import { applyStoredApiKey, autoDetectProvider, buildMissingKeyError } from '../credentials.ts';
+import {
+  applyStoredApiKey,
+  buildAmbiguousProviderError,
+  buildMissingKeyError,
+  resolveDefaultProvider,
+} from '../credentials.ts';
 import {
   createGitHubClient,
   GitHubHttpError,
@@ -68,13 +73,14 @@ function take(args: string[], index: number, flag: string): string {
 }
 
 function parseArgs(args: string[]): PrArgs {
+  let providerExplicit = false;
   const parsed: PrArgs = {
     target: '',
     open: false,
     verbose: false,
     dryRun: false,
     json: false,
-    provider: autoDetectProvider(),
+    provider: 'anthropic',
     verbosity: undefined,
     yes: false,
   };
@@ -103,6 +109,7 @@ function parseArgs(args: string[]): PrArgs {
       if (!PROVIDERS.has(provider as ProviderName))
         throw new Error(`Unknown provider: ${provider}`);
       parsed.provider = provider as ProviderName;
+      providerExplicit = true;
     } else if (arg.startsWith('--')) throw new Error(`Unknown flag: ${arg}`);
     else if (parsed.target) throw new Error(`Unexpected argument: ${arg}`);
     else parsed.target = arg;
@@ -110,6 +117,11 @@ function parseArgs(args: string[]): PrArgs {
 
   parsed.verbosity = verbState.verbosity;
   parsed.yes = verbState.yes;
+  if (!providerExplicit) {
+    const resolved = resolveDefaultProvider();
+    if ('ambiguous' in resolved) throw new Error(buildAmbiguousProviderError(resolved.ambiguous));
+    parsed.provider = 'provider' in resolved ? resolved.provider : 'anthropic';
+  }
   if (!parsed.target) throw new Error('Usage: azri pr <num-or-url> [--repo owner/name]');
   return parsed;
 }

@@ -23,7 +23,12 @@ import {
 } from '../../../../packages/types/src/index.ts';
 
 import { estimateCost, formatCostEstimate } from '../cost-estimate.ts';
-import { applyStoredApiKey, autoDetectProvider, buildMissingKeyError } from '../credentials.ts';
+import {
+  applyStoredApiKey,
+  buildAmbiguousProviderError,
+  buildMissingKeyError,
+  resolveDefaultProvider,
+} from '../credentials.ts';
 import { loadUserTokens, validateThemeName } from '../theme-loader.ts';
 import { createProgress, openInBrowser } from '../ui/index.ts';
 import {
@@ -56,6 +61,7 @@ const STAGES: ReadonlyArray<{ id: string; label: string }> = [
 ];
 
 function parseArgs(args: string[]): DiffOptions | { error: string } {
+  let providerExplicit = false;
   const opts: DiffOptions = {
     head: 'HEAD',
     open: false,
@@ -86,9 +92,11 @@ function parseArgs(args: string[]): DiffOptions | { error: string } {
       i += 1;
     } else if (arg === '--provider' && next !== undefined) {
       opts.provider = next as ProviderName;
+      providerExplicit = true;
       i += 1;
     } else if (arg.startsWith('--provider=')) {
       opts.provider = arg.slice('--provider='.length) as ProviderName;
+      providerExplicit = true;
     } else if (arg === '--config' && next !== undefined) {
       opts.config = next;
       i += 1;
@@ -104,6 +112,11 @@ function parseArgs(args: string[]): DiffOptions | { error: string } {
   }
   opts.verbosity = verbState.verbosity;
   opts.yes = verbState.yes;
+  if (!providerExplicit) {
+    const resolved = resolveDefaultProvider();
+    if ('ambiguous' in resolved) return { error: buildAmbiguousProviderError(resolved.ambiguous) };
+    opts.provider = 'provider' in resolved ? resolved.provider : 'anthropic';
+  }
   return opts;
 }
 
@@ -284,7 +297,7 @@ export async function runDiff(args: string[]): Promise<number> {
   }
   progress.complete('collect');
 
-  const provider: ProviderName = opts.provider ?? autoDetectProvider();
+  const provider: ProviderName = opts.provider ?? 'anthropic';
   let config: AzriConfig;
   try {
     config = await loadConfig(opts.config, opts.theme);

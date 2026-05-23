@@ -55,6 +55,9 @@ EXAMPLES
   # Store a provider API key for future sessions
   azri auth login
 
+  # Set or pick the default provider
+  azri auth default [provider]
+
   # Check local setup
   azri doctor
 

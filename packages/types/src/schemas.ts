@@ -173,6 +173,7 @@ export const RunMetadataSchema = z.object({
 });
 
 export const VerbositySchema = z.enum(['concise', 'standard', 'detailed']);
+export const ProviderNameSchema = z.enum(['anthropic', 'openai', 'google']);
 
 export const AzriConfigSchema = z.object({
   modules: z.array(z.string()).default([]),
@@ -181,6 +182,7 @@ export const AzriConfigSchema = z.object({
   maxLines: z.number().int().positive().default(10000),
   selfBootstrap: z.boolean().default(false),
   telemetry: z.boolean().default(false),
+  defaultProvider: ProviderNameSchema.optional(),
   tokens: DesignTokensSchema.optional(),
   theme: z.string().optional(),
   focusAreas: z.array(z.string()).default([]),

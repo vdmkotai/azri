@@ -8,7 +8,14 @@ import { dirname, join } from 'node:path';
 
 import type { ProviderName } from '../../../packages/core/src/index.ts';
 
-export type Credentials = Partial<Record<ProviderName, string | null>>;
+export type Credentials = Partial<Record<ProviderName, string | null>> & {
+  default?: ProviderName | null;
+};
+
+export type ResolvedProvider =
+  | { provider: ProviderName }
+  | { ambiguous: ProviderName[] }
+  | { empty: true };
 
 export const PROVIDERS: readonly ProviderName[] = ['anthropic', 'openai', 'google'];
 
@@ -38,6 +45,12 @@ export function isProvider(value: string): value is ProviderName {
 export function selectedProvider(): ProviderName {
   const raw = process.env['AZRI_LLM_PROVIDER'];
   return raw && isProvider(raw) ? raw : 'anthropic';
+}
+
+function parseDefault(value: unknown, credentials?: Credentials): ProviderName | undefined {
+  if (typeof value !== 'string' || !isProvider(value)) return undefined;
+  if (credentials && !credentials[value]) return undefined;
+  return value;
 }
 
 export async function credentialsFileExists(path = credentialsPath()): Promise<boolean> {
@@ -71,6 +84,7 @@ export async function readCredentials(path = credentialsPath()): Promise<Credent
       const value = parsed[provider];
       credentials[provider] = typeof value === 'string' && value.length > 0 ? value : null;
     }
+    credentials.default = parseDefault(parsed['default']) ?? null;
     return credentials;
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
@@ -96,6 +110,7 @@ export function readCredentialsSync(path = credentialsPath()): Credentials {
       const value = parsed[provider];
       credentials[provider] = typeof value === 'string' && value.length > 0 ? value : null;
     }
+    credentials.default = parseDefault(parsed['default']) ?? null;
     return credentials;
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
@@ -116,6 +131,7 @@ export async function writeCredentials(
     anthropic: credentials.anthropic ?? null,
     openai: credentials.openai ?? null,
     google: credentials.google ?? null,
+    default: credentials.default ?? null,
   };
   await writeFile(path, `${JSON.stringify(normalized, null, 2)}\n`, { mode: 0o600 });
   await chmod(path, 0o600);
@@ -133,6 +149,18 @@ export async function saveCredential(provider: ProviderName, key: string): Promi
   const credentials = await readCredentials();
   credentials[provider] = key;
   await writeCredentials(credentials);
+}
+
+export function readProjectDefaultProvider(cwd: string = process.cwd()): ProviderName | undefined {
+  try {
+    const parsed = JSON.parse(readFileSync(join(cwd, '.azri', 'config.json'), 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    return parseDefault(parsed['defaultProvider']);
+  } catch {
+    return undefined;
+  }
 }
 
 export function readCredential(provider: ProviderName): string | undefined {
@@ -160,14 +188,40 @@ export function detectAvailableProviders(): ProviderName[] {
   return PROVIDERS.filter((p) => Boolean(process.env[envVarName(p)] ?? credentials[p]));
 }
 
-export function autoDetectProvider(): ProviderName {
+export function getStoredDefault(): ProviderName | undefined {
+  const credentials = readCredentialsSync();
+  return parseDefault(credentials.default, credentials);
+}
+
+export function resolveDefaultProvider(cwd?: string): ResolvedProvider {
   const env = process.env['AZRI_LLM_PROVIDER'];
-  if (env && isProvider(env)) return env;
-  const available = detectAvailableProviders();
-  if (available.length === 0) return 'anthropic';
-  if (available.length === 1) return available[0]!;
-  if (available.includes('anthropic')) return 'anthropic';
-  return available[0]!;
+  if (env && isProvider(env)) return { provider: env };
+
+  const credentials = readCredentialsSync();
+  const projectDefault = readProjectDefaultProvider(cwd);
+  if (projectDefault && (process.env[envVarName(projectDefault)] ?? credentials[projectDefault])) {
+    return { provider: projectDefault };
+  }
+
+  const storedDefault = parseDefault(credentials.default, credentials);
+  if (storedDefault) return { provider: storedDefault };
+
+  const available = PROVIDERS.filter((p) => Boolean(process.env[envVarName(p)] ?? credentials[p]));
+  if (available.length === 0) return { empty: true };
+  if (available.length === 1) return { provider: available[0]! };
+  return { ambiguous: available };
+}
+
+export async function setDefaultProvider(provider: ProviderName): Promise<void> {
+  const credentials = await readCredentials();
+  if (!credentials[provider]) throw new Error(`no ${provider} key configured`);
+  credentials.default = provider;
+  await writeCredentials(credentials);
+}
+
+export function autoDetectProvider(): ProviderName {
+  const resolved = resolveDefaultProvider();
+  return 'provider' in resolved ? resolved.provider : 'anthropic';
 }
 
 export function buildMissingKeyError(requested: ProviderName): string {
@@ -180,4 +234,8 @@ export function buildMissingKeyError(requested: ProviderName): string {
   }
   const suggestion = available[0]!;
   return `no ${requested} API key configured. You have ${available.join(', ')} saved — try '--provider=${suggestion}'.`;
+}
+
+export function buildAmbiguousProviderError(available: ProviderName[]): string {
+  return `Multiple providers configured (${available.join(', ')}) but no default set. Run 'azri auth default <provider>' or pass --provider=<provider>.`;
 }

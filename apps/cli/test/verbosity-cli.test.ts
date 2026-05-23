@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
 
-import { describe, expect, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { parseFlags as parsePrFlags } from '../src/commands/pr-args.ts';
 import { parseFlags as parseReportFlags } from '../src/commands/report-args.ts';
@@ -10,6 +13,20 @@ import {
   shouldPromptForDetailed,
   type VerbosityFlagState,
 } from '../src/verbosity-flag.ts';
+
+let configHome: string;
+const originalEnv = { ...process.env };
+
+beforeEach(async () => {
+  configHome = await mkdtemp(join(tmpdir(), 'azri-verbosity-test-'));
+  process.env = { ...originalEnv, XDG_CONFIG_HOME: configHome };
+  delete process.env['AZRI_LLM_PROVIDER'];
+});
+
+afterEach(async () => {
+  process.env = { ...originalEnv };
+  await rm(configHome, { recursive: true, force: true });
+});
 
 function runConsume(args: string[]): VerbosityFlagState | { error: string } {
   const state: VerbosityFlagState = { verbosity: undefined, yes: false };
@@ -69,7 +86,7 @@ describe('consumeVerbosityFlag', () => {
 });
 
 describe('shouldPromptForDetailed', () => {
-  const originalEnv = { ...process.env };
+  const detailedOriginalEnv = { ...process.env };
   const originalIsTTY = process.stdout.isTTY;
 
   test('returns false for non-detailed verbosity', () => {
@@ -85,7 +102,7 @@ describe('shouldPromptForDetailed', () => {
     process.env['CI'] = '1';
     Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
     expect(shouldPromptForDetailed('detailed', false)).toBe(false);
-    process.env = { ...originalEnv };
+    process.env = { ...detailedOriginalEnv };
     Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
   });
 
@@ -93,7 +110,7 @@ describe('shouldPromptForDetailed', () => {
     delete process.env['CI'];
     Object.defineProperty(process.stdout, 'isTTY', { value: false, configurable: true });
     expect(shouldPromptForDetailed('detailed', false)).toBe(false);
-    process.env = { ...originalEnv };
+    process.env = { ...detailedOriginalEnv };
     Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
   });
 
@@ -101,7 +118,7 @@ describe('shouldPromptForDetailed', () => {
     delete process.env['CI'];
     Object.defineProperty(process.stdout, 'isTTY', { value: true, configurable: true });
     expect(shouldPromptForDetailed('detailed', false)).toBe(true);
-    process.env = { ...originalEnv };
+    process.env = { ...detailedOriginalEnv };
     Object.defineProperty(process.stdout, 'isTTY', { value: originalIsTTY, configurable: true });
   });
 });

@@ -9,6 +9,7 @@ import {
 } from '../../../../packages/core/src/index.ts';
 import type { Verbosity } from '../../../../packages/types/src/index.ts';
 
+import { buildAmbiguousProviderError, resolveDefaultProvider } from '../credentials.ts';
 import type { ProgressHandle } from '../ui/index.ts';
 import { consumeVerbosityFlag, type VerbosityFlagState } from '../verbosity-flag.ts';
 
@@ -77,12 +78,6 @@ export interface PrTarget {
   prNumber: number;
 }
 
-function defaultProvider(): ProviderName {
-  const env = process.env['AZRI_LLM_PROVIDER'];
-  if (env && (PR_PROVIDERS as readonly string[]).includes(env)) return env as ProviderName;
-  return 'anthropic';
-}
-
 export function apiKeyEnvFor(provider: ProviderName): string {
   if (provider === 'anthropic') return 'ANTHROPIC_API_KEY';
   if (provider === 'openai') return 'OPENAI_API_KEY';
@@ -90,6 +85,7 @@ export function apiKeyEnvFor(provider: ProviderName): string {
 }
 
 export function parseFlags(args: ReadonlyArray<string>): PrFlags | { error: string } {
+  let providerExplicit = false;
   const flags: PrFlags = {
     target: '',
     repoFlag: undefined,
@@ -99,7 +95,7 @@ export function parseFlags(args: ReadonlyArray<string>): PrFlags | { error: stri
     verbose: false,
     dryRun: false,
     json: false,
-    provider: defaultProvider(),
+    provider: 'anthropic',
     token: process.env['GITHUB_TOKEN'] || undefined,
     verbosity: undefined,
     yes: false,
@@ -128,6 +124,7 @@ export function parseFlags(args: ReadonlyArray<string>): PrFlags | { error: stri
         return { error: `invalid provider '${v}'. Choose ${PR_PROVIDERS.join(', ')}.` };
       }
       flags.provider = v as ProviderName;
+      providerExplicit = true;
     } else if (a === '--help' || a === '-h') flags.help = true;
     else if (a?.startsWith('--')) return { error: `unknown flag '${a}'` };
     else if (flags.target) return { error: `unexpected positional argument '${a}'` };
@@ -135,6 +132,11 @@ export function parseFlags(args: ReadonlyArray<string>): PrFlags | { error: stri
   }
   flags.verbosity = verbState.verbosity;
   flags.yes = verbState.yes;
+  if (!providerExplicit) {
+    const resolved = resolveDefaultProvider();
+    if ('ambiguous' in resolved) return { error: buildAmbiguousProviderError(resolved.ambiguous) };
+    flags.provider = 'provider' in resolved ? resolved.provider : 'anthropic';
+  }
   return flags;
 }
 

@@ -10,7 +10,9 @@ import { testInternals } from '../src/commands/auth.ts';
 import {
   credentialsPath,
   getApiKey,
+  getStoredDefault,
   readCredentials,
+  setDefaultProvider,
   writeCredentials,
 } from '../src/credentials.ts';
 
@@ -38,12 +40,13 @@ describe('credentials', () => {
     const parsed = await file.json();
     const mode = ((await file.stat()).mode ?? 0) & 0o777;
 
-    expect(parsed).toEqual({ anthropic: 'sk-ant-test', openai: null, google: null });
+    expect(parsed).toEqual({ anthropic: 'sk-ant-test', openai: null, google: null, default: null });
     expect(mode).toBe(0o600);
     expect(await readCredentials()).toEqual({
       anthropic: 'sk-ant-test',
       openai: null,
       google: null,
+      default: null,
     });
   });
 
@@ -60,6 +63,29 @@ describe('credentials', () => {
     process.env['ANTHROPIC_API_KEY'] = 'env-key';
 
     expect(getApiKey('anthropic')).toBe('env-key');
+  });
+
+  test('sets and reads stored default provider when key exists', async () => {
+    await writeCredentials({ anthropic: 'sk-ant-test', openai: 'sk-openai-test' });
+
+    await setDefaultProvider('openai');
+
+    expect(getStoredDefault()).toBe('openai');
+    expect((await readCredentials()).default).toBe('openai');
+  });
+
+  test('rejects stored default provider without a saved key', async () => {
+    await writeCredentials({ anthropic: 'sk-ant-test' });
+
+    await expect(setDefaultProvider('openai')).rejects.toThrow('no openai key configured');
+  });
+});
+
+describe('auth default helpers', () => {
+  test('providerLabel formats provider names', () => {
+    expect(testInternals.providerLabel('anthropic')).toBe('Anthropic');
+    expect(testInternals.providerLabel('openai')).toBe('OpenAI');
+    expect(testInternals.providerLabel('google')).toBe('Google');
   });
 });
 

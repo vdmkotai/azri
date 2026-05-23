@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Azri contributors
 /* eslint-disable max-lines */
 
+import type { ProviderName } from '../../core/src/index.ts';
+
 export { ENGINE_VERSION, PROMPT_VERSION } from './version.ts';
 
 /** Exactly 7 section types. New types require code changes + plan PR. */
@@ -262,6 +264,7 @@ export interface AzriConfig {
   maxLines?: number;
   selfBootstrap?: boolean;
   telemetry?: boolean;
+  defaultProvider?: ProviderName;
   tokens?: DesignTokens;
   /** Preset theme name. When undefined, the `default` preset is used. */
   theme?: string;

@@ -6,7 +6,12 @@ import { resolve } from 'node:path';
 import type { ProviderName } from '../../../../packages/core/src/index.ts';
 import type { Verbosity } from '../../../../packages/types/src/index.ts';
 
-import { applyStoredApiKey, autoDetectProvider } from '../credentials.ts';
+import {
+  applyStoredApiKey,
+  autoDetectProvider,
+  buildAmbiguousProviderError,
+  resolveDefaultProvider,
+} from '../credentials.ts';
 import { consumeVerbosityFlag, type VerbosityFlagState } from '../verbosity-flag.ts';
 
 export { buildMissingKeyError } from '../credentials.ts';
@@ -44,6 +49,7 @@ export async function ensureApiKey(provider: ProviderName): Promise<string | und
 }
 
 export function parseFlags(args: ReadonlyArray<string>): ReportFlags | { error: string } {
+  let providerExplicit = false;
   const flags: ReportFlags = {
     repoPath: process.cwd(),
     outputPath: '',
@@ -53,7 +59,7 @@ export function parseFlags(args: ReadonlyArray<string>): ReportFlags | { error: 
     verbose: false,
     dryRun: false,
     json: false,
-    provider: defaultProvider(),
+    provider: 'anthropic',
     verbosity: undefined,
     yes: false,
     help: false,
@@ -82,12 +88,18 @@ export function parseFlags(args: ReadonlyArray<string>): ReportFlags | { error: 
         return { error: `invalid provider '${v}'. Choose ${PROVIDERS.join(', ')}.` };
       }
       flags.provider = v as ProviderName;
+      providerExplicit = true;
     } else if (a === '--help' || a === '-h') flags.help = true;
     else if (a?.startsWith('--')) return { error: `unknown flag '${a}'` };
     else return { error: `unexpected positional argument '${a}'` };
   }
   flags.verbosity = verbState.verbosity;
   flags.yes = verbState.yes;
+  if (!providerExplicit) {
+    const resolved = resolveDefaultProvider();
+    if ('ambiguous' in resolved) return { error: buildAmbiguousProviderError(resolved.ambiguous) };
+    flags.provider = 'provider' in resolved ? resolved.provider : 'anthropic';
+  }
   if (!flags.outputPath) flags.outputPath = './azri-out/repo.html';
   return flags;
 }
