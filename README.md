@@ -25,19 +25,19 @@ Open [`./examples/pr-explainer.html`](./examples/pr-explainer.html) in a browser
 **Recommended (Bun):**
 
 ```sh
-bun install -g azri
+bun install -g @vdmkotai/azri
 ```
 
 **npm:**
 
 ```sh
-npm install -g azri
+npm install -g @vdmkotai/azri
 ```
 
 **pnpm:**
 
 ```sh
-pnpm add -g azri
+pnpm add -g @vdmkotai/azri
 ```
 
 > **Note:** `npm` and `pnpm` install the package, but the CLI calls `bun` at runtime. Make sure `bun` is on your `PATH` before running `azri`.
