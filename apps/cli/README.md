@@ -3,7 +3,7 @@
 AI-powered CLI that turns PRs and repos into beautiful, shareable HTML explainers.
 
 This package ships the `azri` command-line interface. The bot, renderer, and core
-pipeline live in the [main Azri repository](https://github.com/azri-dev/azri).
+pipeline live in the [main Azri repository](https://github.com/vdmkotai/azri).
 
 ## Requirements
 
@@ -59,8 +59,8 @@ estimate cost without making any LLM calls.
 
 ## Links
 
-- Source, docs, and issue tracker: <https://github.com/azri-dev/azri>
-- Changelog: <https://github.com/azri-dev/azri/releases>
+- Source, docs, and issue tracker: <https://github.com/vdmkotai/azri>
+- Changelog: <https://github.com/vdmkotai/azri/releases>
 
 ## License
 

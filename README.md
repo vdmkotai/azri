@@ -62,7 +62,7 @@ bunx azri pr https://github.com/owner/repo/pull/123
 
 The bot runs as a GitHub App and posts explanation links as PR comments. Railway is the fastest path to production.
 
-1. **Fork** `https://github.com/azri-dev/azri` and push to your account.
+1. **Fork** `https://github.com/vdmkotai/azri` and push to your account.
 2. **Create a GitHub App** in your org or personal account. Set the webhook URL to `https://<your-railway-domain>/webhook`. Grant read access to pull requests and repository contents.
 3. **Download the private key** (`.pem`) from the GitHub App settings page.
 4. **Create a new Railway project** from your fork. Add the environment variables from [`.env.example`](./.env.example) — at minimum `GITHUB_APP_ID`, `GITHUB_PRIVATE_KEY`, `GITHUB_WEBHOOK_SECRET`, and one LLM key (`ANTHROPIC_API_KEY` or `OPENAI_API_KEY`).

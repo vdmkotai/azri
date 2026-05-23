@@ -21,15 +21,15 @@
     "pr",
     "pull-request"
   ],
-  "homepage": "https://github.com/azri-dev/azri#readme",
+  "homepage": "https://github.com/vdmkotai/azri#readme",
   "bugs": {
-    "url": "https://github.com/azri-dev/azri/issues"
+    "url": "https://github.com/vdmkotai/azri/issues"
   },
   "license": "Apache-2.0",
-  "author": "Azri contributors",
+  "author": "vdmkotai",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/azri-dev/azri.git",
+    "url": "git+https://github.com/vdmkotai/azri.git",
     "directory": "apps/cli"
   },
   "bin": {
@@ -43,8 +43,7 @@
   "type": "module",
   "main": "./dist/index.js",
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "dependencies": {
     "mermaid-isomorphic": "^3"
