@@ -4506,7 +4506,7 @@ Max Concurrent: 18 (Wave 5)
 
 > 4 review agents run in PARALLEL. ALL must APPROVE. Present consolidated results to user and get explicit "okay" before completing. Do NOT auto-proceed. Never mark F1-F4 as checked before user okay.
 
-- [ ] F1. **Plan Compliance Audit** — `oracle`
+- [x] F1. **Plan Compliance Audit** — `oracle`
   Read this plan end-to-end. For each "Must Have": verify implementation exists (read file, run command, hit endpoint). For each "Must NOT Have": search codebase for forbidden patterns (Tailwind import, PaymentsAdapter, multi-page output, `bun build` in deploy script, bare AbortController in pipeline, native structured-output mode, native LLM freehand HTML, inline HTML in PR comments, ESLint/Prettier/Biome configs or deps) — reject with file:line if found. Verify evidence files exist in `.sisyphus/evidence/`. Compare deliverables list against built reality.
   Output: `Must Have [N/N] | Must NOT Have [N/N] | Tasks [N/N] | VERDICT: APPROVE/REJECT`
 
@@ -4539,7 +4539,7 @@ Max Concurrent: 18 (Wave 5)
     Evidence: .sisyphus/evidence/final-f1-evidence-coverage.txt
   ```
 
-- [ ] F2. **Code Quality Review** — `unspecified-high`
+- [x] F2. **Code Quality Review** — `unspecified-high`
   Run `bun run typecheck` + `bun run lint` (Oxlint) + `bun run fmt:check` (Oxfmt) + `bun run check:headers` + `bun test`. Review all changed files for: `as any`, `@ts-ignore`, empty catches, `console.log` in non-CLI code, commented-out code, unused imports, missing Apache 2.0 headers. Check AI-slop: filler comments, over-abstraction, generic names (data/result/item/temp). Verify locked-in design system: confirm 8 renderer components (no more), 7 section types (no more), no Tailwind, no icon libs, no emoji defaults. Verify cache key includes `engineVersion + promptVersion + model`. Verify pino logging never logs code content. Verify no ESLint/Prettier/Biome configs leaked into the repo.
   Output: `Build [PASS/FAIL] | Lint [PASS/FAIL] | Fmt [PASS/FAIL] | Tests [N pass/N fail] | Files [N clean/N issues] | VERDICT`
 
@@ -4606,7 +4606,7 @@ Max Concurrent: 18 (Wave 5)
     Evidence: .sisyphus/evidence/final-f2-cachekey.txt
   ```
 
-- [ ] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill)
+- [x] F3. **Real Manual QA** — `unspecified-high` (+ `playwright` skill)
   Start from clean state. Execute EVERY QA scenario from EVERY task — exact steps, capture evidence. Run end-to-end: clone a test repo with synthetic PR, run `azri pr <num>`, verify HTML opens in Playwright, screenshots match expected. Send synthetic webhook to local bot, verify sticky comment appears, click link, verify page renders. Test critical edge cases: fork PR (degraded mode), bot PR (brief mode), oversized PR (refusal comment), empty PR (skip), binary-only PR (metadata only). Save to `.sisyphus/evidence/final-qa/`.
   Output: `Scenarios [N/N pass] | Integration [N/N] | Edge Cases [N tested] | VERDICT`
 
@@ -4645,7 +4645,7 @@ Max Concurrent: 18 (Wave 5)
     Evidence: .sisyphus/evidence/final-qa/playwright/*.png, axe-*.json
   ```
 
-- [ ] F4. **Scope Fidelity Check** — `deep`
+- [x] F4. **Scope Fidelity Check** — `deep`
   For each task: read "What to do" + "Must NOT do", read actual git diff. Verify 1:1 — everything in spec was built (no missing), nothing beyond spec was built (no creep). Specifically search for: `PaymentsAdapter` (forbidden v1), Cloudflare/R2/Workers code (deferred), Tailwind imports, multi-page output files, audience-mode params, interactive-playground components, MCP server code, Slack/Discord integration, design-system extraction code. Detect cross-task contamination. Flag unaccounted changes.
   Output: `Tasks [N/N compliant] | Contamination [CLEAN/N issues] | Unaccounted [CLEAN/N files] | VERDICT`
 
