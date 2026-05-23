@@ -12,6 +12,7 @@ pages-data
 .sisyphus/drafts/
 .sisyphus/evidence/
 .sisyphus/boulder.json
+.playwright-mcp/
 azri-explainer.html
 evals/runs/
 test/fixtures/test-private-key.pem
