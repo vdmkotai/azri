@@ -9,3 +9,4 @@ export * from './git/index.ts';
 export * from './metrics.ts';
 export * from './pipeline/index.ts';
 export * from './providers/index.ts';
+export * from './sections/index.ts';

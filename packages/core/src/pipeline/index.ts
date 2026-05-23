@@ -9,4 +9,5 @@ export { runStage3 } from './stage-3-section.ts';
 export { runStage4, type Stage4Output } from './stage-4-render.ts';
 export { runStage5 } from './stage-5-validate.ts';
 export { runAzri, type OrchestratorDeps } from './orchestrator.ts';
+export { runAzriV3 } from './v3/orchestrator.ts';
 export { resolveVerbosity, applyVerbosityToPrompt } from './verbosity.ts';
