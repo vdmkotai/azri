@@ -3,15 +3,20 @@
 
 import { generateText } from 'ai';
 
-import type { EvidencePacket, ExplainerPlan, Section } from '../../../types/src/index.ts';
+import type {
+  EvidencePacket,
+  ExplainerPlan,
+  Section,
+  Verbosity,
+} from '../../../types/src/index.ts';
+import { VERBOSITY_CONFIG } from '../../../types/src/index.ts';
 import { ANTI_SLOP_FORBIDDEN_PHRASES, SECTION_PROMPTS } from '../prompts/index.ts';
 import { computeCost } from '../providers/pricing.ts';
 import type { Stage3Deps, Stage3Input, Stage3Output } from './types.ts';
+import { applyVerbosityToPrompt, resolveVerbosity } from './verbosity.ts';
 
 const CONCURRENCY = 5;
 const TIMEOUT_MS = 45_000;
-const BRIEF_MAX_TOKENS = 150;
-const DEFAULT_MAX_TOKENS = 500;
 const FAILURE_PLACEHOLDER = '_(section generation failed; see file list)_';
 const REPO_MODE_UNSUPPORTED_PLACEHOLDER = '_(section type not supported in repo mode)_';
 
@@ -46,13 +51,26 @@ function stripAntiSlop(text: string): string {
     .trim();
 }
 
-function buildUserPrompt(section: Section, packets: EvidencePacket[], input: Stage3Input): string {
+function verbosityLine(verb: Verbosity): string {
+  if (verb === 'concise') {
+    return '\nCONCISE MODE: cap output to ~200 tokens, no preamble.\n';
+  }
+  if (verb === 'detailed') {
+    return '\nDETAILED MODE: write the longest, richest version. Use 2x normal length. Include extensive context, alternative approaches considered, edge cases, and reasoning behind each decision.\n';
+  }
+  return '';
+}
+
+function buildUserPrompt(
+  section: Section,
+  packets: EvidencePacket[],
+  input: Stage3Input,
+  verb: Verbosity,
+): string {
   const focusLine = input.config.focusAreas?.length
     ? `\nFOCUS AREAS (prioritize these): ${input.config.focusAreas.join(', ')}\n`
     : '';
-  const briefLine = input.config.brief
-    ? '\nBRIEF MODE: cap output to ~150 tokens, no preamble.\n'
-    : '';
+  const verbLine = verbosityLine(verb);
   const packetBlocks = packets
     .map(
       (packet) =>
@@ -72,7 +90,7 @@ function buildUserPrompt(section: Section, packets: EvidencePacket[], input: Sta
       : '';
 
   return [
-    focusLine + briefLine,
+    focusLine + verbLine,
     `## Section: ${section.title}`,
     `Type: ${section.sectionType} · Importance: ${section.importance}`,
     section.files.length > 0 ? `Files in scope: ${section.files.join(', ')}` : '',
@@ -89,6 +107,7 @@ async function generateOneSection(
   section: Section,
   input: Stage3Input,
   deps: Stage3Deps,
+  verb: Verbosity,
 ): Promise<{ section: Section; tokensIn: number; tokensOut: number; failed: boolean }> {
   if (input.mode === 'repo' && section.sectionType === 'annotated-diff') {
     return {
@@ -99,8 +118,8 @@ async function generateOneSection(
     };
   }
 
-  const systemPrompt = SECTION_PROMPTS[section.sectionType];
-  if (!systemPrompt) {
+  const rawSystemPrompt = SECTION_PROMPTS[section.sectionType];
+  if (!rawSystemPrompt) {
     return {
       section: { ...section, proseMarkdown: '_(unknown section type)_' },
       tokensIn: 0,
@@ -109,11 +128,12 @@ async function generateOneSection(
     };
   }
 
+  const systemPrompt = applyVerbosityToPrompt(rawSystemPrompt, verb);
   const packets = section.evidencePacketIds
     .map((id) => input.evidenceGraph.packets[id])
     .filter((packet): packet is EvidencePacket => packet !== undefined);
-  const userPrompt = buildUserPrompt(section, packets, input);
-  const maxOutputTokens = input.config.brief ? BRIEF_MAX_TOKENS : DEFAULT_MAX_TOKENS;
+  const userPrompt = buildUserPrompt(section, packets, input, verb);
+  const maxOutputTokens = VERBOSITY_CONFIG[verb].maxTokens;
 
   try {
     const result = await withTimeout(
@@ -149,7 +169,12 @@ async function generateOneSection(
 
 export async function runStage3(input: Stage3Input, deps: Stage3Deps): Promise<Stage3Output> {
   const t0 = Date.now();
-  deps.logger.info('stage3.start', { sections: input.plan.sections.length, mode: input.mode });
+  const verb = resolveVerbosity(input.config);
+  deps.logger.info('stage3.start', {
+    sections: input.plan.sections.length,
+    mode: input.mode,
+    verbosity: verb,
+  });
 
   let tokensIn = 0;
   let tokensOut = 0;
@@ -158,7 +183,7 @@ export async function runStage3(input: Stage3Input, deps: Stage3Deps): Promise<S
 
   for (const batch of chunk(input.plan.sections, CONCURRENCY)) {
     const results = await Promise.all(
-      batch.map((section) => generateOneSection(section, input, deps)),
+      batch.map((section) => generateOneSection(section, input, deps, verb)),
     );
     for (const result of results) {
       filledSections.push(result.section);

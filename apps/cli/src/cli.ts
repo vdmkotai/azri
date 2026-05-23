@@ -2,14 +2,16 @@
 // Copyright (c) 2026 Azri contributors
 
 import pkg from '../package.json' with { type: 'json' };
+import { runAuth } from './commands/auth.ts';
 import { runDiff } from './commands/diff.ts';
+import { runDoctor } from './commands/doctor.ts';
 import { runPr } from './commands/pr.ts';
 import { runReport } from './commands/report.ts';
 import { printHelp } from './help.ts';
 
 const VERSION = pkg.version;
 
-const KNOWN_COMMANDS = ['report', 'pr', 'diff'] as const;
+const KNOWN_COMMANDS = ['report', 'pr', 'diff', 'auth', 'doctor'] as const;
 type KnownCommand = (typeof KNOWN_COMMANDS)[number];
 
 function levenshtein(a: string, b: string): number {
@@ -66,6 +68,10 @@ async function main(argv: string[]): Promise<number> {
       return await runPr(rest);
     case 'diff':
       return await runDiff(rest);
+    case 'auth':
+      return await runAuth(rest);
+    case 'doctor':
+      return await runDoctor();
     default: {
       const hint = suggest(command);
       console.error(`azri: unknown command '${command}'`);

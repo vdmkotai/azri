@@ -7,8 +7,10 @@ import {
   type ProviderName,
   type Stage0Logger,
 } from '../../../../packages/core/src/index.ts';
+import type { Verbosity } from '../../../../packages/types/src/index.ts';
 
 import type { ProgressHandle } from '../ui/index.ts';
+import { consumeVerbosityFlag, type VerbosityFlagState } from '../verbosity-flag.ts';
 
 export const PR_PROVIDERS = ['anthropic', 'openai', 'google'] as const;
 
@@ -64,6 +66,8 @@ export interface PrFlags {
   json: boolean;
   provider: ProviderName;
   token: string | undefined;
+  verbosity: Verbosity | undefined;
+  yes: boolean;
   help: boolean;
 }
 
@@ -97,9 +101,18 @@ export function parseFlags(args: ReadonlyArray<string>): PrFlags | { error: stri
     json: false,
     provider: defaultProvider(),
     token: process.env['GITHUB_TOKEN'] || undefined,
+    verbosity: undefined,
+    yes: false,
     help: false,
   };
+  const verbState: VerbosityFlagState = { verbosity: undefined, yes: false };
   for (let i = 0; i < args.length; i++) {
+    const verbHit = consumeVerbosityFlag(args, i, verbState);
+    if (verbHit.consumed) {
+      if (verbHit.error) return { error: verbHit.error };
+      i += verbHit.advance;
+      continue;
+    }
     const a = args[i];
     if (a === '--repo') flags.repoFlag = args[++i] ?? '';
     else if (a === '--output' || a === '-o') flags.outputPath = args[++i] ?? '';
@@ -120,6 +133,8 @@ export function parseFlags(args: ReadonlyArray<string>): PrFlags | { error: stri
     else if (flags.target) return { error: `unexpected positional argument '${a}'` };
     else flags.target = a ?? '';
   }
+  flags.verbosity = verbState.verbosity;
+  flags.yes = verbState.yes;
   return flags;
 }
 

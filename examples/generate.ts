@@ -13,12 +13,16 @@
  * Each plan file is validated against the public Zod schema before rendering, so
  * the examples are guaranteed to round-trip through the same path the engine
  * uses at runtime.
+ *
+ * In addition to the top-level examples, this script renders one themed copy of
+ * `pr-explainer` per preset in `examples/themes/<preset>/pr-explainer.html`.
  */
 
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { PRESET_NAMES } from '../packages/renderer/src/design-system/index.ts';
 import { renderPage } from '../packages/renderer/src/render.ts';
 import {
   ExplainerPlanSchema,
@@ -97,8 +101,7 @@ async function tryReadSvg(name: string, diagramId: string): Promise<string | nul
   }
 }
 
-async function generateOne(name: string, cfg: ExampleConfig): Promise<{ size: number }> {
-  const plan = await loadPlan(cfg.plan);
+async function hydratePlan(name: string, plan: ExplainerPlan): Promise<ExplainerPlan> {
   const hydratedSpecs = await Promise.all(
     plan.diagramSpecs.map(async (spec) => {
       if (spec.renderedSvg) return spec;
@@ -106,9 +109,13 @@ async function generateOne(name: string, cfg: ExampleConfig): Promise<{ size: nu
       return svg ? { ...spec, renderedSvg: svg } : spec;
     }),
   );
-  const hydratedPlan: ExplainerPlan = { ...plan, diagramSpecs: hydratedSpecs };
+  return { ...plan, diagramSpecs: hydratedSpecs };
+}
+
+async function generateOne(name: string, cfg: ExampleConfig): Promise<{ size: number }> {
+  const plan = await hydratePlan(name, await loadPlan(cfg.plan));
   const repo = repoSnapshotFor(cfg.repo.owner, cfg.repo.name, cfg.generatedAt);
-  const bundle = await renderPage(hydratedPlan, undefined, repo, {
+  const bundle = await renderPage(plan, undefined, repo, {
     generatedAt: cfg.generatedAt,
     githubBaseUrl: cfg.githubBaseUrl,
     runMeta: {
@@ -119,6 +126,29 @@ async function generateOne(name: string, cfg: ExampleConfig): Promise<{ size: nu
   const outPath = join(HERE, cfg.out);
   await writeFile(outPath, bundle.html, 'utf8');
   return { size: bundle.sizeBytes };
+}
+
+async function generateThemed(
+  name: string,
+  cfg: ExampleConfig,
+  theme: string,
+): Promise<{ size: number; outPath: string }> {
+  const plan = await hydratePlan(name, await loadPlan(cfg.plan));
+  const repo = repoSnapshotFor(cfg.repo.owner, cfg.repo.name, cfg.generatedAt);
+  const bundle = await renderPage(plan, undefined, repo, {
+    generatedAt: cfg.generatedAt,
+    githubBaseUrl: cfg.githubBaseUrl,
+    runMeta: {
+      runId: `example-${name}`,
+    },
+    theme,
+    ...(cfg.prUrl ? { prUrl: cfg.prUrl } : {}),
+  });
+  const themeDir = join(HERE, 'themes', theme);
+  await mkdir(themeDir, { recursive: true });
+  const outPath = join(themeDir, cfg.out);
+  await writeFile(outPath, bundle.html, 'utf8');
+  return { size: bundle.sizeBytes, outPath };
 }
 
 async function main(): Promise<void> {
@@ -149,6 +179,20 @@ async function main(): Promise<void> {
     const { size } = await generateOne(name, cfg);
     const kb = (size / 1024).toFixed(1);
     console.log(`  rendered ${cfg.out.padEnd(24)} (${kb} KB) from ${cfg.plan}`);
+  }
+
+  const themeTarget = CONFIGS['pr-explainer'];
+  if (!filter || filter === 'pr-explainer') {
+    if (!themeTarget) {
+      console.error('pr-explainer config missing — cannot render themed variants');
+      process.exit(1);
+    }
+    for (const theme of PRESET_NAMES) {
+      const { size, outPath } = await generateThemed('pr-explainer', themeTarget, theme);
+      const kb = (size / 1024).toFixed(1);
+      const rel = outPath.startsWith(HERE) ? outPath.slice(HERE.length + 1) : outPath;
+      console.log(`  rendered ${rel.padEnd(40)} (${kb} KB) theme=${theme}`);
+    }
   }
 }
 

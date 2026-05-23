@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
+/* eslint-disable max-lines */
 
 export { ENGINE_VERSION, PROMPT_VERSION } from './version.ts';
 
@@ -208,10 +209,50 @@ export interface DesignTokens {
     background?: string;
     accent?: string;
     severity?: { info?: string; warn?: string; critical?: string };
+    bgCode?: { background?: string; text?: string };
   };
   typefaces?: { serif?: string; mono?: string };
+  spacing?: Partial<{
+    xs: number;
+    sm: number;
+    md: number;
+    lg: number;
+    xl: number;
+    '2xl': number;
+    '3xl': number;
+    '4xl': number;
+  }>;
+  radii?: Partial<{ sm: number; md: number; lg: number }>;
+  shadows?: Partial<{ subtle: string; lifted: string }>;
   allowEmoji?: boolean;
 }
+
+/**
+ * Three-level verbosity control for the explainer pipeline.
+ *
+ * - `concise`  — fewer sections, half-length prose, low token cap, no diagrams.
+ * - `standard` — current default. 4-6 sections, full-length prose, ~1 diagram.
+ * - `detailed` — more sections, double-length prose, high token cap, up to 3 diagrams.
+ *
+ * Backward compat: when `verbosity` is unset and `brief: true`, treat as `'concise'`.
+ * When both are unset, behave as `'standard'`.
+ */
+export type Verbosity = 'concise' | 'standard' | 'detailed';
+
+/** Locked numeric controls for each verbosity level. */
+export const VERBOSITY_CONFIG: Record<
+  Verbosity,
+  {
+    sections: readonly [number, number];
+    wordMult: number;
+    maxTokens: number;
+    allowDiagrams: number;
+  }
+> = {
+  concise: { sections: [3, 4], wordMult: 0.5, maxTokens: 200, allowDiagrams: 0 },
+  standard: { sections: [4, 6], wordMult: 1.0, maxTokens: 500, allowDiagrams: 1 },
+  detailed: { sections: [5, 7], wordMult: 2.0, maxTokens: 1200, allowDiagrams: 3 },
+} as const;
 
 /** User-facing configuration for engine behavior and rendering. */
 export interface AzriConfig {
@@ -222,6 +263,8 @@ export interface AzriConfig {
   selfBootstrap?: boolean;
   telemetry?: boolean;
   tokens?: DesignTokens;
+  /** Preset theme name. When undefined, the `default` preset is used. */
+  theme?: string;
   /** Operational tuning only; mode-based v1 options are forbidden. */
   focusAreas?: string[];
   /** Caps section length to roughly 150 tokens when enabled. */

@@ -4,15 +4,15 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
 
-import type { ExplainerPlan, SectionType } from '../../../types/src/index.ts';
+import type { AzriConfig, ExplainerPlan, SectionType } from '../../../types/src/index.ts';
+import { VERBOSITY_CONFIG } from '../../../types/src/index.ts';
 import { ExplainerPlanSchema } from '../../../types/src/schemas.ts';
 import { STAGE_2_STRUCTURE_PROMPT } from '../prompts/index.ts';
 import { computeCost } from '../providers/pricing.ts';
 import type { Stage0OkOutput, Stage1Output, Stage2Deps, Stage2Output } from './types.ts';
+import { resolveVerbosity } from './verbosity.ts';
 
 const TIMEOUT_MS = 60_000;
-const MAX_SECTIONS = 7;
-const MIN_SECTIONS = 3;
 const PR_SECTION_TYPES: ReadonlyArray<SectionType> = [
   'overview',
   'narrative',
@@ -39,7 +39,12 @@ function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
-function buildPlanSchema(allowedTypes: ReadonlyArray<SectionType>): z.ZodTypeAny {
+function buildPlanSchema(
+  allowedTypes: ReadonlyArray<SectionType>,
+  minSections: number,
+  maxSections: number,
+  maxDiagrams: number,
+): z.ZodTypeAny {
   const sectionTypeEnum = z.enum(allowedTypes as [SectionType, ...SectionType[]]);
   const importanceEnum = z.enum(['critical', 'important', 'supporting', 'context']);
 
@@ -59,8 +64,8 @@ function buildPlanSchema(allowedTypes: ReadonlyArray<SectionType>): z.ZodTypeAny
           diagramId: z.string().optional(),
         }),
       )
-      .min(MIN_SECTIONS)
-      .max(MAX_SECTIONS),
+      .min(minSections)
+      .max(maxSections),
     collapsedFiles: z.array(z.string()).default([]),
     diagramSpecs: z
       .array(
@@ -70,7 +75,7 @@ function buildPlanSchema(allowedTypes: ReadonlyArray<SectionType>): z.ZodTypeAny
           mermaidSource: z.string(),
         }),
       )
-      .max(1)
+      .max(maxDiagrams)
       .default([]),
     risks: z
       .array(
@@ -102,7 +107,12 @@ function buildPlanSchema(allowedTypes: ReadonlyArray<SectionType>): z.ZodTypeAny
   });
 }
 
-function buildUserMessage(stage0: Stage0OkOutput, stage1: Stage1Output): string {
+function buildUserMessage(
+  stage0: Stage0OkOutput,
+  stage1: Stage1Output,
+  minSections: number,
+  maxSections: number,
+): string {
   const packetSummaries = Object.values(stage1.evidenceGraph.packets).map((packet) => ({
     id: packet.id,
     path: packet.path,
@@ -117,7 +127,7 @@ function buildUserMessage(stage0: Stage0OkOutput, stage1: Stage1Output): string 
       ? `PR #${meta.number}: ${meta.title}\n${meta.body.slice(0, 1000)}\nClassification: ${stage0.classification}`
       : `Repo overview for ${stage0.repo.owner}/${stage0.repo.name}\nDefault branch: ${stage0.repo.defaultBranch}\nREADME excerpt:\n${(stage0.repo.readme ?? '').slice(0, 2000)}`;
 
-  return `${intro}\n\nEvidence packets (${packetSummaries.length}):\n${JSON.stringify(packetSummaries, null, 2)}`;
+  return `${intro}\n\nProduce ${minSections}-${maxSections} sections.\n\nEvidence packets (${packetSummaries.length}):\n${JSON.stringify(packetSummaries, null, 2)}`;
 }
 
 function makeMinimalFallback(stage0: Stage0OkOutput): ExplainerPlan {
@@ -166,14 +176,22 @@ export async function runStage2(
   stage0: Stage0OkOutput,
   stage1: Stage1Output,
   deps: Stage2Deps,
+  config: AzriConfig = {},
 ): Promise<Stage2Output> {
   const t0 = Date.now();
+  const verb = resolveVerbosity(config);
+  const [minSections, maxSections] = VERBOSITY_CONFIG[verb].sections;
+  const maxDiagrams = VERBOSITY_CONFIG[verb].allowDiagrams;
   const allowedTypes = stage0.mode === 'pr' ? PR_SECTION_TYPES : REPO_SECTION_TYPES;
-  const schema = buildPlanSchema(allowedTypes);
-  const userMessage = buildUserMessage(stage0, stage1);
+  const schema = buildPlanSchema(allowedTypes, minSections, maxSections, maxDiagrams);
+  const userMessage = buildUserMessage(stage0, stage1, minSections, maxSections);
   const knownPacketIds = new Set(Object.keys(stage1.evidenceGraph.packets));
 
-  deps.logger.info('stage2.start', { mode: stage0.mode, packets: knownPacketIds.size });
+  deps.logger.info('stage2.start', {
+    mode: stage0.mode,
+    packets: knownPacketIds.size,
+    verbosity: verb,
+  });
 
   let tokensIn = 0;
   let tokensOut = 0;

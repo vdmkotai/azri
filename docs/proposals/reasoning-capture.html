@@ -1,0 +1,1080 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Capturing Agent Reasoning — Azri Design Note</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #faf9f6;
+        --bg-card: #ffffff;
+        --bg-soft: #f3f4f6;
+        --bg-code: #1a202c;
+        --text: #1a202c;
+        --text-muted: #6b7280;
+        --text-faint: #9ca3af;
+        --text-code: #e2e8f0;
+        --border: #e5e7eb;
+        --border-strong: #d1d5db;
+        --accent-purple: #7c3aed;
+        --accent-purple-soft: #f3e8ff;
+        --accent-purple-deep: #581c87;
+        --accent-blue: #2563eb;
+        --accent-blue-soft: #dbeafe;
+        --accent-blue-deep: #1e3a8a;
+        --accent-orange: #ea580c;
+        --accent-orange-soft: #ffedd5;
+        --accent-orange-deep: #7c2d12;
+        --accent-green: #16a34a;
+        --accent-green-soft: #dcfce7;
+        --accent-green-deep: #14532d;
+        --accent-red: #dc2626;
+        --accent-red-soft: #fee2e2;
+        --accent-red-deep: #7f1d1d;
+        --accent-amber: #d97706;
+        --accent-amber-soft: #fef3c7;
+        --accent-amber-deep: #78350f;
+        --serif: 'EB Garamond', Georgia, 'Times New Roman', serif;
+        --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        --mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--sans);
+        line-height: 1.65;
+        font-size: 16.5px;
+        font-feature-settings: 'ss01', 'cv11';
+      }
+      .container {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 5rem 2rem 7rem;
+      }
+
+      /* Typography */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: var(--serif);
+        font-weight: 600;
+        line-height: 1.15;
+        letter-spacing: -0.01em;
+      }
+      h1 {
+        font-size: 4rem;
+        margin: 0 0 0.4rem;
+        letter-spacing: -0.025em;
+      }
+      h2 {
+        font-size: 2.25rem;
+        margin: 5rem 0 1rem;
+        letter-spacing: -0.015em;
+      }
+      h3 {
+        font-size: 1.5rem;
+        margin: 2.5rem 0 0.75rem;
+      }
+      h4 {
+        font-size: 1.15rem;
+        margin: 1.5rem 0 0.5rem;
+      }
+      p {
+        margin: 1rem 0;
+      }
+      a {
+        color: var(--accent-purple);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 3px;
+      }
+      a:hover {
+        color: var(--accent-purple-deep);
+      }
+      strong {
+        font-weight: 600;
+      }
+      em {
+        font-style: italic;
+      }
+      .subtitle {
+        font-size: 1.35rem;
+        color: var(--text-muted);
+        margin: 0 0 2.5rem;
+        font-style: italic;
+        font-family: var(--serif);
+        font-weight: 400;
+        max-width: 38em;
+      }
+      .meta-line {
+        font-size: 0.85rem;
+        color: var(--text-faint);
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-bottom: 3rem;
+        display: flex;
+        gap: 1.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .meta-line .dot {
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--text-faint);
+      }
+
+      /* TL;DR */
+      .tldr {
+        background: var(--bg-card);
+        border-left: 4px solid var(--accent-purple);
+        padding: 1.75rem 2.25rem;
+        margin: 2.5rem 0 4rem;
+        border-radius: 0 10px 10px 0;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.04),
+          0 4px 16px rgba(0, 0, 0, 0.025);
+      }
+      .tldr-label {
+        font-family: var(--serif);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.15em;
+        color: var(--accent-purple);
+        margin: 0 0 0.75rem;
+      }
+      .tldr p {
+        margin: 0;
+        font-size: 1.05rem;
+        line-height: 1.7;
+      }
+
+      /* Stats */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin: 2.5rem 0 3rem;
+      }
+      .stat {
+        background: var(--bg-card);
+        padding: 1.5rem 1rem;
+        border-radius: 10px;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.04),
+          0 4px 16px rgba(0, 0, 0, 0.025);
+        text-align: center;
+      }
+      .stat-number {
+        font-family: var(--serif);
+        font-size: 2.75rem;
+        font-weight: 700;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+      .stat-label {
+        font-size: 0.82rem;
+        color: var(--text-muted);
+        margin-top: 0.65rem;
+        line-height: 1.35;
+      }
+
+      /* Mechanism cards */
+      .mechanisms {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin: 2rem 0 3rem;
+      }
+      .mech {
+        background: var(--bg-card);
+        border-radius: 10px;
+        padding: 1.5rem 1.75rem 1.75rem;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.04),
+          0 4px 16px rgba(0, 0, 0, 0.025);
+        border-top: 4px solid;
+        position: relative;
+      }
+      .mech-pr {
+        border-color: var(--accent-green);
+      }
+      .mech-rules {
+        border-color: var(--accent-blue);
+      }
+      .mech-transcript {
+        border-color: var(--accent-orange);
+      }
+      .mech-mcp {
+        border-color: var(--accent-purple);
+      }
+      .mech h3 {
+        margin: 0.5rem 0 0.5rem;
+        font-size: 1.35rem;
+      }
+      .mech-meta {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 0.5rem;
+        font-size: 0.78rem;
+        color: var(--text-muted);
+      }
+      .badge {
+        padding: 0.18rem 0.55rem;
+        border-radius: 5px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .badge-stable {
+        background: var(--accent-green-soft);
+        color: var(--accent-green-deep);
+      }
+      .badge-experimental {
+        background: var(--accent-amber-soft);
+        color: var(--accent-amber-deep);
+      }
+      .badge-absent {
+        background: var(--accent-red-soft);
+        color: var(--accent-red-deep);
+      }
+      .badge-tier {
+        background: var(--bg-soft);
+        color: var(--text-muted);
+      }
+      .mech p {
+        font-size: 0.95rem;
+        margin: 0.6rem 0;
+        line-height: 1.55;
+      }
+      .mech .effort {
+        margin-top: 1rem;
+        padding-top: 0.85rem;
+        border-top: 1px dashed var(--border);
+        font-size: 0.85rem;
+        color: var(--text-muted);
+      }
+
+      /* Tables */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 1.5rem 0 2rem;
+        background: var(--bg-card);
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.04),
+          0 4px 16px rgba(0, 0, 0, 0.025);
+        font-size: 0.95rem;
+      }
+      th {
+        background: var(--bg-soft);
+        padding: 0.85rem 1rem;
+        text-align: left;
+        font-family: var(--serif);
+        font-weight: 600;
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+        border-bottom: 1px solid var(--border);
+      }
+      td {
+        padding: 0.85rem 1rem;
+        border-top: 1px solid var(--border);
+        vertical-align: top;
+      }
+      td.center {
+        text-align: center;
+        font-size: 1.1rem;
+      }
+      td.num {
+        font-family: var(--mono);
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      tr:first-child td {
+        border-top: none;
+      }
+      .tier-badge {
+        display: inline-block;
+        padding: 0.15rem 0.5rem;
+        background: var(--accent-purple-soft);
+        color: var(--accent-purple-deep);
+        border-radius: 5px;
+        font-family: var(--serif);
+        font-weight: 700;
+        font-size: 0.85rem;
+      }
+
+      /* Code */
+      code {
+        font-family: var(--mono);
+        font-size: 0.88em;
+        background: var(--bg-soft);
+        padding: 0.12rem 0.36rem;
+        border-radius: 4px;
+        color: var(--text);
+      }
+      pre {
+        background: var(--bg-code);
+        color: var(--text-code);
+        padding: 1.5rem 1.75rem;
+        border-radius: 10px;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        line-height: 1.6;
+        margin: 1.25rem 0;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.04),
+          0 4px 16px rgba(0, 0, 0, 0.04);
+      }
+      pre code {
+        background: transparent;
+        padding: 0;
+        color: inherit;
+        font-size: 1em;
+      }
+      pre .k {
+        color: #93c5fd;
+      }
+      pre .s {
+        color: #fde68a;
+      }
+      pre .c {
+        color: #9ca3af;
+        font-style: italic;
+      }
+      pre .ok {
+        color: #86efac;
+      }
+      pre .fail {
+        color: #fca5a5;
+      }
+
+      /* Callouts */
+      .callout {
+        background: var(--bg-card);
+        border-left: 4px solid var(--accent-blue);
+        padding: 1.1rem 1.5rem;
+        margin: 1.75rem 0;
+        border-radius: 0 8px 8px 0;
+        font-size: 0.97rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      }
+      .callout-warn {
+        border-color: var(--accent-amber);
+        background: #fffbeb;
+      }
+      .callout-critical {
+        border-color: var(--accent-red);
+      }
+      .callout p:first-child {
+        margin-top: 0;
+      }
+      .callout p:last-child {
+        margin-bottom: 0;
+      }
+
+      /* Diagram */
+      .diagram {
+        background: var(--bg-card);
+        padding: 2rem 1.5rem;
+        border-radius: 10px;
+        margin: 2rem 0;
+        box-shadow:
+          0 1px 3px rgba(0, 0, 0, 0.04),
+          0 4px 16px rgba(0, 0, 0, 0.025);
+        text-align: center;
+        overflow-x: auto;
+      }
+      .diagram-caption {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-style: italic;
+        margin-top: 1rem;
+      }
+
+      /* Source priority list */
+      ol.priority {
+        list-style: none;
+        counter-reset: pri;
+        padding: 0;
+        margin: 1.5rem 0;
+      }
+      ol.priority li {
+        counter-increment: pri;
+        background: var(--bg-card);
+        margin: 0.5rem 0;
+        padding: 0.85rem 1rem 0.85rem 3rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        position: relative;
+        font-size: 0.97rem;
+      }
+      ol.priority li::before {
+        content: counter(pri);
+        position: absolute;
+        left: 0.85rem;
+        top: 0.8rem;
+        width: 1.6rem;
+        height: 1.6rem;
+        background: var(--accent-purple);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--serif);
+        font-weight: 700;
+        font-size: 0.9rem;
+      }
+
+      /* Open questions */
+      ul.questions {
+        list-style: none;
+        padding: 0;
+        margin: 1.5rem 0;
+      }
+      ul.questions li {
+        background: var(--bg-card);
+        margin: 0.75rem 0;
+        padding: 1rem 1.25rem;
+        border-radius: 8px;
+        border-left: 3px solid var(--accent-purple);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        font-size: 0.97rem;
+        line-height: 1.6;
+      }
+      ul.questions li strong {
+        color: var(--accent-purple-deep);
+        font-family: var(--serif);
+        font-weight: 600;
+        font-size: 1.05em;
+      }
+
+      /* Footer */
+      .footer {
+        margin-top: 6rem;
+        padding-top: 2.5rem;
+        border-top: 1px solid var(--border);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+        text-align: center;
+        font-style: italic;
+        font-family: var(--serif);
+        line-height: 1.7;
+      }
+      .footer a {
+        color: var(--text-muted);
+      }
+
+      /* Section anchor labels */
+      .section-label {
+        display: block;
+        font-family: var(--serif);
+        font-style: italic;
+        color: var(--text-faint);
+        font-size: 0.95rem;
+        margin: 0;
+        letter-spacing: 0.02em;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .container {
+          padding: 2.5rem 1.25rem 4rem;
+        }
+        h1 {
+          font-size: 2.75rem;
+        }
+        h2 {
+          font-size: 1.75rem;
+        }
+        h3 {
+          font-size: 1.25rem;
+        }
+        .stats,
+        .mechanisms {
+          grid-template-columns: 1fr;
+        }
+        .stat-number {
+          font-size: 2.25rem;
+        }
+        pre {
+          padding: 1rem;
+          font-size: 0.78rem;
+        }
+      }
+
+      /* Mermaid container styling */
+      .mermaid {
+        font-family: var(--sans);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <p class="meta-line">
+        <span>Azri · v0.2 design note</span>
+        <span class="dot"></span>
+        <span>Reasoning capture</span>
+        <span class="dot"></span>
+        <span>2026-05-23</span>
+      </p>
+
+      <h1>Capturing Agent Reasoning</h1>
+      <p class="subtitle">How Azri should ingest the context that diffs alone can't carry.</p>
+
+      <div class="tldr">
+        <p class="tldr-label">TL;DR</p>
+        <p>
+          When an AI agent debugs a real bug, roughly four-fifths of the explanation value lives in
+          the session — the SQL queries, the dead-ends, the architectural reasoning, the Oracle
+          reviews — not in the final diff. Azri today sees only the diff, so its output ceiling is
+          bounded by what code changes can reveal. To break the ceiling, the right architecture is
+          <strong>layered ingestion</strong>: read every available signal (PR body, linked issues,
+          commit messages, agent journal files, session transcripts, optional MCP feed), synthesize
+          them into a unified reasoning context, then generate. The single highest-leverage building
+          block is a small <strong>Azri Skill</strong> — a drop-in <code>AGENTS.md</code> /
+          <code>CLAUDE.md</code>
+          instruction that has any agent write structured entries to
+          <code>.azri/sessions/&lt;branch&gt;.md</code> during work. That file is the bridge.
+        </p>
+      </div>
+
+      <h2>The Gap</h2>
+      <span class="section-label">why prompt-tuning won't fix this</span>
+
+      <p>
+        The reference benchmark is a real explainer page rendered for a Balance AI bug-fix PR
+        (BAL-187 / Process All stuck at 0/0). It runs about ten minutes of reading, with eleven
+        distinct sections —
+        <em
+          >TL;DR with prod-DB numbers, "cast of characters", seven-step investigation with SQL
+          queries, before/after Mermaid flows, Oracle review feedback, open threads, lessons</em
+        >. Section by section, here's where the underlying content actually came from while the
+        explainer was being generated:
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Section</th>
+            <th>Content source</th>
+            <th>In&nbsp;the&nbsp;diff?</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>TL;DR with numbers (85 failed, 73 RLS-blocked, 8 audit-gate)</td>
+            <td>prod-DB queries run during the session</td>
+            <td class="center">❌</td>
+          </tr>
+          <tr>
+            <td>Cast of characters — six system entities</td>
+            <td>architectural knowledge the agent had accumulated</td>
+            <td class="center">❌</td>
+          </tr>
+          <tr>
+            <td>Investigation, query by query (7 SQL steps)</td>
+            <td>session transcript itself</td>
+            <td class="center">❌</td>
+          </tr>
+          <tr>
+            <td>Before/After flow diagrams (×2 Mermaid)</td>
+            <td>understanding of system flow before &amp; after</td>
+            <td class="center">partial</td>
+          </tr>
+          <tr>
+            <td>"Caught by Oracle review" — 2 bugs in first draft</td>
+            <td>Oracle subagent calls during the session</td>
+            <td class="center">❌</td>
+          </tr>
+          <tr>
+            <td>Actual patches (the only thing diff has)</td>
+            <td>diff</td>
+            <td class="center">✅</td>
+          </tr>
+          <tr>
+            <td>Open threads — what didn't make this PR</td>
+            <td>metacognitive reflection by the agent</td>
+            <td class="center">❌</td>
+          </tr>
+          <tr>
+            <td>Lessons — pedagogical takeaways</td>
+            <td>reflection after the work was done</td>
+            <td class="center">❌</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number" style="color: var(--accent-red)">~80%</div>
+          <div class="stat-label">of explainer value lives outside the diff</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" style="color: var(--accent-orange)">5%</div>
+          <div class="stat-label">of the page is patches</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" style="color: var(--accent-purple)">0%</div>
+          <div class="stat-label">currently captured by Azri</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number" style="color: var(--accent-blue)">~10&nbsp;min</div>
+          <div class="stat-label">read of the reference page</div>
+        </div>
+      </div>
+
+      <p>
+        No amount of prompt-tuning on top of the current input will close this gap. The fix is
+        feeding Azri the same context the agent had during the work — that's the architectural
+        conclusion.
+      </p>
+
+      <h2>Four Capture Mechanisms</h2>
+      <span class="section-label"> what's actually possible in 2026, ranked by maturity </span>
+
+      <p>
+        The research surfaced four mechanisms with real production examples. They differ wildly in
+        maturity, agent coverage, and friction. None dominates the others — each fills a different
+        niche.
+      </p>
+
+      <div class="mechanisms">
+        <div class="mech mech-pr">
+          <div class="mech-meta">
+            <span class="badge badge-stable">Stable</span>
+            <span class="badge badge-tier">Tier 1</span>
+            <span>· 100% agent coverage</span>
+          </div>
+          <h3>PR body + linked issues + commits</h3>
+          <p>
+            Already accessible via the GitHub API. Today Azri reads the PR body (truncated to 1000
+            chars in Stage&nbsp;2) but doesn't follow
+            <code>Closes #N</code> links and doesn't pass commit messages to Stage&nbsp;3 section
+            prompts.
+          </p>
+          <p>
+            Low ceiling — most devs don't write rich PR descriptions — but completely free. A
+            baseline every other mechanism should sit on top of.
+          </p>
+          <p class="effort">Effort: ~1 day · Free uplift</p>
+        </div>
+
+        <div class="mech mech-rules">
+          <div class="mech-meta">
+            <span class="badge badge-stable">Stable</span>
+            <span class="badge badge-tier">Tier 2</span>
+            <span>· 100% agent coverage</span>
+          </div>
+          <h3>Journal file via AGENTS.md / CLAUDE.md</h3>
+          <p>
+            Drop a rules-file snippet that instructs any agent to append structured entries to
+            <code>.azri/sessions/&lt;branch&gt;.md</code> during work. The
+            <em>paper-trail</em> project reports 12.6% of Claude Code output naturally flows into
+            these files when properly instructed.
+          </p>
+          <p>
+            Best ceiling-to-effort ratio. Works across opencode, Cursor, Claude Code, and any future
+            agent that respects rules conventions.
+          </p>
+          <p class="effort">Effort: ~1 day · Highest leverage</p>
+        </div>
+
+        <div class="mech mech-transcript">
+          <div class="mech-meta">
+            <span class="badge badge-stable">Stable (CC + opencode)</span>
+            <span class="badge badge-absent">Absent (Cursor)</span>
+          </div>
+          <h3>Direct session transcript</h3>
+          <p>
+            Claude Code stores JSONL at
+            <code>~/.claude/projects/&lt;hash&gt;/&lt;session&gt;.jsonl</code>
+            including a <code>ReasoningPart</code> type. opencode exposes
+            <code>GET /session/:id/message</code> with the same structured parts. Cursor has no
+            programmatic equivalent — must fall back to MCP.
+          </p>
+          <p>
+            Passive: zero user effort once integrated. Noisy: every tool call shows up, dead-ends
+            included.
+          </p>
+          <p class="effort">Effort: ~3–4 days · 2/3 agents covered</p>
+        </div>
+
+        <div class="mech mech-mcp">
+          <div class="mech-meta">
+            <span class="badge badge-stable">Stable</span>
+            <span class="badge badge-tier">Tier 4</span>
+            <span>· 100% agent coverage</span>
+          </div>
+          <h3>Dedicated MCP server</h3>
+          <p>
+            Ship <code>@vdmkotai/azri-mcp</code> exposing <code>azri_start_session</code>,
+            <code>azri_log_reasoning</code>, <code>azri_finalize</code>. Agents call into it during
+            work; the server accumulates structured JSON. Patterns proven by
+            <code>cursor-session-tracer</code>, <code>mcp-session-mgr</code>, and similar projects.
+          </p>
+          <p>
+            Highest fidelity (structured data with parent-step references), heaviest infrastructure,
+            and mostly redundant with Tier 2 unless we're chasing real-time multi-agent
+            collaboration.
+          </p>
+          <p class="effort">Effort: ~5–7 days · Defer until Tier 2 validates</p>
+        </div>
+      </div>
+
+      <h2>Architecture: Layered Ingestion</h2>
+      <span class="section-label"> read whatever is available; weight by fidelity </span>
+
+      <p>
+        The right architectural answer is <em>not</em> picking one mechanism. It's reading
+        whatever's available and weighting it. Azri adds a new pipeline stage —
+        <strong>Stage&nbsp;1.5, the Reasoning Synthesizer</strong>
+        — that merges every available input into a unified
+        <code>ReasoningContext</code> object before Stage&nbsp;2 (structure) and Stage&nbsp;3
+        (sections) see it.
+      </p>
+
+      <div class="diagram">
+        <pre class="mermaid">
+flowchart LR
+    subgraph IN["Input layer · read whatever exists"]
+        direction TB
+        D["PR diff"]
+        B["PR body + linked issues<br/>+ review comments"]
+        C["Commit messages"]
+        N["--narrative file.md<br/>explicit override"]
+        J[".azri/sessions/<br/>&lt;branch&gt;.md<br/>(journal)"]
+        T["Session transcript<br/>JSONL"]
+        M["MCP-accumulated<br/>entries"]
+    end
+
+    RC["Stage 1.5<br/><b>Reasoning Synthesizer</b><br/>(NEW)"]
+    S2["Stage 2<br/>Structure"]
+    S3["Stage 3<br/>Section"]
+    S4["Stage 4<br/>Render"]
+
+    D --> RC
+    B --> RC
+    C --> RC
+    N --> RC
+    J --> RC
+    T --> RC
+    M --> RC
+    RC --> S2 --> S3 --> S4
+
+    style RC fill:#f3e8ff,stroke:#7c3aed,color:#581c87,stroke-width:3px
+    style N fill:#fef3c7,stroke:#d97706,color:#78350f,stroke-width:2px
+    style J fill:#dbeafe,stroke:#2563eb,color:#1e3a8a,stroke-width:2px
+    style D fill:#f3f4f6,stroke:#6b7280,color:#374151
+    style S2 fill:#ffffff,stroke:#d1d5db
+    style S3 fill:#ffffff,stroke:#d1d5db
+    style S4 fill:#ffffff,stroke:#d1d5db
+      </pre>
+        <p class="diagram-caption">
+          Purple: new stage. Yellow: explicit override (highest priority). Blue: the killer feature
+          — the journal file. The Reasoning Synthesizer is a single small LLM call that takes all
+          available inputs and emits a normalized markdown context, capped to a token budget.
+        </p>
+      </div>
+
+      <h3>Source priority when inputs disagree or overlap</h3>
+      <ol class="priority">
+        <li>
+          <strong>Explicit narrative</strong>
+          (<code>--narrative file.md</code>) — wins absolutely. If the user hand-wrote (or had an
+          agent write) a markdown narrative, Azri renders it directly and skips auto-generation.
+        </li>
+        <li>
+          <strong>MCP-structured entries</strong> — highest fidelity machine-readable source, when
+          available.
+        </li>
+        <li>
+          <strong>Journal file</strong>
+          (<code>.azri/sessions/&lt;branch&gt;.md</code>) — agent-curated, very high signal.
+        </li>
+        <li>
+          <strong>Session transcript</strong> — passive but noisy (includes every tool call,
+          including dead-ends and retries).
+        </li>
+        <li>
+          <strong>PR body + linked issues + PR review comments</strong> — human-written, often
+          terse.
+        </li>
+        <li>
+          <strong>Commit messages</strong> — useful for the reasoning arc when squash-merged commits
+          are descriptive.
+        </li>
+        <li>
+          <strong>Diff</strong> — always available, lowest standalone value but ground truth for
+          what actually changed.
+        </li>
+      </ol>
+
+      <h2>The Killer Feature: an Azri Skill</h2>
+      <span class="section-label"> the smallest building block that closes most of the gap </span>
+
+      <p>
+        A "skill" here means a tiny set of files — one rules instruction (<code>AGENTS.md</code> for
+        opencode/Cursor, <code>CLAUDE.md</code> for Claude Code) plus a journal-format spec — that
+        any agent loads into its persistent session context at start-up. The agent then writes
+        structured entries to <code>.azri/sessions/&lt;branch&gt;.md</code> as it works, with no
+        per-step tool calls and no extra infrastructure.
+      </p>
+
+      <p>An example journal looks like this:</p>
+
+      <pre><code><span class="c"># Session journal — fix/bea-audit-gate</span>
+
+<span class="k">## 2026-05-22T13:45:00Z — Hypothesis #1: dispatch broken</span>
+- <span class="k">Investigated</span>: does Bea actually receive events from Balance?
+- <span class="k">Files read</span>: backend/api/services/bea_reconciliation_routing.py:120-180
+- <span class="k">Queries</span>: <span class="s">SELECT COUNT(*) FROM bea_event_queue WHERE status='queued';</span>
+- <span class="k">Result</span>: 0 queued, all picked up — dispatch works
+- <span class="k">Verdict</span>: <span class="fail">❌ disproved, move on</span>
+
+<span class="k">## 2026-05-22T14:31:00Z — Hypothesis #3: audit gate failing</span>
+- <span class="k">Investigated</span>: why 85 events flipped to 'failed'
+- <span class="k">Files read</span>: bea_reconciliation_routing.py:720-739 (the gate)
+- <span class="k">Queries</span>: <span class="s">SELECT last_error FROM bea_event_queue WHERE status='failed' LIMIT 5;</span>
+- <span class="k">Result</span>: <span class="s">"document event completed without terminal document state"</span>
+- <span class="k">Verdict</span>: <span class="ok">✅ Confirmed — gate requires document.processed=True</span>
+
+<span class="k">## 2026-05-22T15:05:00Z — Oracle review caught 2 bugs in fix</span>
+- <span class="k">Bug 1</span>: proposed type=<span class="s">"low_confidence"</span> but flag-document only accepts type=<span class="s">"other"</span>
+- <span class="k">Bug 2</span>: subcommand recommendation was ambiguous — LLM would pass entire phrase verbatim
+- <span class="k">Action</span>: rewrote wrapper to commit to one subcommand per call</code></pre>
+
+      <h3>When the skill instructs the agent to write</h3>
+      <p>
+        The skill spec defines explicit trigger conditions so journals don't become noisy dumps:
+      </p>
+      <ul>
+        <li>
+          <strong>At session start</strong> — create the file with header (branch name, task
+          description).
+        </li>
+        <li>
+          <strong>After each significant investigation step</strong> — a hypothesis was tested, a
+          meaningful file was read, a decision was made.
+        </li>
+        <li>
+          <strong>After consulting a subagent</strong> — Oracle, librarian, explore, anything that
+          produced new information.
+        </li>
+        <li>
+          <strong>After every dead-end</strong> — this is gold. Agents tend to suppress these.
+          Explicit instruction to write them produces the most valuable entries.
+        </li>
+        <li>
+          <strong>Before commit</strong> — write a final summary entry tying everything together.
+        </li>
+      </ul>
+
+      <div class="callout">
+        <strong>Why a skill and not a tool?</strong> A tool requires the agent to remember to call
+        it on every step. A skill is loaded into the agent's persistent context at session start —
+        it shapes behavior without per-step API surface. Lower friction, higher adoption. The skill
+        conventions in opencode, Cursor, and Claude Code are mature enough in 2026 that this is the
+        right level of abstraction.
+      </div>
+
+      <h3>End-to-end integration flow</h3>
+      <div class="diagram">
+        <pre class="mermaid">
+sequenceDiagram
+    autonumber
+    participant Dev as Developer
+    participant Agent as AI Agent<br/>(opencode / CC / Cursor)
+    participant Repo as Local repo
+    participant Azri as Azri CLI
+    participant Page as Explainer page
+
+    Dev->>Agent: "fix the audit gate bug"
+    Agent->>Repo: reads AGENTS.md → loads Azri Skill
+    Note over Agent: skill instructs:<br/>write entries to<br/>.azri/sessions/&lt;branch&gt;.md
+
+    loop During work
+        Agent->>Repo: investigate, read files, run queries
+        Agent->>Repo: append entry to .azri/sessions/fix-bug.md
+    end
+
+    Agent->>Repo: git commit + push PR
+    Dev->>Azri: azri pr &lt;url&gt;
+    Azri->>Repo: read diff + PR body + .azri/sessions/fix-bug.md
+    Azri->>Page: render explainer with full reasoning context
+      </pre>
+        <p class="diagram-caption">
+          The agent does no extra work it wasn't doing anyway — the skill just shapes
+          <em>where</em> the reasoning lands. Azri picks it up at PR time. Zero new infrastructure.
+        </p>
+      </div>
+
+      <h2>Cost &amp; Phasing</h2>
+      <span class="section-label"> ship lowest-friction tiers first, validate, then invest </span>
+
+      <p>
+        Five tiers ranked by effort-to-value. Recommended phasing: ship Tier&nbsp;0 + Tier&nbsp;2
+        first (~1.5 days combined), evaluate quality lift on real PRs, then decide whether
+        Tier&nbsp;3 transcript reading or Tier&nbsp;4 MCP is worth the investment.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Mechanism</th>
+            <th>Effort</th>
+            <th>Coverage</th>
+            <th>Quality lift</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tier-badge">0</span></td>
+            <td><code>--narrative file.md</code> override</td>
+            <td class="num">~0.5d</td>
+            <td>opt-in</td>
+            <td>
+              <strong>Highest</strong> — matches Balance instantly if user provides a hand-written
+              narrative
+            </td>
+          </tr>
+          <tr>
+            <td><span class="tier-badge">1</span></td>
+            <td>Linked issues + reviews + commit messages</td>
+            <td class="num">~1d</td>
+            <td>universal</td>
+            <td>Low-medium · free baseline</td>
+          </tr>
+          <tr>
+            <td><span class="tier-badge">2</span></td>
+            <td>Journal file via AGENTS.md skill</td>
+            <td class="num">~1d</td>
+            <td>any agent</td>
+            <td><strong>High</strong> · best ratio</td>
+          </tr>
+          <tr>
+            <td><span class="tier-badge">3</span></td>
+            <td>Session transcript parser (CC + opencode)</td>
+            <td class="num">~3–4d</td>
+            <td>2/3 agents</td>
+            <td>High · passive capture</td>
+          </tr>
+          <tr>
+            <td><span class="tier-badge">4</span></td>
+            <td>Dedicated MCP server</td>
+            <td class="num">~5–7d</td>
+            <td>universal</td>
+            <td>Highest fidelity · heaviest infra</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="callout callout-warn">
+        <strong>Strategic note.</strong> Tiers&nbsp;0 and 2 alone already close most of the
+        Balance-quality gap. Tier&nbsp;4 (MCP) is impressive but mostly redundant with Tier&nbsp;2
+        (journal) unless we're chasing real-time multi-agent collaboration. Don't build the MCP
+        server until journal-file mode has validated user value.
+      </div>
+
+      <h2>Open Questions for Discussion</h2>
+      <span class="section-label"> decisions to make together before committing to the build </span>
+
+      <ul class="questions">
+        <li>
+          <strong>Privacy &amp; secrets.</strong> Session journals will contain code snippets, file
+          paths, potentially API responses or SQL results. Should Azri redact patterns matching
+          <code>sk-*</code>, <code>ghp_*</code>, JWT-shaped tokens, etc. before including them in
+          the rendered page? Default-on or opt-in? What about per-file allow/deny lists?
+        </li>
+        <li>
+          <strong>Journal format: prose vs structured.</strong> The example above is markdown prose
+          with section headers. An alternative is YAML/JSON entries — easier to parse, harder for
+          agents to write naturally. A hybrid (markdown sections with structured frontmatter) is
+          possible. Which optimizes for adoption?
+        </li>
+        <li>
+          <strong>Where does Stage 1.5 run?</strong> Before Stage 1 (so the summarizer also has
+          reasoning context) or between Stages 1 and 2? The former is more powerful but roughly
+          doubles the cost of every run. Maybe it should depend on whether journal data was actually
+          supplied.
+        </li>
+        <li>
+          <strong>Failure mode: noisy journals.</strong> What if an agent writes 200&nbsp;KB of
+          low-signal entries? Truncation strategy: keep last <em>N</em> hypotheses + all entries
+          marked <code>verdict: ✅</code>? A per-source token budget enforced by the Reasoning
+          Synthesizer? Both?
+        </li>
+        <li>
+          <strong>Cross-PR reasoning.</strong> Sometimes the reasoning that produced PR&nbsp;N was
+          developed during work on PR&nbsp;N-1 (refactor first, fix bug after; or an architectural
+          insight from a sibling feature). Should journals optionally span branches?
+        </li>
+        <li>
+          <strong>Skill distribution.</strong> Drop the skill files via <code>azri init</code>?
+          Publish as a separate package (<code>@vdmkotai/azri-skill</code>) installable via the
+          platform's skill manager? Both? Versioning strategy when the journal format evolves?
+        </li>
+        <li>
+          <strong>Hosted reasoning store?</strong> Eventually, should the bot maintain a per-repo
+          journal index so the team can grep across PRs, cluster related decisions, or surface
+          recurring dead-ends? (Probably v2 — but worth flagging now so v0.2 file formats don't
+          paint us into a corner.)
+        </li>
+      </ul>
+
+      <div class="footer">
+        <p>
+          Design note &middot; Azri v0.2 planning &middot; 2026-05-23
+          <br />
+          Research sources: <em>paper-trail</em> journal pattern, <em>mcp-session-mgr</em>,
+          <em>cursor-session-tracer</em>, <em>claude-transcript-plugin</em>, opencode
+          <code>message-v2</code> schema. Reference quality benchmark: Balance&nbsp;AI BAL-187
+          explainer page.
+        </p>
+      </div>
+    </div>
+
+    <script src="https://unpkg.com/mermaid@10/dist/mermaid.min.js"></script>
+    <script>
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        themeVariables: {
+          fontFamily: 'Inter, -apple-system, system-ui, sans-serif',
+          fontSize: '14px',
+          primaryColor: '#f3e8ff',
+          primaryTextColor: '#581c87',
+          primaryBorderColor: '#7c3aed',
+          lineColor: '#6b7280',
+          secondaryColor: '#dbeafe',
+          tertiaryColor: '#fef3c7',
+        },
+        flowchart: { curve: 'basis', padding: 20 },
+        sequence: { actorMargin: 60, messageMargin: 40 },
+      });
+    </script>
+  </body>
+</html>

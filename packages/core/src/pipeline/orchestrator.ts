@@ -98,7 +98,8 @@ async function runAzriInner(
   if (!stage1.ok) return stage1.output;
   const stage2 = await runTimedStage(
     'stage-2',
-    () => stages.runStage2(stage0, stage1.value, { logger, provider, reasoningModel }),
+    () =>
+      stages.runStage2(stage0, stage1.value, { logger, provider, reasoningModel }, input.config),
     metadata,
     startMs,
   );
@@ -123,7 +124,12 @@ async function runAzriInner(
   if (!stage3.ok) return stage3.output;
   const stage4 = await runTimedStage(
     'stage-4',
-    () => stages.runStage4(stage3.value.plan, stage0.change, stage0.repo, { runMeta: metadata }),
+    () =>
+      stages.runStage4(stage3.value.plan, stage0.change, stage0.repo, {
+        runMeta: metadata,
+        ...(input.config.theme ? { theme: input.config.theme } : {}),
+        ...(input.config.tokens ? { tokens: input.config.tokens } : {}),
+      }),
     metadata,
     startMs,
   );

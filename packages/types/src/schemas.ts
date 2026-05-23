@@ -4,6 +4,9 @@
 import { z } from 'zod';
 
 import type { AzriConfig } from './index.ts';
+import { DesignTokensSchema, UserTokensSchema } from './tokens-schema.ts';
+
+export { DesignTokensSchema, UserTokensSchema };
 
 export const SectionTypeSchema = z.enum([
   'overview',
@@ -169,29 +172,7 @@ export const RunMetadataSchema = z.object({
   stageDurations: z.record(z.number().nonnegative()),
 });
 
-export const DesignTokensSchema = z.object({
-  colors: z
-    .object({
-      text: z.string().optional(),
-      background: z.string().optional(),
-      accent: z.string().optional(),
-      severity: z
-        .object({
-          info: z.string().optional(),
-          warn: z.string().optional(),
-          critical: z.string().optional(),
-        })
-        .optional(),
-    })
-    .optional(),
-  typefaces: z
-    .object({
-      serif: z.string().optional(),
-      mono: z.string().optional(),
-    })
-    .optional(),
-  allowEmoji: z.boolean().optional(),
-});
+export const VerbositySchema = z.enum(['concise', 'standard', 'detailed']);
 
 export const AzriConfigSchema = z.object({
   modules: z.array(z.string()).default([]),
@@ -201,8 +182,10 @@ export const AzriConfigSchema = z.object({
   selfBootstrap: z.boolean().default(false),
   telemetry: z.boolean().default(false),
   tokens: DesignTokensSchema.optional(),
+  theme: z.string().optional(),
   focusAreas: z.array(z.string()).default([]),
   brief: z.boolean().default(false),
+  verbosity: VerbositySchema.optional(),
 });
 
 const OkRunOutputSchema = z.object({

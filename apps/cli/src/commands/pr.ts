@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
+/* eslint-disable max-lines */
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
@@ -12,29 +13,42 @@ import {
   type ProviderName,
 } from '../../../../packages/core/src/index.ts';
 import type {
+  AzriConfig,
   AzriRunOutput,
   ChangedFile,
   ChangeSet,
   HtmlBundle,
+  Verbosity,
 } from '../../../../packages/types/src/index.ts';
 import { estimateCost, formatCostEstimate } from '../cost-estimate.ts';
+import { applyStoredApiKey } from '../credentials.ts';
 import {
   createGitHubClient,
   GitHubHttpError,
   listPrFiles,
   type GitHubPrFile,
 } from '../github-client.ts';
+import { loadAzriConfig, loadUserTokens, validateThemeName } from '../theme-loader.ts';
+import {
+  confirmDetailed,
+  consumeVerbosityFlag,
+  shouldPromptForDetailed,
+  type VerbosityFlagState,
+} from '../verbosity-flag.ts';
 
 interface PrArgs {
   target: string;
   repoFlag?: string;
   output?: string;
+  theme?: string;
   open: boolean;
   verbose: boolean;
   dryRun: boolean;
   json: boolean;
   provider: ProviderName;
   token?: string;
+  verbosity: Verbosity | undefined;
+  yes: boolean;
 }
 
 interface PrTarget {
@@ -61,9 +75,18 @@ function parseArgs(args: string[]): PrArgs {
     dryRun: false,
     json: false,
     provider: 'anthropic',
+    verbosity: undefined,
+    yes: false,
   };
+  const verbState: VerbosityFlagState = { verbosity: undefined, yes: false };
 
   for (let i = 0; i < args.length; i++) {
+    const verbHit = consumeVerbosityFlag(args, i, verbState);
+    if (verbHit.consumed) {
+      if (verbHit.error) throw new Error(verbHit.error);
+      i += verbHit.advance;
+      continue;
+    }
     const arg = args[i]!;
     if (arg === '--open') parsed.open = true;
     else if (arg === '--verbose') parsed.verbose = true;
@@ -72,6 +95,8 @@ function parseArgs(args: string[]): PrArgs {
     else if (arg === '--repo') parsed.repoFlag = take(args, i++, arg);
     else if (arg === '--output') parsed.output = take(args, i++, arg);
     else if (arg === '--token') parsed.token = take(args, i++, arg);
+    else if (arg === '--theme') parsed.theme = take(args, i++, arg);
+    else if (arg.startsWith('--theme=')) parsed.theme = arg.slice('--theme='.length);
     else if (arg === '--provider') {
       const provider = take(args, i++, arg);
       if (!PROVIDERS.has(provider as ProviderName))
@@ -82,6 +107,8 @@ function parseArgs(args: string[]): PrArgs {
     else parsed.target = arg;
   }
 
+  parsed.verbosity = verbState.verbosity;
+  parsed.yes = verbState.yes;
   if (!parsed.target) throw new Error('Usage: azri pr <num-or-url> [--repo owner/name]');
   return parsed;
 }
@@ -217,6 +244,19 @@ function printRunResult(output: AzriRunOutput, outputPath: string, json: boolean
   }
 }
 
+async function buildConfig(args: PrArgs): Promise<AzriConfig> {
+  const repoPath = process.cwd();
+  const base = await loadAzriConfig(repoPath);
+  const userTokens = await loadUserTokens(repoPath);
+  const themeName = args.theme ?? base.theme;
+  if (themeName) validateThemeName(themeName);
+  const config: AzriConfig = { ...base };
+  if (args.verbosity) config.verbosity = args.verbosity;
+  if (themeName) config.theme = themeName;
+  if (userTokens) config.tokens = { ...base.tokens, ...userTokens };
+  return config;
+}
+
 async function dryRun(args: PrArgs, target: PrTarget, token: string | undefined): Promise<number> {
   const files = await listPrFiles(target.owner, target.repo, target.prNumber, token);
   const lines = files.reduce((sum, file) => sum + file.additions + file.deletions, 0);
@@ -231,7 +271,10 @@ async function dryRun(args: PrArgs, target: PrTarget, token: string | undefined)
     fileTree: [],
     capturedAt: new Date().toISOString(),
   };
-  const estimate = estimateCost({ mode: 'pr', repo, change, config: {} }, args.provider);
+  const estimate = estimateCost(
+    { mode: 'pr', repo, change, config: await buildConfig(args) },
+    args.provider,
+  );
   if (args.json)
     console.log(JSON.stringify({ kind: 'dry-run', files: files.length, lines, estimate }));
   else
@@ -259,6 +302,10 @@ export async function runPr(rawArgs: string[]): Promise<number> {
   try {
     if (args.verbose && !args.json) console.error(`Fetching ${target.url}`);
     if (args.dryRun) return await dryRun(args, target, token);
+    if (!(await applyStoredApiKey(args.provider))) {
+      console.error('Error: ANTHROPIC_API_KEY (or OPENAI_API_KEY / GOOGLE_API_KEY) not set.');
+      return 1;
+    }
 
     const [change, repo] = await Promise.all([
       fetchPrFromGitHub({
@@ -269,10 +316,20 @@ export async function runPr(rawArgs: string[]): Promise<number> {
       }),
       readRepoSnapshotFromGitHub({ owner: target.owner, repo: target.repo, octokit }),
     ]);
-    const output = await runAzri(
-      { mode: 'pr', repo, change, config: {} },
-      { provider: args.provider },
-    );
+    const config = await buildConfig(args);
+    if (
+      args.verbosity === 'detailed' &&
+      shouldPromptForDetailed(args.verbosity, args.yes) &&
+      !args.json
+    ) {
+      const est = estimateCost({ mode: 'pr', repo, change, config }, args.provider);
+      const ok = await confirmDetailed(est.usd);
+      if (!ok) {
+        console.log('Aborted.');
+        return 0;
+      }
+    }
+    const output = await runAzri({ mode: 'pr', repo, change, config }, { provider: args.provider });
     if (output.kind === 'too-large' || output.kind === 'head-sha-drift' || output.kind === 'skip') {
       return printRunResult(output, outputPath, args.json);
     }

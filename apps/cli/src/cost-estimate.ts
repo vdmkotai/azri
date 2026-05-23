@@ -1,8 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
 
-import { computeCost, type ProviderName } from '../../../packages/core/src/providers/index.ts';
-import type { AzriRunInput } from '../../../packages/types/src/index.ts';
+import {
+  resolveVerbosity,
+  computeCost,
+  type ProviderName,
+} from '../../../packages/core/src/index.ts';
+import type { AzriRunInput, Verbosity } from '../../../packages/types/src/index.ts';
+import { VERBOSITY_CONFIG } from '../../../packages/types/src/index.ts';
 
 export interface PerStageEstimate {
   stage: string;
@@ -14,6 +19,7 @@ export interface PerStageEstimate {
 
 export interface CostEstimate {
   provider: ProviderName;
+  verbosity: Verbosity;
   totalInputTokens: number;
   totalOutputTokens: number;
   usd: number;
@@ -29,7 +35,11 @@ const STAGE2_INPUT_FIXED = 4000;
 const STAGE2_OUTPUT_FIXED = 1500;
 const STAGE3_INPUT_PER_SECTION = 2000;
 const STAGE3_OUTPUT_PER_SECTION = 400;
-const DEFAULT_SECTIONS = 5;
+
+function sectionsForVerbosity(verb: Verbosity): number {
+  const [min, max] = VERBOSITY_CONFIG[verb].sections;
+  return Math.round((min + max) / 2);
+}
 
 export function estimateCost(input: AzriRunInput, provider: ProviderName): CostEstimate {
   let fileCount = 0;
@@ -40,6 +50,10 @@ export function estimateCost(input: AzriRunInput, provider: ProviderName): CostE
     fileCount = Math.min(input.repo.fileTree.length, 30);
   }
 
+  const verbosity = resolveVerbosity(input.config);
+  const wordMult = VERBOSITY_CONFIG[verbosity].wordMult;
+  const sections = sectionsForVerbosity(verbosity);
+
   const notes: string[] =
     input.mode === 'repo' ? [`Repo mode: estimating top ${fileCount} files`] : [];
 
@@ -47,9 +61,9 @@ export function estimateCost(input: AzriRunInput, provider: ProviderName): CostE
   const stage1Out = fileCount * STAGE1_OUTPUT_PER_FILE;
   const stage2In = STAGE2_INPUT_FIXED;
   const stage2Out = STAGE2_OUTPUT_FIXED;
-  const sections = DEFAULT_SECTIONS;
   const stage3In = sections * STAGE3_INPUT_PER_SECTION;
-  const stage3Out = sections * STAGE3_OUTPUT_PER_SECTION;
+  const stage3OutBase = sections * STAGE3_OUTPUT_PER_SECTION;
+  const stage3Out = Math.round(stage3OutBase * wordMult);
 
   const perStage: PerStageEstimate[] = [
     {
@@ -67,7 +81,7 @@ export function estimateCost(input: AzriRunInput, provider: ProviderName): CostE
       usd: computeCost(provider, 'reasoning', stage2In, stage2Out, 0).totalUsd,
     },
     {
-      stage: 'Stage 3 (sections × 5)',
+      stage: `Stage 3 (sections × ${sections})`,
       tier: 'reasoning',
       inputTokens: stage3In,
       outputTokens: stage3Out,
@@ -88,6 +102,7 @@ export function estimateCost(input: AzriRunInput, provider: ProviderName): CostE
 
   return {
     provider,
+    verbosity,
     totalInputTokens,
     totalOutputTokens,
     usd: Math.round(usd * 10000) / 10000,
@@ -101,8 +116,11 @@ export function formatCostEstimate(est: CostEstimate): string {
   const estimatedColdCost = `$${est.usd.toFixed(4)} (cold cache)`;
   const estimatedWarmCost = `~$${est.withCacheUsd.toFixed(4)} (warm cache)`;
   const estimatedCost = `${estimatedColdCost} / ${estimatedWarmCost}`;
+  const mult = VERBOSITY_CONFIG[est.verbosity].wordMult;
+  const multLabel = mult === 1.0 ? '1x' : mult === 0.5 ? '0.5x' : `${mult}x`;
   const lines: string[] = [
     `Provider: ${est.provider}`,
+    `Verbosity: ${est.verbosity} (≈${multLabel} cost)`,
     `Estimated cost: ${estimatedCost}`,
     `Total tokens: ${est.totalInputTokens} in / ${est.totalOutputTokens} out`,
     '',

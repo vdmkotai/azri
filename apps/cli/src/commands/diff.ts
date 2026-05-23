@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
+/* eslint-disable max-lines */
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, resolve } from 'node:path';
@@ -18,21 +19,33 @@ import {
   type AzriRunOutput,
   type ChangeSet,
   type RepoSnapshot,
+  type Verbosity,
 } from '../../../../packages/types/src/index.ts';
 
 import { estimateCost, formatCostEstimate } from '../cost-estimate.ts';
+import { applyStoredApiKey } from '../credentials.ts';
+import { loadUserTokens, validateThemeName } from '../theme-loader.ts';
 import { createProgress, openInBrowser } from '../ui/index.ts';
+import {
+  confirmDetailed,
+  consumeVerbosityFlag,
+  shouldPromptForDetailed,
+  type VerbosityFlagState,
+} from '../verbosity-flag.ts';
 
 interface DiffOptions {
   base?: string;
   head: string;
   output?: string;
+  theme?: string;
   open: boolean;
   verbose: boolean;
   dryRun: boolean;
   json: boolean;
   provider?: ProviderName;
   config?: string;
+  verbosity: Verbosity | undefined;
+  yes: boolean;
 }
 
 const STAGES: ReadonlyArray<{ id: string; label: string }> = [
@@ -42,15 +55,24 @@ const STAGES: ReadonlyArray<{ id: string; label: string }> = [
   { id: 'render', label: 'Writing HTML' },
 ];
 
-function parseArgs(args: string[]): DiffOptions {
+function parseArgs(args: string[]): DiffOptions | { error: string } {
   const opts: DiffOptions = {
     head: 'HEAD',
     open: false,
     verbose: false,
     dryRun: false,
     json: false,
+    verbosity: undefined,
+    yes: false,
   };
+  const verbState: VerbosityFlagState = { verbosity: undefined, yes: false };
   for (let i = 0; i < args.length; i++) {
+    const verbHit = consumeVerbosityFlag(args, i, verbState);
+    if (verbHit.consumed) {
+      if (verbHit.error) return { error: verbHit.error };
+      i += verbHit.advance;
+      continue;
+    }
     const arg = args[i]!;
     const next = args[i + 1];
     if (arg === '--base' && next !== undefined) {
@@ -68,11 +90,18 @@ function parseArgs(args: string[]): DiffOptions {
     } else if (arg === '--config' && next !== undefined) {
       opts.config = next;
       i += 1;
+    } else if (arg === '--theme' && next !== undefined) {
+      opts.theme = next;
+      i += 1;
+    } else if (arg.startsWith('--theme=')) {
+      opts.theme = arg.slice('--theme='.length);
     } else if (arg === '--open') opts.open = true;
     else if (arg === '--verbose') opts.verbose = true;
     else if (arg === '--dry-run') opts.dryRun = true;
     else if (arg === '--json') opts.json = true;
   }
+  opts.verbosity = verbState.verbosity;
+  opts.yes = verbState.yes;
   return opts;
 }
 
@@ -93,14 +122,27 @@ async function resolveBaseRef(): Promise<string> {
   return 'main';
 }
 
-async function loadConfig(configPath: string | undefined): Promise<AzriConfig> {
+async function loadConfig(
+  configPath: string | undefined,
+  themeOverride: string | undefined,
+): Promise<AzriConfig> {
   const path = configPath ?? './.azri/config.json';
+  let base: AzriConfig;
   try {
     const text = await readFile(path, 'utf8');
-    return validateAzriConfig(JSON.parse(text));
+    base = validateAzriConfig(JSON.parse(text));
   } catch {
-    return validateAzriConfig({});
+    base = validateAzriConfig({});
   }
+  const themeName = themeOverride ?? base.theme;
+  if (themeName) validateThemeName(themeName);
+  const userTokens = await loadUserTokens(process.cwd());
+  const mergedTokens = userTokens ? { ...base.tokens, ...userTokens } : base.tokens;
+  return {
+    ...base,
+    ...(themeName ? { theme: themeName } : {}),
+    ...(mergedTokens ? { tokens: mergedTokens } : {}),
+  };
 }
 
 async function readDiff(base: string, head: string): Promise<string> {
@@ -217,7 +259,12 @@ function handleNonSuccess(output: AzriRunOutput, opts: DiffOptions): number {
 }
 
 export async function runDiff(args: string[]): Promise<number> {
-  const opts = parseArgs(args);
+  const parsed = parseArgs(args);
+  if ('error' in parsed) {
+    console.error(`Error: ${parsed.error}`);
+    return 1;
+  }
+  const opts = parsed;
   const baseRef = opts.base ?? (await resolveBaseRef());
   const headRef = opts.head;
 
@@ -236,13 +283,43 @@ export async function runDiff(args: string[]): Promise<number> {
   progress.complete('collect');
 
   const provider: ProviderName = opts.provider ?? 'anthropic';
-  const config = await loadConfig(opts.config);
+  let config: AzriConfig;
+  try {
+    config = await loadConfig(opts.config, opts.theme);
+  } catch (error) {
+    progress.done();
+    console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+    return 1;
+  }
+  if (opts.verbosity) config.verbosity = opts.verbosity;
   const outPath = resolveOutputPath(opts, change.headSha);
 
   if (opts.dryRun) {
     progress.done();
     emitDryRun({ mode: 'pr', repo: stubRepoSnapshot(), change, config }, provider, outPath, opts);
     return 0;
+  }
+
+  if (
+    opts.verbosity === 'detailed' &&
+    shouldPromptForDetailed(opts.verbosity, opts.yes) &&
+    !opts.json
+  ) {
+    const estimate = estimateCost(
+      { mode: 'pr', repo: stubRepoSnapshot(), change, config },
+      provider,
+    );
+    const ok = await confirmDetailed(estimate.usd);
+    if (!ok) {
+      progress.done();
+      console.log('Aborted.');
+      return 0;
+    }
+  }
+
+  if (!(await applyStoredApiKey(provider))) {
+    console.error('Error: ANTHROPIC_API_KEY (or OPENAI_API_KEY / GOOGLE_API_KEY) not set.');
+    return 1;
   }
 
   progress.start('snapshot');

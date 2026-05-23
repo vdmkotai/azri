@@ -24,13 +24,14 @@ import {
   StickyTOC,
   type TocSection,
 } from './components/index.ts';
-import { applyDesignTokens, RESET_CSS, tokenCss, TOKEN_CSS } from './design-system/index.ts';
+import { applyDesignTokens, RESET_CSS, resolveTheme, tokenCss } from './design-system/index.ts';
 import { renderMermaidToSvg } from './diagrams/index.ts';
 import { escapeAttr, escapeHtml } from './utils/escape-html.ts';
 import { markdownToHtml } from './utils/markdown.ts';
 
 export interface RenderOptions {
   tokens?: DesignTokens;
+  theme?: string;
   generatedAt?: string;
   runMeta?: Partial<RunMetadata>;
   githubBaseUrl?: string;
@@ -70,7 +71,7 @@ body{margin:0;font-family:var(--typeface-serif);background:var(--color-bg);color
 .azri-callout-warn{border-color:var(--severity-warn);}
 .azri-callout-critical{border-color:var(--severity-critical);}
 .azri-callout .callout-label{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:6px;opacity:.85;}
-.azri-code{font-family:var(--typeface-mono);font-size:13px;background:#1a202c;color:#e2e8f0;padding:16px;border-radius:4px;overflow-x:auto;}
+.azri-code{font-family:var(--typeface-mono);font-size:13px;background:var(--color-bg-code-background);color:var(--color-bg-code-text);padding:16px;border-radius:4px;overflow-x:auto;}
 .azri-code code{background:none;color:inherit;font:inherit;}
 .azri-annotated-diff{margin:18px 0;}
 .azri-diff-file{margin:12px 0;border:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);border-radius:4px;overflow:hidden;}
@@ -168,7 +169,8 @@ export async function renderPage(
   _repo: RepoSnapshot,
   opts: RenderOptions = {},
 ): Promise<HtmlBundle> {
-  const tokensCss = opts.tokens ? tokenCss(applyDesignTokens(opts.tokens)) : TOKEN_CSS;
+  const baseTokens = resolveTheme(opts.theme);
+  const tokensCss = tokenCss(applyDesignTokens(opts.tokens, baseTokens));
 
   const diagramRenders = await Promise.all(
     plan.diagramSpecs.map(async (d: DiagramSpec) => {

@@ -23,9 +23,21 @@ import type {
 
 import { estimateCost, formatCostEstimate } from '../cost-estimate.ts';
 import { detectGitContext } from '../git-context.ts';
-import { openInBrowser } from '../ui/open-browser.ts';
-import { createProgress, type ProgressHandle, type ProgressStage } from '../ui/progress.ts';
-import { apiKeyEnvFor, parseFlags, printReportHelp, type ReportFlags } from './report-args.ts';
+import { loadUserTokens, validateThemeName } from '../theme-loader.ts';
+import {
+  createProgress,
+  openInBrowser,
+  type ProgressHandle,
+  type ProgressStage,
+} from '../ui/index.ts';
+import {
+  confirmDetailed,
+  ensureApiKey,
+  parseFlags,
+  printReportHelp,
+  shouldPromptForDetailed,
+  type ReportFlags,
+} from './report-args.ts';
 
 const PROGRESS_STAGES: ProgressStage[] = [
   { id: 'stage-0', label: 'triage repository' },
@@ -109,8 +121,21 @@ function makeLogger(flags: ReportFlags, progress: ProgressHandle): Stage0Logger 
 
 async function loadConfig(flags: ReportFlags): Promise<AzriConfig> {
   const configPath = flags.configPath ?? `${flags.repoPath}/.azri/config.json`;
-  if (!(await Bun.file(configPath).exists())) return {};
-  return (await Bun.file(configPath).json()) as AzriConfig;
+  const base: AzriConfig = (await Bun.file(configPath).exists())
+    ? ((await Bun.file(configPath).json()) as AzriConfig)
+    : {};
+
+  const themeName = flags.theme ?? base.theme;
+  if (themeName) validateThemeName(themeName);
+
+  const userTokens = await loadUserTokens(flags.repoPath);
+  const mergedTokens = userTokens ? { ...base.tokens, ...userTokens } : base.tokens;
+
+  return {
+    ...base,
+    ...(themeName ? { theme: themeName } : {}),
+    ...(mergedTokens ? { tokens: mergedTokens } : {}),
+  };
 }
 
 async function snapshotRepo(repoPath: string): Promise<RepoSnapshot | null> {
@@ -209,6 +234,7 @@ export async function runReport(args: string[]): Promise<number> {
     }
 
     const config = await loadConfig(parsed);
+    if (parsed.verbosity) config.verbosity = parsed.verbosity;
     const input: AzriRunInput = { mode: 'repo', repo, config };
 
     if (parsed.dryRun) {
@@ -217,7 +243,20 @@ export async function runReport(args: string[]): Promise<number> {
       return 0;
     }
 
-    if (!process.env[apiKeyEnvFor(parsed.provider)]) {
+    if (
+      parsed.verbosity === 'detailed' &&
+      shouldPromptForDetailed(parsed.verbosity, parsed.yes) &&
+      !parsed.json
+    ) {
+      const est = estimateCost(input, parsed.provider);
+      const ok = await confirmDetailed(est.usd);
+      if (!ok) {
+        console.log('Aborted.');
+        return 0;
+      }
+    }
+
+    if (!(await ensureApiKey(parsed.provider))) {
       console.error('Error: ANTHROPIC_API_KEY (or OPENAI_API_KEY / GOOGLE_API_KEY) not set.');
       return 1;
     }

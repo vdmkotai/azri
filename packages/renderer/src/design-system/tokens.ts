@@ -19,11 +19,17 @@ export interface SeverityTokens {
   critical: string;
 }
 
+export interface BgCodeTokens {
+  background: string;
+  text: string;
+}
+
 export interface ColorTokens {
   text: string;
   background: string;
   accent: string;
   severity: SeverityTokens;
+  bgCode: BgCodeTokens;
 }
 
 export interface TypefaceTokens {
@@ -65,6 +71,8 @@ export interface DesignSystem {
   radii: RadiiTokens;
   shadows: ShadowTokens;
   breakpoints: BreakpointTokens;
+  /** Optional dark-mode color overrides. When set, emitted under `@media (prefers-color-scheme:dark)`. */
+  darkColors?: ColorTokens;
 }
 
 export const colors: ColorTokens = {
@@ -76,6 +84,10 @@ export const colors: ColorTokens = {
     warn: '#9c4221',
     critical: '#9b2c2c',
   },
+  bgCode: {
+    background: '#1a202c',
+    text: '#e2e8f0',
+  },
 };
 
 export const colorsDark: ColorTokens = {
@@ -86,6 +98,10 @@ export const colorsDark: ColorTokens = {
     info: '#4299e1',
     warn: '#ed8936',
     critical: '#fc8181',
+  },
+  bgCode: {
+    background: '#1a202c',
+    text: '#e2e8f0',
   },
 };
 

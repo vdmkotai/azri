@@ -1,7 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
 
-import { designSystem, colorsDark, type DesignSystem } from './tokens.ts';
+import {
+  designSystem,
+  colorsDark,
+  type ColorTokens,
+  type DesignSystem,
+  type RadiiTokens,
+  type ShadowTokens,
+  type SpacingTokens,
+} from './tokens.ts';
 
 export const RESET_CSS = `
 *,*::before,*::after{box-sizing:border-box}
@@ -11,7 +19,8 @@ img,svg{display:block;max-width:100%;height:auto}
 button{font:inherit}
 `;
 
-export function tokenCss(ds: DesignSystem, dark: typeof colorsDark = colorsDark): string {
+export function tokenCss(ds: DesignSystem, dark?: ColorTokens): string {
+  const darkResolved = dark ?? ds.darkColors ?? colorsDark;
   return `
 :root{
   --color-text:${ds.colors.text};
@@ -20,6 +29,8 @@ export function tokenCss(ds: DesignSystem, dark: typeof colorsDark = colorsDark)
   --severity-info:${ds.colors.severity.info};
   --severity-warn:${ds.colors.severity.warn};
   --severity-critical:${ds.colors.severity.critical};
+  --color-bg-code-background:${ds.colors.bgCode.background};
+  --color-bg-code-text:${ds.colors.bgCode.text};
   --typeface-serif:${ds.typefaces.serif};
   --typeface-mono:${ds.typefaces.mono};
   --space-xs:${ds.spacing.xs}px;
@@ -38,12 +49,12 @@ export function tokenCss(ds: DesignSystem, dark: typeof colorsDark = colorsDark)
 }
 @media (prefers-color-scheme:dark){
   :root{
-    --color-text:${dark.text};
-    --color-bg:${dark.background};
-    --color-accent:${dark.accent};
-    --severity-info:${dark.severity.info};
-    --severity-warn:${dark.severity.warn};
-    --severity-critical:${dark.severity.critical};
+    --color-text:${darkResolved.text};
+    --color-bg:${darkResolved.background};
+    --color-accent:${darkResolved.accent};
+    --severity-info:${darkResolved.severity.info};
+    --severity-warn:${darkResolved.severity.warn};
+    --severity-critical:${darkResolved.severity.critical};
   }
 }
 `;
@@ -52,29 +63,43 @@ export function tokenCss(ds: DesignSystem, dark: typeof colorsDark = colorsDark)
 export const TOKEN_CSS = tokenCss(designSystem, colorsDark);
 
 export interface UserTokens {
-  colors?: Partial<Omit<DesignSystem['colors'], 'severity'>> & {
+  colors?: Partial<Omit<DesignSystem['colors'], 'severity' | 'bgCode'>> & {
     severity?: Partial<DesignSystem['colors']['severity']>;
+    bgCode?: Partial<DesignSystem['colors']['bgCode']>;
   };
   typefaces?: Partial<DesignSystem['typefaces']>;
+  spacing?: Partial<SpacingTokens>;
+  radii?: Partial<RadiiTokens>;
+  shadows?: Partial<ShadowTokens>;
 }
 
-export function applyDesignTokens(user?: UserTokens): DesignSystem {
-  if (!user) return designSystem;
-  return {
-    ...designSystem,
+export function applyDesignTokens(user?: UserTokens, base?: DesignSystem): DesignSystem {
+  const root = base ?? designSystem;
+  if (!user) return root;
+  const merged: DesignSystem = {
+    ...root,
     colors: {
-      text: user.colors?.text ?? designSystem.colors.text,
-      background: user.colors?.background ?? designSystem.colors.background,
-      accent: user.colors?.accent ?? designSystem.colors.accent,
+      text: user.colors?.text ?? root.colors.text,
+      background: user.colors?.background ?? root.colors.background,
+      accent: user.colors?.accent ?? root.colors.accent,
       severity: {
-        info: user.colors?.severity?.info ?? designSystem.colors.severity.info,
-        warn: user.colors?.severity?.warn ?? designSystem.colors.severity.warn,
-        critical: user.colors?.severity?.critical ?? designSystem.colors.severity.critical,
+        info: user.colors?.severity?.info ?? root.colors.severity.info,
+        warn: user.colors?.severity?.warn ?? root.colors.severity.warn,
+        critical: user.colors?.severity?.critical ?? root.colors.severity.critical,
+      },
+      bgCode: {
+        background: user.colors?.bgCode?.background ?? root.colors.bgCode.background,
+        text: user.colors?.bgCode?.text ?? root.colors.bgCode.text,
       },
     },
     typefaces: {
-      serif: user.typefaces?.serif ?? designSystem.typefaces.serif,
-      mono: user.typefaces?.mono ?? designSystem.typefaces.mono,
+      serif: user.typefaces?.serif ?? root.typefaces.serif,
+      mono: user.typefaces?.mono ?? root.typefaces.mono,
     },
+    spacing: { ...root.spacing, ...user.spacing },
+    radii: { ...root.radii, ...user.radii },
+    shadows: { ...root.shadows, ...user.shadows },
   };
+  if (root.darkColors) merged.darkColors = root.darkColors;
+  return merged;
 }

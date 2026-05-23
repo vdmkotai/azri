@@ -29,6 +29,8 @@ button{font:inherit}
   --severity-info:#2c5282;
   --severity-warn:#9c4221;
   --severity-critical:#9b2c2c;
+  --color-bg-code-background:#1a202c;
+  --color-bg-code-text:#e2e8f0;
   --typeface-serif:"EB Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
   --typeface-mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --space-xs:4px;
@@ -81,7 +83,7 @@ body{margin:0;font-family:var(--typeface-serif);background:var(--color-bg);color
 .azri-callout-warn{border-color:var(--severity-warn);}
 .azri-callout-critical{border-color:var(--severity-critical);}
 .azri-callout .callout-label{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:6px;opacity:.85;}
-.azri-code{font-family:var(--typeface-mono);font-size:13px;background:#1a202c;color:#e2e8f0;padding:16px;border-radius:4px;overflow-x:auto;}
+.azri-code{font-family:var(--typeface-mono);font-size:13px;background:var(--color-bg-code-background);color:var(--color-bg-code-text);padding:16px;border-radius:4px;overflow-x:auto;}
 .azri-code code{background:none;color:inherit;font:inherit;}
 .azri-annotated-diff{margin:18px 0;}
 .azri-diff-file{margin:12px 0;border:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);border-radius:4px;overflow:hidden;}
