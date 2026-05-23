@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
 
-import { createInterface } from 'node:readline/promises';
+import * as p from '@clack/prompts';
 
 import type { ProviderName } from '../../../../packages/core/src/index.ts';
 import {
   credentialsPath,
   envVarName,
   getApiKey,
-  isProvider,
   maskKey,
   PROVIDERS,
   readCredentials,
@@ -38,36 +37,8 @@ function printAuthHelp(): void {
   );
 }
 
-async function ask(question: string): Promise<string> {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    return (await rl.question(question)).trim();
-  } finally {
-    rl.close();
-  }
-}
-
-async function askHidden(question: string): Promise<string> {
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    process.stdout.write('\u001B[8m');
-    return (await rl.question(question)).trim();
-  } finally {
-    process.stdout.write('\u001B[0m\n');
-    rl.close();
-  }
-}
-
-async function pickProvider(): Promise<ProviderName> {
-  console.log('Provider:');
-  PROVIDERS.forEach((provider, index) => console.log(`  ${index + 1}) ${provider}`));
-  const answer = await ask('Choose provider [anthropic/openai/google]: ');
-  const numbered = Number.parseInt(answer, 10);
-  if (Number.isInteger(numbered) && numbered >= 1 && numbered <= PROVIDERS.length) {
-    return PROVIDERS[numbered - 1]!;
-  }
-  if (isProvider(answer)) return answer;
-  throw new Error(`invalid provider '${answer}'`);
+function sanitizeKey(raw: string): string {
+  return raw.replace(/[^\u0020-\u007E]/gu, '').trim();
 }
 
 async function validateKey(provider: ProviderName, key: string): Promise<ValidationResult> {
@@ -110,49 +81,89 @@ async function validateKey(provider: ProviderName, key: string): Promise<Validat
   }
 }
 
+function envOverride(): ProviderName | null {
+  return PROVIDERS.find((pr) => process.env[envVarName(pr)]) ?? null;
+}
+
 async function runLogin(): Promise<number> {
-  try {
-    const provider = await pickProvider();
-    const key = await askHidden(`API key for ${provider}: `);
-    if (!key) {
-      console.error('Error: API key cannot be empty.');
+  p.intro('azri · auth');
+
+  const envProvider = envOverride();
+  if (envProvider) {
+    p.note(
+      `${envVarName(envProvider)} is set in your environment.\nRun \`azri auth status\` to inspect.`,
+    );
+    p.outro('Already configured.');
+    return 0;
+  }
+
+  const result = await p.group(
+    {
+      provider: () =>
+        p.select<ProviderName>({
+          message: 'Which AI provider?',
+          options: [
+            { value: 'anthropic', label: 'Anthropic' },
+            { value: 'openai', label: 'OpenAI' },
+            { value: 'google', label: 'Google' },
+          ],
+        }),
+      key: ({ results }) =>
+        p.password({
+          message: `Paste your ${results.provider} API key`,
+          mask: '\u2022',
+          validate: (v) => {
+            const cleaned = sanitizeKey(v);
+            if (cleaned.length < 10) return 'Key looks too short.';
+          },
+        }),
+    },
+    {
+      onCancel: () => {
+        p.cancel('Cancelled.');
+        process.exit(0);
+      },
+    },
+  );
+
+  const cleanedKey = sanitizeKey(result.key);
+
+  const s = p.spinner();
+  s.start(`Validating ${result.provider} key…`);
+  const validation = await validateKey(result.provider, cleanedKey);
+  if (validation.ok) {
+    s.stop(`✓ ${result.provider} key is valid`);
+  } else {
+    s.stop(`Validation failed: ${validation.reason}`, 1);
+    const save = await p.confirm({ message: 'Save anyway?', initialValue: false });
+    if (p.isCancel(save) || !save) {
+      p.cancel('Not saved.');
       return 1;
     }
-    const validation = await validateKey(provider, key);
-    if (!validation.ok) {
-      const save = (
-        await ask(`Validation failed: ${validation.reason}. Save anyway? (y/N) `)
-      ).toLowerCase();
-      if (save !== 'y' && save !== 'yes') {
-        console.error('Error: credential not saved.');
-        return 1;
-      }
-    }
-    await saveCredential(provider, key);
-    console.log(`Saved ${provider} credential (${maskKey(key)}) to ${credentialsPath()}`);
-    return 0;
-  } catch (error) {
-    console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
-    return 1;
   }
+
+  await saveCredential(result.provider, cleanedKey);
+  p.outro(`Saved ${result.provider} (${maskKey(cleanedKey)}) to ${credentialsPath()}`);
+  return 0;
 }
 
 async function runLogout(args: string[]): Promise<number> {
-  try {
-    const yes = args.includes('--yes') || args.includes('-y');
-    if (!yes) {
-      const answer = (
-        await ask(`Remove credentials at ${credentialsPath()}? (y/N) `)
-      ).toLowerCase();
-      if (answer !== 'y' && answer !== 'yes') return 0;
+  const yes = args.includes('--yes') || args.includes('-y');
+  if (!yes) {
+    p.intro('azri · logout');
+    const confirmed = await p.confirm({
+      message: `Remove credentials at ${credentialsPath()}?`,
+      initialValue: false,
+    });
+    if (p.isCancel(confirmed) || !confirmed) {
+      p.cancel('Cancelled.');
+      return 0;
     }
-    await removeCredentials();
-    console.log('Credentials removed.');
-    return 0;
-  } catch (error) {
-    console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
-    return 1;
   }
+  await removeCredentials();
+  if (yes) console.log('Credentials removed.');
+  else p.outro('Credentials removed.');
+  return 0;
 }
 
 export async function printAuthStatus(): Promise<void> {
@@ -178,8 +189,22 @@ export async function runAuth(args: string[]): Promise<number> {
     printAuthHelp();
     return 0;
   }
-  if (command === 'login') return await runLogin();
-  if (command === 'logout') return await runLogout(rest);
+  if (command === 'login') {
+    try {
+      return await runLogin();
+    } catch (error) {
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      return 1;
+    }
+  }
+  if (command === 'logout') {
+    try {
+      return await runLogout(rest);
+    } catch (error) {
+      console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      return 1;
+    }
+  }
   if (command === 'status' || command === 'list') {
     try {
       await printAuthStatus();
@@ -193,4 +218,4 @@ export async function runAuth(args: string[]): Promise<number> {
   return 1;
 }
 
-export const testInternals = { validateKey, getApiKey };
+export const testInternals = { validateKey, getApiKey, sanitizeKey };

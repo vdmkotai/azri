@@ -46,6 +46,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@clack/prompts": "^0.11.0",
     "mermaid-isomorphic": "^3"
   },
   "optionalDependencies": {

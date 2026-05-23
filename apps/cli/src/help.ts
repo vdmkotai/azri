@@ -10,9 +10,11 @@ USAGE
   azri <command> [options]
 
 COMMANDS
+  init             First-run setup wizard (recommended)
   report           Generate an explainer for the current repository
   pr <num|url>     Generate an explainer for a specific pull request
   diff             Generate an explainer for the local git diff
+  theme            Pick the default rendering theme
   auth             Store, inspect, or remove provider API credentials
   doctor           Run local setup diagnostics
 
@@ -32,6 +34,9 @@ GLOBAL OPTIONS
   -y, --yes        Skip detailed-mode confirmation prompt
 
 EXAMPLES
+  # First-run setup (recommended)
+  azri init
+
   # Whole-repo explainer for the current directory
   azri report --open
 
@@ -43,6 +48,9 @@ EXAMPLES
 
   # Local diff between two refs
   azri diff --base main --head feature-branch
+
+  # Pick a theme
+  azri theme
 
   # Store a provider API key for future sessions
   azri auth login

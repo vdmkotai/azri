@@ -82,3 +82,15 @@ describe('auth validation', () => {
     });
   });
 });
+
+describe('auth key sanitization', () => {
+  test('strips control chars, newlines, and surrounding whitespace', () => {
+    expect(testInternals.sanitizeKey('  sk-ant-test\n  ')).toBe('sk-ant-test');
+    expect(testInternals.sanitizeKey('sk-\u0000\u0007\u001Bant\r\n-test')).toBe('sk-ant-test');
+    expect(testInternals.sanitizeKey('sk-ant-\u00FFtest')).toBe('sk-ant-test');
+  });
+
+  test('preserves printable ASCII inside the key', () => {
+    expect(testInternals.sanitizeKey('Bearer abc.DEF-123_xyz')).toBe('Bearer abc.DEF-123_xyz');
+  });
+});

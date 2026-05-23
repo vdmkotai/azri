@@ -16,9 +16,9 @@ import {
   selectedProvider,
 } from '../credentials.ts';
 
-type CheckStatus = 'PASS' | 'WARN' | 'FAIL';
+export type CheckStatus = 'PASS' | 'WARN' | 'FAIL';
 
-interface CheckResult {
+export interface CheckResult {
   status: CheckStatus;
   name: string;
   reason: string;
@@ -133,9 +133,9 @@ async function checkProviderReachability(provider: ProviderName): Promise<CheckR
   }
 }
 
-export async function runDoctor(): Promise<number> {
+export async function runDoctorChecks(): Promise<CheckResult[]> {
   const provider = selectedProvider();
-  const checks: CheckResult[] = [
+  return [
     result(
       process.versions.bun ? 'PASS' : 'FAIL',
       'Bun runtime',
@@ -147,6 +147,10 @@ export async function runDoctor(): Promise<number> {
     await checkOutputDirectory(),
     await checkProviderReachability(provider),
   ];
+}
+
+export async function runDoctor(): Promise<number> {
+  const checks = await runDoctorChecks();
   for (const check of checks) print(check);
   return checks.filter((check) => check.status === 'FAIL').length;
 }

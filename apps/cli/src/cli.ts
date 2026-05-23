@@ -1,17 +1,24 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
 
+process.on('SIGINT', () => {
+  process.stdout.write('\u001B[?25h\u001B[0m\n');
+  process.exit(130);
+});
+
 import pkg from '../package.json' with { type: 'json' };
 import { runAuth } from './commands/auth.ts';
 import { runDiff } from './commands/diff.ts';
 import { runDoctor } from './commands/doctor.ts';
+import { runInit } from './commands/init.ts';
 import { runPr } from './commands/pr.ts';
 import { runReport } from './commands/report.ts';
+import { runTheme } from './commands/theme.ts';
 import { printHelp } from './help.ts';
 
 const VERSION = pkg.version;
 
-const KNOWN_COMMANDS = ['report', 'pr', 'diff', 'auth', 'doctor'] as const;
+const KNOWN_COMMANDS = ['report', 'pr', 'diff', 'auth', 'doctor', 'init', 'theme'] as const;
 type KnownCommand = (typeof KNOWN_COMMANDS)[number];
 
 function levenshtein(a: string, b: string): number {
@@ -72,6 +79,10 @@ async function main(argv: string[]): Promise<number> {
       return await runAuth(rest);
     case 'doctor':
       return await runDoctor();
+    case 'init':
+      return await runInit(rest);
+    case 'theme':
+      return await runTheme(rest);
     default: {
       const hint = suggest(command);
       console.error(`azri: unknown command '${command}'`);

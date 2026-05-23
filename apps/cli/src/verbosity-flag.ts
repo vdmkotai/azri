@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2026 Azri contributors
 
-import { createInterface } from 'node:readline/promises';
+import * as p from '@clack/prompts';
 import type { Verbosity } from '../../../packages/types/src/index.ts';
 
 export const VERBOSITY_LEVELS = ['concise', 'standard', 'detailed'] as const;
@@ -90,12 +90,10 @@ export function shouldPromptForDetailed(verbosity: Verbosity, yes: boolean): boo
 
 export async function confirmDetailed(estimatedUsd: number): Promise<boolean> {
   const cost = `$${estimatedUsd.toFixed(2)}`;
-  const message = `Detailed mode uses ~3x tokens (~${cost} estimated). Continue? (y/N) `;
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    const answer = await rl.question(message);
-    return /^y/iu.test(answer.trim());
-  } finally {
-    rl.close();
-  }
+  const answer = await p.confirm({
+    message: `Detailed mode uses ~3x tokens (~${cost} estimated). Continue?`,
+    initialValue: false,
+  });
+  if (p.isCancel(answer)) return false;
+  return answer;
 }
