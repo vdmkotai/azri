@@ -21,7 +21,7 @@ import type {
   Verbosity,
 } from '../../../../packages/types/src/index.ts';
 import { estimateCost, formatCostEstimate } from '../cost-estimate.ts';
-import { applyStoredApiKey } from '../credentials.ts';
+import { applyStoredApiKey, autoDetectProvider, buildMissingKeyError } from '../credentials.ts';
 import {
   createGitHubClient,
   GitHubHttpError,
@@ -74,7 +74,7 @@ function parseArgs(args: string[]): PrArgs {
     verbose: false,
     dryRun: false,
     json: false,
-    provider: 'anthropic',
+    provider: autoDetectProvider(),
     verbosity: undefined,
     yes: false,
   };
@@ -97,8 +97,9 @@ function parseArgs(args: string[]): PrArgs {
     else if (arg === '--token') parsed.token = take(args, i++, arg);
     else if (arg === '--theme') parsed.theme = take(args, i++, arg);
     else if (arg.startsWith('--theme=')) parsed.theme = arg.slice('--theme='.length);
-    else if (arg === '--provider') {
-      const provider = take(args, i++, arg);
+    else if (arg === '--provider' || arg.startsWith('--provider=')) {
+      const provider =
+        arg === '--provider' ? take(args, i++, arg) : arg.slice('--provider='.length);
       if (!PROVIDERS.has(provider as ProviderName))
         throw new Error(`Unknown provider: ${provider}`);
       parsed.provider = provider as ProviderName;
@@ -303,7 +304,7 @@ export async function runPr(rawArgs: string[]): Promise<number> {
     if (args.verbose && !args.json) console.error(`Fetching ${target.url}`);
     if (args.dryRun) return await dryRun(args, target, token);
     if (!(await applyStoredApiKey(args.provider))) {
-      console.error('Error: ANTHROPIC_API_KEY (or OPENAI_API_KEY / GOOGLE_API_KEY) not set.');
+      console.error(`Error: ${buildMissingKeyError(args.provider)}`);
       return 1;
     }
 

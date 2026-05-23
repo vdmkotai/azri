@@ -23,7 +23,7 @@ import {
 } from '../../../../packages/types/src/index.ts';
 
 import { estimateCost, formatCostEstimate } from '../cost-estimate.ts';
-import { applyStoredApiKey } from '../credentials.ts';
+import { applyStoredApiKey, autoDetectProvider, buildMissingKeyError } from '../credentials.ts';
 import { loadUserTokens, validateThemeName } from '../theme-loader.ts';
 import { createProgress, openInBrowser } from '../ui/index.ts';
 import {
@@ -87,6 +87,8 @@ function parseArgs(args: string[]): DiffOptions | { error: string } {
     } else if (arg === '--provider' && next !== undefined) {
       opts.provider = next as ProviderName;
       i += 1;
+    } else if (arg.startsWith('--provider=')) {
+      opts.provider = arg.slice('--provider='.length) as ProviderName;
     } else if (arg === '--config' && next !== undefined) {
       opts.config = next;
       i += 1;
@@ -282,7 +284,7 @@ export async function runDiff(args: string[]): Promise<number> {
   }
   progress.complete('collect');
 
-  const provider: ProviderName = opts.provider ?? 'anthropic';
+  const provider: ProviderName = opts.provider ?? autoDetectProvider();
   let config: AzriConfig;
   try {
     config = await loadConfig(opts.config, opts.theme);
@@ -318,7 +320,7 @@ export async function runDiff(args: string[]): Promise<number> {
   }
 
   if (!(await applyStoredApiKey(provider))) {
-    console.error('Error: ANTHROPIC_API_KEY (or OPENAI_API_KEY / GOOGLE_API_KEY) not set.');
+    console.error(`Error: ${buildMissingKeyError(provider)}`);
     return 1;
   }
 

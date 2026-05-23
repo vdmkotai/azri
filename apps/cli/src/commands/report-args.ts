@@ -6,9 +6,10 @@ import { resolve } from 'node:path';
 import type { ProviderName } from '../../../../packages/core/src/index.ts';
 import type { Verbosity } from '../../../../packages/types/src/index.ts';
 
-import { applyStoredApiKey } from '../credentials.ts';
+import { applyStoredApiKey, autoDetectProvider } from '../credentials.ts';
 import { consumeVerbosityFlag, type VerbosityFlagState } from '../verbosity-flag.ts';
 
+export { buildMissingKeyError } from '../credentials.ts';
 export { confirmDetailed, shouldPromptForDetailed } from '../verbosity-flag.ts';
 
 export const PROVIDERS = ['anthropic', 'openai', 'google'] as const;
@@ -29,9 +30,7 @@ export interface ReportFlags {
 }
 
 export function defaultProvider(): ProviderName {
-  const env = process.env['AZRI_LLM_PROVIDER'];
-  if (env && (PROVIDERS as readonly string[]).includes(env)) return env as ProviderName;
-  return 'anthropic';
+  return autoDetectProvider();
 }
 
 export function apiKeyEnvFor(provider: ProviderName): string {
@@ -77,8 +76,8 @@ export function parseFlags(args: ReadonlyArray<string>): ReportFlags | { error: 
     else if (a === '--verbose') flags.verbose = true;
     else if (a === '--dry-run') flags.dryRun = true;
     else if (a === '--json') flags.json = true;
-    else if (a === '--provider') {
-      const v = args[++i] ?? '';
+    else if (a === '--provider' || a?.startsWith('--provider=')) {
+      const v = a === '--provider' ? (args[++i] ?? '') : a.slice('--provider='.length);
       if (!(PROVIDERS as readonly string[]).includes(v)) {
         return { error: `invalid provider '${v}'. Choose ${PROVIDERS.join(', ')}.` };
       }

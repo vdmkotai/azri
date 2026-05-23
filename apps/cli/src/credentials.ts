@@ -154,3 +154,30 @@ export async function applyStoredApiKey(provider: ProviderName): Promise<string 
 export function maskKey(key: string): string {
   return `${key.slice(0, 8)}****`;
 }
+
+export function detectAvailableProviders(): ProviderName[] {
+  const credentials = readCredentialsSync();
+  return PROVIDERS.filter((p) => Boolean(process.env[envVarName(p)] ?? credentials[p]));
+}
+
+export function autoDetectProvider(): ProviderName {
+  const env = process.env['AZRI_LLM_PROVIDER'];
+  if (env && isProvider(env)) return env;
+  const available = detectAvailableProviders();
+  if (available.length === 0) return 'anthropic';
+  if (available.length === 1) return available[0]!;
+  if (available.includes('anthropic')) return 'anthropic';
+  return available[0]!;
+}
+
+export function buildMissingKeyError(requested: ProviderName): string {
+  const available = detectAvailableProviders();
+  if (available.length === 0) {
+    return `no API key configured. Run 'azri auth login' or set ${envVarName(requested)}.`;
+  }
+  if (available.includes(requested)) {
+    return `no API key configured for ${requested}.`;
+  }
+  const suggestion = available[0]!;
+  return `no ${requested} API key configured. You have ${available.join(', ')} saved — try '--provider=${suggestion}'.`;
+}

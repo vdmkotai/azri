@@ -31,6 +31,7 @@ import {
   type ProgressStage,
 } from '../ui/index.ts';
 import {
+  buildMissingKeyError,
   confirmDetailed,
   ensureApiKey,
   parseFlags,
@@ -257,7 +258,7 @@ export async function runReport(args: string[]): Promise<number> {
     }
 
     if (!(await ensureApiKey(parsed.provider))) {
-      console.error('Error: ANTHROPIC_API_KEY (or OPENAI_API_KEY / GOOGLE_API_KEY) not set.');
+      console.error(`Error: ${buildMissingKeyError(parsed.provider)}`);
       return 1;
     }
 
