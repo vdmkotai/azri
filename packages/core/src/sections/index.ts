@@ -35,3 +35,18 @@ export { apiSurfaceSection } from './api-surface/index.ts';
 export { gettingStartedSection } from './getting-started/index.ts';
 export { whatsNextSection } from './whats-next/index.ts';
 export { glossarySection } from './glossary/index.ts';
+
+export { prTldrSection } from './pr-tldr/index.ts';
+export { changeSummarySection } from './change-summary/index.ts';
+export { annotatedDiffSection } from './annotated-diff/index.ts';
+export { beforeAfterFlowSection } from './before-after-flow/index.ts';
+
+export { investigationSection } from './investigation/index.ts';
+export { testImpactSection } from './test-impact/index.ts';
+export { regressionRiskSection } from './regression-risk/index.ts';
+export { migrationNotesSection } from './migration-notes/index.ts';
+
+export { verificationChecklistSection } from './verification-checklist/index.ts';
+export { linkedIssuesSection } from './linked-issues/index.ts';
+export { reviewerGuideSection } from './reviewer-guide/index.ts';
+export { rollbackPlanSection } from './rollback-plan/index.ts';
