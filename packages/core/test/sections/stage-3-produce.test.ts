@@ -58,7 +58,7 @@ afterEach(() => {
 });
 
 describe('runStage3Produce', () => {
-  test('respects concurrency cap of 6 and preserves order', async () => {
+  test('respects concurrency cap of 3 and preserves order', async () => {
     const ids = Array.from({ length: 10 }, (_, index) => `produce-${index}`);
     for (const id of ids) add(id);
 
@@ -83,7 +83,7 @@ describe('runStage3Produce', () => {
       reasoningModel: model,
     });
 
-    expect(peak).toBe(6);
+    expect(peak).toBe(3);
     expect(out.map((item) => item.id)).toEqual(ids);
   });
 

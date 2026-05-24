@@ -4,22 +4,22 @@ exports[`tldr render produces valid HTML with semantic theme classes 1`] = `
 "<section id="tldr" class="mb-12">
   <div class="rounded-card bg-surface p-8 shadow-card ring-1 ring-muted/40">
     <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-primary">TL;DR</p>
-    <h2 class="font-display text-4xl font-bold tracking-tight text-foreground md:text-5xl mb-4">Plain English overview</h2>
-    <p class="text-lg text-muted-foreground leading-relaxed">Two sentences explain the project. Three sentences add context.</p>
+    <h2 class="font-display text-3xl font-bold tracking-tight text-foreground md:text-4xl mb-4 leading-tight">Plain English overview</h2>
+    <p class="text-base text-muted-foreground leading-relaxed md:text-lg">Two sentences explain the project. Three sentences add context.</p>
   </div>
   <div class="mt-6 grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
       <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40">
-        <div class="font-display text-3xl font-bold text-primary">247</div>
+        <div class="font-display text-2xl font-bold text-primary tabular-nums break-words leading-tight">247</div>
         <div class="mt-1 text-sm font-medium text-foreground">Files</div>
         
       </div>
       <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40">
-        <div class="font-display text-3xl font-bold text-primary">12k</div>
+        <div class="font-display text-2xl font-bold text-primary tabular-nums break-words leading-tight">12k</div>
         <div class="mt-1 text-sm font-medium text-foreground">Lines</div>
         
       </div>
       <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40">
-        <div class="font-display text-3xl font-bold text-primary">85</div>
+        <div class="font-display text-2xl font-bold text-primary tabular-nums break-words leading-tight">85</div>
         <div class="mt-1 text-sm font-medium text-foreground">Stars</div>
         
       </div>
