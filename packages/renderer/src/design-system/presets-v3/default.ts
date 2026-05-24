@@ -11,12 +11,12 @@ export const defaultPresetV3: V3Preset = {
   --color-bg: oklch(0.98 0.005 80);
   --color-surface: oklch(1 0 0);
   --color-foreground: oklch(0.18 0.02 250);
-  --color-muted-foreground: oklch(0.45 0.02 250);
+  --color-muted-foreground: oklch(0.42 0.02 250);
   --color-muted: oklch(0.85 0.01 250);
-  --color-primary: oklch(0.51 0.13 240);
-  --color-success: oklch(0.52 0.13 145);
-  --color-warn: oklch(0.55 0.14 60);
-  --color-danger: oklch(0.50 0.18 25);
+  --color-primary: oklch(0.48 0.14 240);
+  --color-success: oklch(0.43 0.15 145);
+  --color-warn: oklch(0.46 0.16 60);
+  --color-danger: oklch(0.45 0.20 25);
   --font-display: "EB Garamond", Georgia, serif;
   --font-body: "Inter", -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;

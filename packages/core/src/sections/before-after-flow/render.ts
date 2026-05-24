@@ -43,9 +43,9 @@ export function renderSection(data: BeforeAfterFlowData, _themeTokens: ThemeToke
       </div>
     </figure>
   </div>
-  <aside class="mt-6 rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 border-l-4 border-primary">
+  <div class="mt-6 rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 border-l-4 border-primary">
     <p class="text-xs font-semibold uppercase tracking-wider text-primary mb-2">What changed</p>
     <p class="text-base text-foreground leading-relaxed">${escapeHtml(data.diffSummary)}</p>
-  </aside>
+  </div>
 </section>`;
 }

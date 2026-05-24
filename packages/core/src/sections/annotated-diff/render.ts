@@ -17,8 +17,8 @@ function slugifyPath(value: string, fallback: string): string {
 }
 
 function classifyDiffLine(line: string): string {
-  if (line.startsWith('+')) return 'text-success';
-  if (line.startsWith('-')) return 'text-danger';
+  if (line.startsWith('+')) return 'text-emerald-300';
+  if (line.startsWith('-')) return 'text-rose-300';
   return 'text-zinc-400';
 }
 
@@ -40,7 +40,7 @@ function renderHunk(hunk: AnnotatedDiffHunk, index: number): string {
       <span class="text-xs font-mono text-muted-foreground">L${escapeHtml(hunk.lineRange)}</span>
       <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">${escapeHtml(hunk.language)}</span>
     </header>
-    <pre class="bg-zinc-900 text-zinc-100 p-5 rounded-card overflow-x-auto shadow-card ring-1 ring-muted/40"><code class="font-mono text-sm leading-relaxed language-${escapeHtml(hunk.language)}">${renderDiffCode(hunk.code)}</code></pre>
+    <pre tabindex="0" class="bg-zinc-900 text-zinc-100 p-5 rounded-card overflow-x-auto shadow-card ring-1 ring-muted/40 focus:outline-2 focus:outline-primary"><code class="font-mono text-sm leading-relaxed language-${escapeHtml(hunk.language)}">${renderDiffCode(hunk.code)}</code></pre>
     <div class="bg-surface p-4 rounded-md border-l-4 border-primary shadow-sm ring-1 ring-muted/40">
       <p class="text-sm text-foreground leading-relaxed">${escapeHtml(hunk.annotation)}</p>
     </div>

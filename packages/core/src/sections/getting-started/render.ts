@@ -29,7 +29,7 @@ function renderStep(step: GettingStartedStep, idx: number): string {
         <div class="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-bg font-display font-bold text-sm shrink-0">${num}</div>
         <div class="flex-1 min-w-0">
           <p class="text-base text-foreground leading-relaxed mb-2">${escapeHtml(step.description)}</p>
-          <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-md overflow-x-auto text-sm font-mono leading-relaxed"><code>${escapeHtml(step.command)}</code></pre>
+          <pre tabindex="0" class="bg-zinc-900 text-zinc-100 p-4 rounded-md overflow-x-auto text-sm font-mono leading-relaxed focus:outline-2 focus:outline-primary"><code>${escapeHtml(step.command)}</code></pre>
         </div>
       </li>`;
 }

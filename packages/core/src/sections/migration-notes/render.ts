@@ -40,11 +40,11 @@ function renderBreakingChange(change: BreakingChange, index: number): string {
       <div class="grid gap-4 p-5 md:grid-cols-2">
         <div>
           <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-danger">Before</p>
-          <pre class="overflow-x-auto rounded-md bg-zinc-900 p-4 text-xs leading-relaxed text-zinc-100 ring-1 ring-zinc-700"><code>${escapeHtml(change.before)}</code></pre>
+          <pre tabindex="0" class="overflow-x-auto rounded-md bg-zinc-900 p-4 text-xs leading-relaxed text-zinc-100 ring-1 ring-zinc-700 focus:outline-2 focus:outline-primary"><code>${escapeHtml(change.before)}</code></pre>
         </div>
         <div>
           <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-success">After</p>
-          <pre class="overflow-x-auto rounded-md bg-zinc-900 p-4 text-xs leading-relaxed text-zinc-100 ring-1 ring-zinc-700"><code>${escapeHtml(change.after)}</code></pre>
+          <pre tabindex="0" class="overflow-x-auto rounded-md bg-zinc-900 p-4 text-xs leading-relaxed text-zinc-100 ring-1 ring-zinc-700 focus:outline-2 focus:outline-primary"><code>${escapeHtml(change.after)}</code></pre>
         </div>
       </div>
       <div class="border-t border-muted/30 bg-muted/5 p-5">

@@ -44,12 +44,12 @@ export function renderSection(data: CodeWalkthroughData): string {
   <h2 class="mb-2 font-display text-2xl font-bold text-foreground">${escapeHtml(data.title)}</h2>
   <div class="mb-4 font-mono text-sm text-muted-foreground">${meta}</div>
   <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
-    <div class="overflow-x-auto rounded-card bg-zinc-900 p-5 shadow-card ring-1 ring-muted/40">
+    <div tabindex="0" class="overflow-x-auto rounded-card bg-zinc-900 p-5 shadow-card ring-1 ring-muted/40 focus:outline-2 focus:outline-primary">
       <pre class="font-mono text-sm leading-relaxed text-zinc-100"><code class="language-${escapeHtml(data.language)}">${escapeHtml(data.code)}</code></pre>
     </div>
-    <aside class="space-y-3">
+    <div class="space-y-3">
 ${annotations}
-    </aside>
+    </div>
   </div>
 </section>`;
 }

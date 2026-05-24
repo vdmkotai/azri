@@ -39,7 +39,7 @@ function renderStep(step: RollbackStep): string {
         <div class="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-bg font-display font-bold text-sm shrink-0">${step.number}</div>
         <div class="flex-1 min-w-0">
           <p class="text-base text-foreground leading-relaxed mb-2">${escapeHtml(step.description)}</p>
-          <pre class="bg-zinc-900 text-zinc-100 p-4 rounded-md overflow-x-auto text-sm font-mono leading-relaxed"><code>${escapeHtml(step.command)}</code></pre>
+          <pre tabindex="0" class="bg-zinc-900 text-zinc-100 p-4 rounded-md overflow-x-auto text-sm font-mono leading-relaxed focus:outline-2 focus:outline-primary"><code>${escapeHtml(step.command)}</code></pre>
         </div>
       </li>`;
 }
@@ -53,12 +53,12 @@ function renderWarnings(warnings?: readonly string[]): string {
     )
     .join('\n');
   return `
-  <aside class="azri-callout azri-callout-warn mt-8 rounded-card bg-warn/5 ring-1 ring-warn/30 border-l-4 border-warn p-5">
+  <div role="note" aria-label="Rollback warnings" class="azri-callout azri-callout-warn mt-8 rounded-card bg-warn/5 ring-1 ring-warn/30 border-l-4 border-warn p-5">
     <div class="callout-label text-xs font-semibold uppercase tracking-wider text-warn mb-2">Warnings</div>
     <ul class="callout-body space-y-2 list-none">
 ${items}
     </ul>
-  </aside>`;
+  </div>`;
 }
 
 function renderDataMigration(migration?: RollbackDataMigration): string {

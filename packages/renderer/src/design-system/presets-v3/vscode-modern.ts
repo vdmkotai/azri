@@ -11,12 +11,12 @@ export const vscodeModernPresetV3: V3Preset = {
   --color-bg: oklch(0.985 0.002 90);
   --color-surface: oklch(1 0 0);
   --color-foreground: oklch(0.20 0.005 250);
-  --color-muted-foreground: oklch(0.50 0.008 250);
+  --color-muted-foreground: oklch(0.42 0.008 250);
   --color-muted: oklch(0.88 0.008 250);
-  --color-primary: oklch(0.52 0.18 240);
-  --color-success: oklch(0.55 0.15 150);
-  --color-warn: oklch(0.62 0.16 70);
-  --color-danger: oklch(0.55 0.20 25);
+  --color-primary: oklch(0.48 0.18 240);
+  --color-success: oklch(0.45 0.17 150);
+  --color-warn: oklch(0.46 0.17 70);
+  --color-danger: oklch(0.48 0.21 25);
   --font-display: "Inter", -apple-system, sans-serif;
   --font-body: "Inter", -apple-system, sans-serif;
   --font-mono: "Cascadia Code", "JetBrains Mono", ui-monospace, monospace;
