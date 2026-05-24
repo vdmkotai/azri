@@ -1,0 +1,30 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`comparison-table render produces valid HTML with semantic theme classes 1`] = `
+"<section id="compare-before-and-after" class="my-12">
+  <h2 class="font-display text-2xl font-bold text-foreground mb-4">Before and after</h2>
+  <div class="rounded-card bg-surface shadow-card ring-1 ring-muted/40 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b-2 border-muted/50">
+          <th class="px-4 py-3 font-display font-semibold text-foreground text-left bg-muted/20">Aspect</th>
+          <th class="px-4 py-3 font-display font-semibold text-foreground text-left bg-danger/5">Before</th>
+          <th class="px-4 py-3 font-display font-semibold text-foreground text-left bg-success/5">After</th>
+        </tr>
+      </thead>
+      <tbody>
+<tr class="border-b border-muted/30 last:border-0">
+          <td class="px-4 py-3 font-medium text-foreground">Pipeline</td>
+          <td class="px-4 py-3 text-muted-foreground">Static</td>
+          <td class="px-4 py-3 text-foreground">Dynamic<span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-warn/15 text-warn font-medium">~ changed</span></td>
+        </tr>
+<tr class="border-b border-muted/30 last:border-0">
+          <td class="px-4 py-3 font-medium text-foreground">Tests</td>
+          <td class="px-4 py-3 text-muted-foreground">Few</td>
+          <td class="px-4 py-3 text-foreground">Many<span class="ml-2 text-xs px-2 py-0.5 rounded-full bg-success/15 text-success font-medium">+ added</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>"
+`;

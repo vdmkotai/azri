@@ -1,0 +1,29 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`reviewer-guide render produces valid HTML with semantic theme classes 1`] = `
+"<section id="reviewer-guide" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Reviewer guide</h2>
+  <ol class="space-y-4 list-none">
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-14 h-14 rounded-full bg-primary text-bg font-display font-bold text-2xl flex items-center justify-center shadow-card" aria-hidden="true">1</div>
+      <div class="flex-1 min-w-0">
+        <h3 class="font-display text-lg font-bold text-foreground mb-1">Schemas</h3>
+        <p class="text-sm text-muted-foreground leading-relaxed">Confirm validation catches bad data.</p>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <code class="font-mono text-xs px-2 py-1 rounded bg-muted/30 text-foreground break-all">src/sections/tldr/schema.ts</code>
+      </div>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/15 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">2</div>
+      <div class="flex-1 min-w-0">
+        <h3 class="font-display text-lg font-bold text-foreground mb-1">Renderers</h3>
+        <p class="text-sm text-muted-foreground leading-relaxed">Confirm HTML escapes content.</p>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <code class="font-mono text-xs px-2 py-1 rounded bg-muted/30 text-foreground break-all">src/sections/tldr/render.ts</code>
+      </div>
+      </div>
+    </li>
+  </ol>
+</section>"
+`;

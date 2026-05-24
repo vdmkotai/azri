@@ -1,0 +1,28 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`pr-tldr render produces valid HTML with semantic theme classes 1`] = `
+"<section id="pr-tldr" class="mb-12">
+  <div class="rounded-card bg-surface p-8 shadow-card ring-1 ring-muted/40">
+    <div class="mb-3 flex items-center gap-3">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-primary">PR TL;DR</p>
+      <span class="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ring-1 bg-muted/30 text-muted-foreground ring-muted/50">Internal</span>
+    </div>
+    <h2 class="font-display text-4xl font-bold tracking-tight text-foreground md:text-5xl mb-4">Adds section tests</h2>
+    <p class="text-lg text-muted-foreground leading-relaxed">The new pipeline needs per-section coverage.</p>
+  <div class="mt-6 grid grid-cols-3 gap-3">
+      <div class="rounded-md bg-bg p-4 ring-1 ring-muted/40">
+        <div class="font-mono text-2xl font-bold text-foreground">75</div>
+        <div class="mt-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">files</div>
+      </div>
+      <div class="rounded-md bg-bg p-4 ring-1 ring-muted/40">
+        <div class="font-mono text-2xl font-bold text-success">+1,200</div>
+        <div class="mt-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">+ added</div>
+      </div>
+      <div class="rounded-md bg-bg p-4 ring-1 ring-muted/40">
+        <div class="font-mono text-2xl font-bold text-danger">−0</div>
+        <div class="mt-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">− removed</div>
+      </div>
+  </div>
+  </div>
+</section>"
+`;

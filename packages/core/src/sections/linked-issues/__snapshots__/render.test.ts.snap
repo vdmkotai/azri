@@ -1,0 +1,22 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`linked-issues render produces valid HTML with semantic theme classes 1`] = `
+"<section id="linked-issues" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Linked issues</h2>
+  <div class="grid gap-3 grid-cols-1 md:grid-cols-2">
+    <a href="https://github.com/acme/widgets/issues/42" target="_blank" rel="noopener noreferrer" class="block rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:ring-primary/50 hover:shadow-lg transition group">
+      <div class="flex items-start gap-3">
+        <i data-lucide="circle-dot" class="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden="true"></i>
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-wrap items-center gap-2 mb-2">
+            <span class="text-xs px-2 py-0.5 rounded-full uppercase tracking-wider bg-primary/10 text-primary font-semibold">Closes</span>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-primary/10 text-primary">Open</span>
+            <span class="font-mono text-xs text-muted-foreground">#42</span>
+          </div>
+          <p class="font-display text-base font-semibold text-foreground group-hover:text-primary leading-snug">Cover sections</p>
+        </div>
+      </div>
+    </a>
+  </div>
+</section>"
+`;

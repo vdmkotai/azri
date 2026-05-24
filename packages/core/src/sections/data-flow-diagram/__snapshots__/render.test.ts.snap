@@ -1,0 +1,28 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`data-flow-diagram render produces valid HTML with semantic theme classes 1`] = `
+"<section id="data-flow-data-flow" class="my-12">
+  <h2 class="mb-4 font-display text-3xl font-bold text-foreground">Data flow</h2>
+  <div class="overflow-x-auto rounded-card bg-surface p-6 shadow-card ring-1 ring-muted/40 mb-6">
+    <pre class="mermaid">graph LR
+  A-->B</pre>
+  </div>
+  <ol class="space-y-2">
+    <li class="flex gap-4 border-l-2 border-primary pl-4 py-1">
+      <span class="font-mono text-sm font-bold text-primary shrink-0 w-6 text-right">1</span>
+      <span class="text-sm text-foreground leading-relaxed">Read input</span>
+    </li>
+    <li class="flex gap-4 border-l-2 border-primary pl-4 py-1">
+      <span class="font-mono text-sm font-bold text-primary shrink-0 w-6 text-right">2</span>
+      <span class="text-sm text-foreground leading-relaxed">Plan sections</span>
+    </li>
+    <li class="flex gap-4 border-l-2 border-primary pl-4 py-1">
+      <span class="font-mono text-sm font-bold text-primary shrink-0 w-6 text-right">3</span>
+      <span class="text-sm text-foreground leading-relaxed">Render page</span>
+    </li>
+  </ol>
+  <div class="mt-5 rounded-card bg-muted/20 border border-muted/40 p-4">
+    <p class="text-sm text-muted-foreground leading-relaxed"><span class="font-semibold text-foreground">Notes:</span> The stages stay isolated.</p>
+  </div>
+</section>"
+`;

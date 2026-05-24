@@ -1,0 +1,12 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`quote-callout render produces valid HTML with semantic theme classes 1`] = `
+"<section id="quote-fg8pqy" class="my-12">
+  <blockquote class="rounded-card border-l-4 border-primary bg-surface p-8 shadow-card ring-1 ring-muted/40">
+    <p class="font-display text-2xl italic leading-relaxed text-foreground">&ldquo;Tests are executable documentation.&rdquo;</p>
+    <footer class="mt-4 text-sm text-muted-foreground">
+      — <a href="https://example.com" class="text-primary hover:underline">Azri contributors</a>
+    </footer>
+  </blockquote>
+</section>"
+`;

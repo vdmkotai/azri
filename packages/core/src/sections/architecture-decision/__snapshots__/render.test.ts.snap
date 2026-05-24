@@ -1,0 +1,50 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`architecture-decision render produces valid HTML with semantic theme classes 1`] = `
+"<section id="decision-use-effect-services" class="my-12">
+  <div class="overflow-hidden rounded-card bg-surface shadow-card ring-1 ring-muted/40">
+    <div class="border-b border-muted/40 bg-linear-to-r from-primary/20 to-primary/5 p-5">
+      <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-primary">Architecture Decision</p>
+      <h2 class="font-display text-2xl font-bold text-foreground">Use Effect services</h2>
+    </div>
+    <div class="space-y-5 p-6">
+      <div>
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-foreground/70">Decision</p>
+        <p class="text-lg font-medium text-foreground">Model side effects at service boundaries.</p>
+      </div>
+      <div>
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-foreground/70">Why</p>
+        <p class="text-base leading-relaxed text-foreground">Effect keeps dependencies explicit and testable.</p>
+      </div>
+      <div>
+        <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-foreground/70">Alternatives considered</p>
+        <ul class="space-y-2">
+          <li class="flex gap-3 text-sm">
+            <span class="shrink-0 font-mono text-muted-foreground">×</span>
+            <div>
+              <span class="font-semibold text-foreground">Plain promises</span>
+              <span class="text-muted-foreground"> — Harder to compose retries.</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+        <div class="grid gap-4 border-t border-muted/40 pt-4 md:grid-cols-2">
+          <div class="rounded-md border-l-4 border-success bg-success/10 p-4">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-success">Gain</p>
+            <p class="text-sm text-foreground">Typed composition</p>
+          </div>
+          <div class="rounded-md border-l-4 border-warn bg-warn/10 p-4">
+            <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-warn">Cost</p>
+            <p class="text-sm text-foreground">More ceremony</p>
+          </div>
+        </div>
+        <div class="border-t border-muted/40 pt-4">
+          <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-foreground/70">References</p>
+          <ul class="space-y-1 font-mono text-xs text-muted-foreground">
+            <li>src/effect.ts</li>
+          </ul>
+        </div>
+    </div>
+  </div>
+</section>"
+`;

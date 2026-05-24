@@ -1,0 +1,23 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`verification-checklist render produces valid HTML with semantic theme classes 1`] = `
+"<section id="verification-checklist" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Verification checklist</h2>
+  <ul class="space-y-3 list-none">
+    <li class="rounded-card bg-surface p-4 shadow-card ring-1 ring-muted/40 flex gap-3 items-start">
+      <i data-lucide="check-circle" class="h-5 w-5 text-success shrink-0 mt-0.5" aria-hidden="true"></i>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-foreground leading-relaxed">Schemas validate data.</p>
+        <p class="mt-1 text-xs text-muted-foreground leading-relaxed">bun test</p>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-4 shadow-card ring-1 ring-muted/40 flex gap-3 items-start">
+      <i data-lucide="check-circle" class="h-5 w-5 text-success shrink-0 mt-0.5" aria-hidden="true"></i>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-foreground leading-relaxed">No real LLM calls.</p>
+        <p class="mt-1 text-xs text-muted-foreground leading-relaxed">mock model</p>
+      </div>
+    </li>
+  </ul>
+</section>"
+`;

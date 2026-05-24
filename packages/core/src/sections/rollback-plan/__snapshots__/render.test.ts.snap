@@ -1,0 +1,37 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`rollback-plan render produces valid HTML with semantic theme classes 1`] = `
+"<section id="rollback-plan" class="my-12">
+  <div class="flex flex-wrap items-center gap-3 mb-6">
+    <h2 class="font-display text-3xl font-bold text-foreground">Rollback plan</h2>
+    <span class="inline-flex items-center gap-1.5 text-xs px-3 py-1 rounded-full font-semibold uppercase tracking-wider bg-success/15 text-success"><i data-lucide="rotate-ccw" class="h-3.5 w-3.5" aria-hidden="true"></i>Simple</span>
+  </div>
+  <ol class="space-y-5 list-none">
+      <li class="flex gap-4">
+        <div class="flex items-center justify-center h-8 w-8 rounded-full bg-primary text-bg font-display font-bold text-sm shrink-0">1</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-base text-foreground leading-relaxed mb-2">Revert the change.</p>
+          <pre tabindex="0" class="bg-zinc-900 text-zinc-100 p-4 rounded-md overflow-x-auto text-sm font-mono leading-relaxed focus:outline-2 focus:outline-primary"><code>git revert HEAD</code></pre>
+        </div>
+      </li>
+  </ol>
+  <div role="note" aria-label="Rollback warnings" class="azri-callout azri-callout-warn mt-8 rounded-card bg-warn/5 ring-1 ring-warn/30 border-l-4 border-warn p-5">
+    <div class="callout-label text-xs font-semibold uppercase tracking-wider text-warn mb-2">Warnings</div>
+    <ul class="callout-body space-y-2 list-none">
+        <li class="flex gap-2 items-start text-sm text-foreground"><i data-lucide="alert-triangle" class="h-4 w-4 text-warn shrink-0 mt-0.5" aria-hidden="true"></i><span>Check generated snapshots.</span></li>
+    </ul>
+  </div>
+  <div class="mt-6 rounded-card bg-surface ring-muted/40 ring-1 p-5 shadow-card">
+    <div class="flex items-start gap-3">
+      <i data-lucide="database" class="h-5 w-5 text-primary shrink-0 mt-0.5" aria-hidden="true"></i>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-center gap-2 mb-2">
+          <h3 class="font-display text-base font-bold text-foreground">Data migration</h3>
+          <span class="text-xs px-2 py-0.5 rounded-full uppercase tracking-wider bg-success/15 text-success">Reversible</span>
+        </div>
+        <p class="text-sm text-foreground leading-relaxed">No data migration.</p>
+      </div>
+    </div>
+  </div>
+</section>"
+`;

@@ -1,0 +1,33 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`before-after-flow render produces valid HTML with semantic theme classes 1`] = `
+"<section id="before-after-flow" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Request flow</h2>
+  <div class="grid grid-cols-2 gap-6">
+    <figure class="space-y-3">
+      <figcaption class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-danger">
+        <i data-lucide="arrow-left-circle" class="h-4 w-4" aria-hidden="true"></i>
+        Before
+      </figcaption>
+      <div class="overflow-x-auto rounded-card bg-surface p-6 shadow-card ring-1 ring-danger/30">
+        <pre class="mermaid">graph LR
+  A-->B</pre>
+      </div>
+    </figure>
+    <figure class="space-y-3">
+      <figcaption class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-success">
+        <i data-lucide="arrow-right-circle" class="h-4 w-4" aria-hidden="true"></i>
+        After
+      </figcaption>
+      <div class="overflow-x-auto rounded-card bg-surface p-6 shadow-card ring-1 ring-success/30">
+        <pre class="mermaid">graph LR
+  A-->C</pre>
+      </div>
+    </figure>
+  </div>
+  <div class="mt-6 rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 border-l-4 border-primary">
+    <p class="text-xs font-semibold uppercase tracking-wider text-primary mb-2">What changed</p>
+    <p class="text-base text-foreground leading-relaxed">The flow now routes through validation.</p>
+  </div>
+</section>"
+`;

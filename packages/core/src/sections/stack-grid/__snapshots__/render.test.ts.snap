@@ -1,0 +1,33 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`stack-grid render produces valid HTML with semantic theme classes 1`] = `
+"<section id="stack-grid" class="my-12">
+  <h2 class="font-display text-3xl font-bold text-foreground mb-6">Stack</h2>
+  <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/bun/3b82f6" width="32" height="32" alt="Bun" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">Bun</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Runtime</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">Build</span>
+    </div>
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/typescript/3b82f6" width="32" height="32" alt="TypeScript" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">TypeScript</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Language</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">Framework</span>
+    </div>
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/tailwindcss/3b82f6" width="32" height="32" alt="Tailwind" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">Tailwind</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Styling</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">UI</span>
+    </div>
+  </div>
+</section>"
+`;

@@ -1,0 +1,29 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`api-surface render produces valid HTML with semantic theme classes 1`] = `
+"<section id="api-surface" class="my-12">
+  <h2 class="font-display text-3xl font-bold text-foreground mb-6">API surface</h2>
+  <div class="rounded-card bg-surface shadow-card ring-1 ring-muted/40 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-muted/50 bg-muted/20">
+          <th class="px-4 py-3 text-left font-display font-semibold text-foreground w-24">Method</th>
+          <th class="px-4 py-3 text-left font-display font-semibold text-foreground">Path</th>
+          <th class="px-4 py-3 text-left font-display font-semibold text-foreground">Purpose</th>
+          <th class="px-4 py-3 text-left font-display font-semibold text-foreground w-40">Auth</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-b border-muted/30 last:border-0 hover:bg-muted/10">
+          <td class="px-4 py-3 align-top">
+            <span class="inline-flex justify-center w-16 text-xs font-mono font-bold px-2 py-1 rounded ring-1 bg-blue-100 text-blue-800 ring-blue-300">GET</span>
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-sm text-foreground break-all">/api/widgets</td>
+          <td class="px-4 py-3 align-top text-sm text-muted-foreground leading-relaxed">Lists widgets</td>
+          <td class="px-4 py-3 align-top"><span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-muted/40 text-muted-foreground"><i data-lucide="lock" class="h-3 w-3"></i>session</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>"
+`;

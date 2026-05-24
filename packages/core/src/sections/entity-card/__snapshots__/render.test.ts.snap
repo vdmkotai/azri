@@ -1,0 +1,21 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`entity-card render produces valid HTML with semantic theme classes 1`] = `
+"<section id="entity-card-planner" class="my-12">
+  <div class="rounded-card bg-surface shadow-card ring-1 ring-muted/40 overflow-hidden">
+    <div class="h-2 bg-blue-500"></div>
+    <div class="p-8">
+      <div class="flex items-baseline justify-between mb-4 gap-4 flex-wrap">
+        <h2 class="font-display text-3xl font-bold text-foreground">Planner</h2>
+        <span class="text-sm px-3 py-1.5 rounded-md bg-blue-100 text-blue-900 font-mono">TypeScript</span>
+      </div>
+      <p class="text-lg font-semibold text-blue-700 mb-4">Chooses sections</p>
+      <p class="text-base text-muted-foreground leading-relaxed mb-6">Turns repo facts into a narrative plan.</p>
+      <div class="mt-6 pt-6 border-t border-muted/50">
+        <h3 class="font-display text-xl font-semibold text-foreground mb-2">Why it matters</h3>
+        <p class="text-sm text-muted-foreground leading-relaxed">The planner keeps pages focused.</p>
+      </div>
+    </div>
+  </div>
+</section>"
+`;

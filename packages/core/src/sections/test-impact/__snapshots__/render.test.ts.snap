@@ -1,0 +1,63 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`test-impact render produces valid HTML with semantic theme classes 1`] = `
+"<section id="test-impact-test-impact" class="my-12">
+  <h2 class="font-display text-2xl font-bold text-foreground mb-6">Test impact</h2>
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="overflow-hidden rounded-card bg-surface ring-1 ring-success/20">
+      <div class="flex items-center gap-2 border-b border-success/20 bg-success/10 px-5 py-3">
+        <i data-lucide="plus-circle" class="h-5 w-5 text-success"></i>
+        <h3 class="font-display text-lg font-semibold text-success">Tests added</h3>
+        <span class="ml-auto rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold text-success">1</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-success/15 bg-success/5 text-left">
+            <th class="px-4 py-2 font-display font-semibold text-foreground/80">Test file</th>
+            <th class="px-4 py-2 font-display font-semibold text-foreground/80">Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-success/15 last:border-0 align-top">
+            <td class="px-4 py-3 font-mono text-xs text-foreground break-all">src/sections/tldr/schema.test.ts</td>
+            <td class="px-4 py-3 text-sm text-foreground/85">Schema happy path.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="overflow-hidden rounded-card bg-surface ring-1 ring-warn/20">
+      <div class="flex items-center gap-2 border-b border-warn/20 bg-warn/10 px-5 py-3">
+        <i data-lucide="refresh-cw" class="h-5 w-5 text-warn"></i>
+        <h3 class="font-display text-lg font-semibold text-warn">Tests changed</h3>
+        <span class="ml-auto rounded-full bg-warn/20 px-2 py-0.5 text-xs font-semibold text-warn">1</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-warn/15 bg-warn/5 text-left">
+            <th class="px-4 py-2 font-display font-semibold text-foreground/80">Test file</th>
+            <th class="px-4 py-2 font-display font-semibold text-foreground/80">What changed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-warn/15 last:border-0 align-top">
+            <td class="px-4 py-3 font-mono text-xs text-foreground break-all">src/pipeline.test.ts</td>
+            <td class="px-4 py-3 text-sm text-foreground/85">Mocks LLM calls.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="mt-6 rounded-card border-l-4 border-warn bg-warn/5 p-5 ring-1 ring-warn/30">
+    <div class="flex gap-3">
+      <i data-lucide="alert-triangle" class="h-5 w-5 text-warn mt-0.5 shrink-0"></i>
+      <div class="flex-1">
+        <h3 class="mb-2 font-display font-bold text-warn">Untested areas</h3>
+        <p class="mb-3 text-sm text-foreground leading-relaxed">Deferred to visual polish.</p>
+        <ul class="space-y-1">
+        <li class="flex gap-2"><span class="text-warn">•</span><span class="font-mono text-sm text-foreground break-all">Browser visual diff</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>"
+`;

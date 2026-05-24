@@ -1,0 +1,39 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`key-files render produces valid HTML with semantic theme classes 1`] = `
+"<section id="key-files" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Key files</h2>
+  <ol class="space-y-4 list-none">
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">1</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3 mb-2">
+          <code class="font-mono text-sm text-foreground break-all">src/index.ts</code>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-primary/10 text-primary">Entry</span>
+        </div>
+        <p class="text-sm text-muted-foreground leading-relaxed">Starts the app.</p>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">2</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3 mb-2">
+          <code class="font-mono text-sm text-foreground break-all">src/pipeline.ts</code>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-danger/10 text-danger">Critical</span>
+        </div>
+        <p class="text-sm text-muted-foreground leading-relaxed">Coordinates stages.</p>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">3</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3 mb-2">
+          <code class="font-mono text-sm text-foreground break-all">src/types.ts</code>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-muted/30 text-muted-foreground">Reference</span>
+        </div>
+        <p class="text-sm text-muted-foreground leading-relaxed">Defines shared types.</p>
+      </div>
+    </li>
+  </ol>
+</section>"
+`;

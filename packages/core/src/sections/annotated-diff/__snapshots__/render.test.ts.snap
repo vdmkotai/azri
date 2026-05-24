@@ -1,0 +1,20 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`annotated-diff render produces valid HTML with semantic theme classes 1`] = `
+"<section id="annotated-diff" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Important diff</h2>
+  <div class="space-y-8">
+  <article id="annotated-diff-0-src-app-ts" class="space-y-3">
+    <header class="flex flex-wrap items-baseline gap-3">
+      <code class="text-xs font-mono text-foreground break-all">src/app.ts</code>
+      <span class="text-xs font-mono text-muted-foreground">L10-20</span>
+      <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">ts</span>
+    </header>
+    <pre tabindex="0" class="bg-zinc-900 text-zinc-100 p-5 rounded-card overflow-x-auto shadow-card ring-1 ring-muted/40 focus:outline-2 focus:outline-primary"><code class="font-mono text-sm leading-relaxed language-ts"><span class="block text-zinc-400">const value = 1;</span></code></pre>
+    <div class="bg-surface p-4 rounded-md border-l-4 border-primary shadow-sm ring-1 ring-muted/40">
+      <p class="text-sm text-foreground leading-relaxed">Initializes the value.</p>
+    </div>
+  </article>
+  </div>
+</section>"
+`;

@@ -1,0 +1,33 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`change-summary render produces valid HTML with semantic theme classes 1`] = `
+"<section id="change-summary" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Change summary</h2>
+  <div class="space-y-6">
+  <article id="change-summary-0-core" class="rounded-card bg-surface p-6 shadow-card ring-1 ring-muted/40">
+    <header class="mb-4">
+      <h3 class="font-display text-xl font-bold text-foreground">Core</h3>
+      <p class="mt-1 text-sm text-muted-foreground leading-relaxed">Adds the pipeline</p>
+    </header>
+    <div class="overflow-x-auto rounded-md ring-1 ring-muted/30">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-muted/50 bg-muted/20">
+            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kind</th>
+            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Path</th>
+            <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Δ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-muted/30 last:border-0 hover:bg-muted/10">
+            <td class="px-4 py-2"><span class="text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ring-1 bg-warn/10 text-warn ring-warn/30">modified</span></td>
+            <td class="px-4 py-2 font-mono text-sm text-foreground break-all">src/core.ts</td>
+            <td class="px-4 py-2 text-right font-mono text-xs text-muted-foreground">120 B</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+  </div>
+</section>"
+`;

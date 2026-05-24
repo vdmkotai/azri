@@ -1,0 +1,24 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`deployment-map render produces valid HTML with semantic theme classes 1`] = `
+"<section id="deployment-map" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Deployment map</h2>
+  <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/railway/3b82f6" width="36" height="36" alt="Railway" class="rounded" loading="lazy">
+        <div class="flex-1 min-w-0">
+          <div class="font-display text-lg font-bold text-foreground truncate">API</div>
+          <div class="text-xs text-muted-foreground">Railway</div>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mb-1">
+        <span class="text-xs px-2 py-0.5 rounded bg-primary/10 text-primary font-mono">Bun</span>
+        <span class="text-xs px-2 py-0.5 rounded bg-muted/30 text-muted-foreground font-mono">iad</span>
+      </div>
+        <p class="mt-3 text-xs text-muted-foreground leading-relaxed">Primary service</p>
+        <a href="https://example.com" rel="noopener noreferrer" class="block mt-3 text-xs text-primary hover:underline font-mono break-all">https://example.com</a>
+    </div>
+  </div>
+</section>"
+`;

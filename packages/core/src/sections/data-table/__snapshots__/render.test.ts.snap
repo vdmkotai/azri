@@ -1,0 +1,16 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`data-table render produces valid HTML with semantic theme classes 1`] = `
+"<section id="table-metrics" class="my-12">
+  <h2 class="font-display text-2xl font-bold text-foreground mb-4">Metrics</h2>
+  <div class="rounded-card bg-surface shadow-card ring-1 ring-muted/40 overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="border-b border-muted/50 bg-muted/20"><th class="px-4 py-3 font-display font-semibold text-foreground text-left">Name</th><th class="px-4 py-3 font-display font-semibold text-foreground text-right">Value</th></tr>
+      </thead>
+      <tbody><tr class="border-b border-muted/30 last:border-0 hover:bg-muted/10"><td class="px-4 py-3 text-foreground text-left">Files</td><td class="px-4 py-3 text-foreground text-right">37</td></tr></tbody>
+    </table>
+  </div>
+  <p class="mt-3 text-sm text-muted-foreground italic">Build metrics</p>
+</section>"
+`;

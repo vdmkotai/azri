@@ -1,0 +1,12 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`mermaid-diagram render produces valid HTML with semantic theme classes 1`] = `
+"<section id="mermaid-pipeline-diagram" class="my-12">
+  <h2 class="mb-4 font-display text-2xl font-bold text-foreground">Pipeline diagram</h2>
+  <div class="overflow-x-auto rounded-card bg-surface p-6 shadow-card ring-1 ring-muted/40">
+    <pre class="mermaid">graph LR
+  A[Input]-->B[Output]</pre>
+  </div>
+  <p class="mt-3 text-sm italic text-muted-foreground">The high-level flow.</p>
+</section>"
+`;

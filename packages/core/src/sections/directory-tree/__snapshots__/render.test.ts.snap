@@ -1,0 +1,48 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`directory-tree render produces valid HTML with semantic theme classes 1`] = `
+"<section id="directory-tree" class="my-12">
+  <h2 class="mb-4 font-display text-3xl font-bold text-foreground">Directory tree</h2>
+  <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 overflow-x-auto">
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20">
+    <div class="font-mono text-sm font-bold text-foreground flex items-center gap-2 min-w-0">
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">azri/</span>
+    </div>
+    <div class="text-sm text-muted-foreground italic">repository root</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70"></span>
+      <i data-lucide="file-text" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+      <span class="truncate">package.json</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Manifest</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70"></span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">src/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Source code</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70"></span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">test/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Tests</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70">└─ </span>
+      <i data-lucide="file-text" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+      <span class="truncate">index.ts</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Entry point</div>
+  </div>
+  </div>
+</section>"
+`;
