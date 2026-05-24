@@ -13,12 +13,22 @@ import { runDoctor } from './commands/doctor.ts';
 import { runInit } from './commands/init.ts';
 import { runPr } from './commands/pr.ts';
 import { runReport } from './commands/report.ts';
+import { runSetup } from './commands/setup.ts';
 import { runTheme } from './commands/theme.ts';
 import { printHelp } from './help.ts';
 
 const VERSION = pkg.version;
 
-const KNOWN_COMMANDS = ['report', 'pr', 'diff', 'auth', 'doctor', 'init', 'theme'] as const;
+const KNOWN_COMMANDS = [
+  'report',
+  'pr',
+  'diff',
+  'auth',
+  'doctor',
+  'init',
+  'setup',
+  'theme',
+] as const;
 type KnownCommand = (typeof KNOWN_COMMANDS)[number];
 
 function levenshtein(a: string, b: string): number {
@@ -81,6 +91,8 @@ async function main(argv: string[]): Promise<number> {
       return await runDoctor();
     case 'init':
       return await runInit(rest);
+    case 'setup':
+      return await runSetup(rest);
     case 'theme':
       return await runTheme(rest);
     default: {

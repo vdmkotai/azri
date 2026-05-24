@@ -10,7 +10,8 @@ USAGE
   azri <command> [options]
 
 COMMANDS
-  init             First-run setup wizard (recommended)
+  init             Initialize journal rules in AGENTS.md / CLAUDE.md
+  setup            First-run setup wizard (recommended)
   report           Generate an explainer for the current repository
   pr <num|url>     Generate an explainer for a specific pull request
   diff             Generate an explainer for the local git diff
@@ -34,8 +35,11 @@ GLOBAL OPTIONS
   -y, --yes        Skip detailed-mode confirmation prompt
 
 EXAMPLES
-  # First-run setup (recommended)
+  # Initialize Azri Journal rules for AI assistants
   azri init
+
+  # First-run setup (recommended)
+  azri setup
 
   # Whole-repo explainer for the current directory
   azri report --open

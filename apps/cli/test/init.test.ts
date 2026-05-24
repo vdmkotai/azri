@@ -2,137 +2,141 @@
 // Copyright (c) 2026 Azri contributors
 
 import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { PRESET_NAMES } from '../../../packages/renderer/src/design-system/index.ts';
 import { testInternals } from '../src/commands/init.ts';
 
 let workdir: string;
-const originalEnv = { ...process.env };
 
 beforeEach(async () => {
-  workdir = await mkdtemp(join(tmpdir(), 'azri-init-test-'));
-  process.env = { ...originalEnv };
-  delete process.env['ANTHROPIC_API_KEY'];
-  delete process.env['OPENAI_API_KEY'];
-  delete process.env['GOOGLE_API_KEY'];
+  workdir = await mkdtemp(join(tmpdir(), 'azri-journal-init-test-'));
 });
 
 afterEach(async () => {
-  process.env = { ...originalEnv };
   await rm(workdir, { recursive: true, force: true });
 });
 
-describe('init option builders', () => {
-  test('theme options cover every preset', () => {
-    const options = testInternals.buildThemeOptions();
-    expect(options.length).toBe(PRESET_NAMES.length);
-    for (const name of PRESET_NAMES) {
-      expect(options.some((o) => o.value === name)).toBe(true);
-    }
+async function readProjectFile(path: string): Promise<string> {
+  return await readFile(join(workdir, path), 'utf8');
+}
+
+function expectInitialized(content: string): void {
+  expect(content).toContain(testInternals.JOURNAL_HEADER);
+  expect(content).toContain('`.azri/sessions/<branch-name>.md`');
+}
+
+describe('journal init rules-file selection', () => {
+  test('only AGENTS.md exists -> modifies AGENTS.md', async () => {
+    await writeFile(join(workdir, 'AGENTS.md'), '# Agents\n');
+
+    const result = await testInternals.initializeJournalRules(workdir);
+
+    expect(result.targetFiles).toEqual(['AGENTS.md']);
+    expect(result.insertedFiles).toEqual(['AGENTS.md']);
+    expectInitialized(await readProjectFile('AGENTS.md'));
+    expect(await Bun.file(join(workdir, 'CLAUDE.md')).exists()).toBe(false);
   });
 
-  test('verbosity options expose the three Verbosity values in order', () => {
-    expect(testInternals.buildVerbosityOptions().map((o) => o.value)).toEqual([
-      'concise',
-      'standard',
-      'detailed',
-    ]);
+  test('only CLAUDE.md exists -> modifies CLAUDE.md', async () => {
+    await writeFile(join(workdir, 'CLAUDE.md'), '# Claude\n');
+
+    const result = await testInternals.initializeJournalRules(workdir);
+
+    expect(result.targetFiles).toEqual(['CLAUDE.md']);
+    expect(result.insertedFiles).toEqual(['CLAUDE.md']);
+    expectInitialized(await readProjectFile('CLAUDE.md'));
+    expect(await Bun.file(join(workdir, 'AGENTS.md')).exists()).toBe(false);
   });
 
-  test('provider options omit model-version hints', () => {
-    const labels = testInternals.buildProviderOptions().map((o) => o.label);
-    expect(labels).toEqual(['Anthropic', 'OpenAI', 'Google']);
+  test('CLAUDE.md pointer to AGENTS.md -> modifies AGENTS.md only', async () => {
+    await writeFile(join(workdir, 'AGENTS.md'), '# Agents\n');
+    await writeFile(join(workdir, 'CLAUDE.md'), 'See AGENTS.md for project rules\n');
+
+    const result = await testInternals.initializeJournalRules(workdir);
+
+    expect(result.targetFiles).toEqual(['AGENTS.md']);
+    expect(result.insertedFiles).toEqual(['AGENTS.md']);
+    expectInitialized(await readProjectFile('AGENTS.md'));
+    expect(await readProjectFile('CLAUDE.md')).toBe('See AGENTS.md for project rules\n');
   });
 
-  test('theme label embeds swatches', () => {
-    const label = testInternals.themeLabel('default');
-    expect(label).toContain('default');
-    expect(label.includes('\u001B[38;2;')).toBe(true);
+  test('AGENTS.md pointer to CLAUDE.md -> modifies CLAUDE.md only', async () => {
+    await writeFile(join(workdir, 'AGENTS.md'), 'Follow CLAUDE.md\n');
+    await writeFile(join(workdir, 'CLAUDE.md'), '# Claude\n');
+
+    const result = await testInternals.initializeJournalRules(workdir);
+
+    expect(result.targetFiles).toEqual(['CLAUDE.md']);
+    expect(result.insertedFiles).toEqual(['CLAUDE.md']);
+    expect(await readProjectFile('AGENTS.md')).toBe('Follow CLAUDE.md\n');
+    expectInitialized(await readProjectFile('CLAUDE.md'));
+  });
+
+  test('both independent -> modifies both', async () => {
+    const agentsRules = Array.from({ length: 31 }, () => 'agent rule').join('\n');
+    const claudeRules = Array.from({ length: 31 }, () => 'claude rule').join('\n');
+    await writeFile(join(workdir, 'AGENTS.md'), `${agentsRules}\n`);
+    await writeFile(join(workdir, 'CLAUDE.md'), `${claudeRules}\n`);
+
+    const result = await testInternals.initializeJournalRules(workdir);
+
+    expect(result.targetFiles).toEqual(['AGENTS.md', 'CLAUDE.md']);
+    expect(result.insertedFiles).toEqual(['AGENTS.md', 'CLAUDE.md']);
+    expectInitialized(await readProjectFile('AGENTS.md'));
+    expectInitialized(await readProjectFile('CLAUDE.md'));
+  });
+
+  test('neither exists -> creates AGENTS.md', async () => {
+    const result = await testInternals.initializeJournalRules(workdir);
+
+    expect(result.targetFiles).toEqual(['AGENTS.md']);
+    expect(result.insertedFiles).toEqual(['AGENTS.md']);
+    expectInitialized(await readProjectFile('AGENTS.md'));
+    expect(await Bun.file(join(workdir, 'CLAUDE.md')).exists()).toBe(false);
   });
 });
 
-describe('sanitizeKey (init)', () => {
-  test('strips whitespace and control characters', () => {
-    expect(testInternals.sanitizeKey('  sk-test\n')).toBe('sk-test');
-    expect(testInternals.sanitizeKey('sk\r\n\u0000-test')).toBe('sk-test');
-  });
-});
+describe('journal init idempotency and side effects', () => {
+  test('already initialized -> idempotent no-op for rules block', async () => {
+    const originalAgents = `# Agents\n${testInternals.JOURNAL_RULES_BLOCK}`;
+    await writeFile(join(workdir, 'AGENTS.md'), originalAgents);
 
-describe('envProviderName', () => {
-  test('returns null when no provider env vars are set', () => {
-    expect(testInternals.envProviderName()).toBeNull();
-  });
+    const result = await testInternals.initializeJournalRules(workdir);
 
-  test('detects ANTHROPIC_API_KEY first', () => {
-    process.env['ANTHROPIC_API_KEY'] = 'sk-ant-test';
-    expect(testInternals.envProviderName()).toBe('anthropic');
+    expect(result.insertedFiles).toEqual([]);
+    expect(result.alreadyInitializedFiles).toEqual(['AGENTS.md']);
+    expect(await readProjectFile('AGENTS.md')).toBe(originalAgents);
   });
 
-  test('detects OPENAI_API_KEY when only that is set', () => {
-    process.env['OPENAI_API_KEY'] = 'sk-test';
-    expect(testInternals.envProviderName()).toBe('openai');
+  test('.gitignore append works and is idempotent', async () => {
+    await writeFile(join(workdir, 'AGENTS.md'), '# Agents\n');
+    await writeFile(join(workdir, '.gitignore'), 'node_modules/\n');
+
+    const first = await testInternals.initializeJournalRules(workdir);
+    const second = await testInternals.initializeJournalRules(workdir);
+    const gitignore = await readProjectFile('.gitignore');
+
+    expect(first.addedGitignoreEntry).toBe(true);
+    expect(second.addedGitignoreEntry).toBe(false);
+    expect(gitignore.match(/^\.azri\/sessions\/$/gmu)?.length).toBe(1);
   });
 
-  test('detects GOOGLE_API_KEY when only that is set', () => {
-    process.env['GOOGLE_API_KEY'] = 'g-test';
-    expect(testInternals.envProviderName()).toBe('google');
-  });
-});
+  test('.gitignore is created when absent', async () => {
+    await writeFile(join(workdir, 'AGENTS.md'), '# Agents\n');
 
-describe('writeInitConfig', () => {
-  test('creates .azri/config.json with theme and verbosity', async () => {
-    const path = await testInternals.writeInitConfig(workdir, {
-      theme: 'sepia',
-      verbosity: 'detailed',
-    });
-    expect(path).toBe(join(workdir, '.azri', 'config.json'));
-    const written = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>;
-    expect(written['theme']).toBe('sepia');
-    expect(written['verbosity']).toBe('detailed');
+    const result = await testInternals.initializeJournalRules(workdir);
+
+    expect(result.addedGitignoreEntry).toBe(true);
+    expect(await readProjectFile('.gitignore')).toBe('.azri/sessions/\n');
   });
 
-  test('preserves unrelated existing keys', async () => {
-    const path = join(workdir, '.azri', 'config.json');
-    await Bun.write(path, JSON.stringify({ modules: ['packages/types'], maxFiles: 42 }));
-    await testInternals.writeInitConfig(workdir, {
-      theme: 'github-dark',
-      verbosity: 'concise',
-    });
-    const written = JSON.parse(await readFile(path, 'utf8')) as Record<string, unknown>;
-    expect(written['modules']).toEqual(['packages/types']);
-    expect(written['maxFiles']).toBe(42);
-    expect(written['theme']).toBe('github-dark');
-    expect(written['verbosity']).toBe('concise');
-  });
+  test('.azri/sessions/ is created', async () => {
+    await writeFile(join(workdir, 'AGENTS.md'), '# Agents\n');
 
-  test('writes 0644 permissions', async () => {
-    const path = await testInternals.writeInitConfig(workdir, {
-      theme: 'default',
-      verbosity: 'standard',
-    });
-    const stat = await Bun.file(path).stat();
-    expect((stat.mode ?? 0) & 0o777).toBe(0o644);
-  });
+    await testInternals.initializeJournalRules(workdir);
 
-  test('round-trips between subsequent updates', async () => {
-    await testInternals.writeInitConfig(workdir, { theme: 'default', verbosity: 'standard' });
-    await testInternals.writeInitConfig(workdir, { theme: 'brutalist', verbosity: 'detailed' });
-    const written = JSON.parse(
-      await readFile(join(workdir, '.azri', 'config.json'), 'utf8'),
-    ) as Record<string, unknown>;
-    expect(written['theme']).toBe('brutalist');
-    expect(written['verbosity']).toBe('detailed');
-  });
-
-  test('rejects invalid existing config (numeric mismatch)', async () => {
-    const dir = join(workdir, '.azri');
-    await mkdir(dir, { recursive: true });
-    await writeFile(join(dir, 'config.json'), JSON.stringify({ maxFiles: 'oops' }));
-    await expect(
-      testInternals.writeInitConfig(workdir, { theme: 'default', verbosity: 'standard' }),
-    ).rejects.toThrow();
+    expect((await stat(join(workdir, '.azri', 'sessions'))).isDirectory()).toBe(true);
   });
 });

@@ -2,153 +2,181 @@
 // Copyright (c) 2026 Azri contributors
 
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import * as p from '@clack/prompts';
 
-import type { ProviderName } from '../../../../packages/core/src/index.ts';
-import { PRESET_NAMES, PRESETS } from '../../../../packages/renderer/src/design-system/index.ts';
-import { AzriConfigSchema, type Verbosity } from '../../../../packages/types/src/index.ts';
-import { credentialsPath, envVarName, maskKey, PROVIDERS, saveCredential } from '../credentials.ts';
-import { swatchRow } from '../ui/swatch.ts';
-import { runDoctorChecks, type CheckResult } from './doctor.ts';
+const AGENTS_FILE = 'AGENTS.md';
+const CLAUDE_FILE = 'CLAUDE.md';
+const JOURNAL_HEADER = '## Azri Journal — record your reasoning while you work';
+const SESSIONS_IGNORE_ENTRY = '.azri/sessions/';
 
-const THEME_DESCRIPTIONS: Record<string, string> = {
-  default: 'neutral baseline',
-  'github-dark': 'dark mode, GitHub palette',
-  'vscode-modern': 'light, dense, Inter+Cascadia',
-  sepia: 'warm cream, serif-forward',
-  brutalist: 'high-contrast, no shadows',
-};
+const JOURNAL_RULES_BLOCK = [
+  '',
+  JOURNAL_HEADER,
+  '',
+  'When you make non-trivial changes to this repo, keep a running journal at',
+  '`.azri/sessions/<branch-name>.md` (replace `<branch-name>` with the actual',
+  'git branch). Azri reads this file at PR-explainer time to reconstruct the',
+  'real debugging journey instead of guessing from the diff.',
+  '',
+  '**When to write an entry**:',
+  '- After testing a hypothesis (whether confirmed or disproved — disproved',
+  '  entries are especially valuable)',
+  '- After reading meaningful code that informed a decision',
+  '- After running a DB query, log query, or other investigation step',
+  '- After consulting a subagent (Oracle, librarian, explore, etc.)',
+  '- Before commit — write a brief summary entry tying the journey together',
+  '',
+  '**Entry format** (markdown, one entry per investigation step):',
+  '',
+  '```markdown',
+  '## <ISO-timestamp> — <short hypothesis title>',
+  '- **Investigated**: what you were checking (1 sentence)',
+  '- **Files**: comma-separated paths with optional line ranges',
+  '- **Queries**: any DB / API queries you ran (optional)',
+  '- **Result**: what you found (1-2 sentences)',
+  '- **Verdict**: ✅ confirmed | ❌ disproved | 🤔 inconclusive',
+  '```',
+  '',
+  'The file is git-ignored by default — your reasoning stays local until you',
+  'decide otherwise. To share with the Azri bot or your team, remove the',
+  '`.azri/sessions/` entry from `.gitignore` and commit the journal.',
+  '',
+].join('\n');
 
-function presetSwatches(name: string): string {
-  const preset = PRESETS[name];
-  if (!preset) return '';
-  return swatchRow(preset.swatches);
+type RulesFileName = typeof AGENTS_FILE | typeof CLAUDE_FILE;
+
+interface RulesFileState {
+  name: RulesFileName;
+  exists: boolean;
+  content: string;
 }
 
-function themeLabel(name: string): string {
-  const padded = name.padEnd(14);
-  const swatches = presetSwatches(name);
-  const desc = THEME_DESCRIPTIONS[name] ?? '';
-  return `${padded}  ${swatches}   ${desc}`;
+export interface InitJournalResult {
+  foundMessage: string;
+  targetFiles: RulesFileName[];
+  insertedFiles: RulesFileName[];
+  alreadyInitializedFiles: RulesFileName[];
+  createdSessionsDir: boolean;
+  addedGitignoreEntry: boolean;
+  newLineCount: number;
 }
 
-function buildThemeOptions(): Array<{ value: string; label: string }> {
-  return PRESET_NAMES.map((name) => ({ value: name, label: themeLabel(name) }));
-}
-
-function buildVerbosityOptions(): Array<{ value: Verbosity; label: string }> {
-  return [
-    { value: 'concise', label: 'concise   3-4 sections, cheaper' },
-    { value: 'standard', label: 'standard  4-6 sections (recommended)' },
-    { value: 'detailed', label: 'detailed  5-7 sections, ~3x cost' },
-  ];
-}
-
-function buildProviderOptions(): Array<{ value: ProviderName; label: string }> {
-  return [
-    { value: 'anthropic', label: 'Anthropic' },
-    { value: 'openai', label: 'OpenAI' },
-    { value: 'google', label: 'Google' },
-  ];
-}
-
-function sanitizeKey(raw: string): string {
-  return raw.replace(/[^\u0020-\u007E]/gu, '').trim();
-}
-
-function configPath(cwd: string): string {
-  return join(cwd, '.azri', 'config.json');
-}
-
-async function readExistingConfig(path: string): Promise<Record<string, unknown>> {
+async function readRulesFile(cwd: string, name: RulesFileName): Promise<RulesFileState> {
   try {
-    const raw = await readFile(path, 'utf8');
-    return JSON.parse(raw) as Record<string, unknown>;
+    return { name, exists: true, content: await readFile(join(cwd, name), 'utf8') };
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return {};
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return { name, exists: false, content: '' };
+    }
     throw error;
   }
 }
 
-export interface InitConfigUpdate {
-  theme: string;
-  verbosity: Verbosity;
+function isPointerTo(content: string, targetFile: RulesFileName): boolean {
+  if (content.split(/\r?\n/u).length > 30) return false;
+  return content.includes(targetFile);
 }
 
-export async function writeInitConfig(cwd: string, update: InitConfigUpdate): Promise<string> {
-  const path = configPath(cwd);
-  const existing = await readExistingConfig(path);
-  const merged = { ...existing, theme: update.theme, verbosity: update.verbosity };
-  const validated = AzriConfigSchema.parse(merged);
-  await mkdir(dirname(path), { recursive: true });
-  await writeFile(path, `${JSON.stringify(validated, null, 2)}\n`, { mode: 0o644 });
-  return path;
+function selectTargetFiles(agents: RulesFileState, claude: RulesFileState): RulesFileName[] {
+  if (agents.exists && !claude.exists) return [AGENTS_FILE];
+  if (!agents.exists && claude.exists) return [CLAUDE_FILE];
+  if (!agents.exists && !claude.exists) return [AGENTS_FILE];
+  if (isPointerTo(claude.content, AGENTS_FILE)) return [AGENTS_FILE];
+  if (isPointerTo(agents.content, CLAUDE_FILE)) return [CLAUDE_FILE];
+  return [AGENTS_FILE, CLAUDE_FILE];
 }
 
-async function validateProviderKey(
-  provider: ProviderName,
-  key: string,
-): Promise<{ ok: boolean; reason: string }> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 10_000);
+function foundMessage(agents: RulesFileState, claude: RulesFileState): string {
+  if (agents.exists && !claude.exists) return `Found ${AGENTS_FILE}`;
+  if (!agents.exists && claude.exists) return `Found ${CLAUDE_FILE}`;
+  if (!agents.exists && !claude.exists) return `No ${AGENTS_FILE} or ${CLAUDE_FILE} found`;
+  if (isPointerTo(claude.content, AGENTS_FILE)) {
+    return `Found ${AGENTS_FILE} (${CLAUDE_FILE} is a pointer to it)`;
+  }
+  if (isPointerTo(agents.content, CLAUDE_FILE)) {
+    return `Found ${CLAUDE_FILE} (${AGENTS_FILE} is a pointer to it)`;
+  }
+  return `Found ${AGENTS_FILE} and ${CLAUDE_FILE}`;
+}
+
+async function readTextIfExists(path: string): Promise<string | null> {
   try {
-    let response: Response;
-    if (provider === 'anthropic') {
-      response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'GET',
-        headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01' },
-        signal: controller.signal,
-      });
-      return response.status === 405 || response.status === 400 || response.status === 200
-        ? { ok: true, reason: 'validated' }
-        : { ok: false, reason: `HTTP ${response.status}` };
-    }
-    if (provider === 'openai') {
-      response = await fetch('https://api.openai.com/v1/models', {
-        method: 'GET',
-        headers: { Authorization: `Bearer ${key}` },
-        signal: controller.signal,
-      });
-    } else {
-      response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`,
-        { method: 'GET', signal: controller.signal },
-      );
-    }
-    return response.ok
-      ? { ok: true, reason: 'validated' }
-      : { ok: false, reason: `HTTP ${response.status}` };
+    return await readFile(path, 'utf8');
   } catch (error) {
-    return { ok: false, reason: error instanceof Error ? error.message : String(error) };
-  } finally {
-    clearTimeout(timeout);
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return null;
+    throw error;
   }
 }
 
-function printDoctorCheck(check: CheckResult): void {
-  const line = `${check.status.padEnd(4)}  ${check.name.padEnd(24)}  ${check.reason}`;
-  if (check.status === 'PASS') p.log.success(line);
-  else if (check.status === 'WARN') p.log.warn(line);
-  else p.log.error(line);
+async function writeRulesBlock(cwd: string, file: RulesFileName): Promise<'inserted' | 'already'> {
+  const path = join(cwd, file);
+  const existing = await readTextIfExists(path);
+  if (existing?.includes(JOURNAL_HEADER)) return 'already';
+
+  const prefix = existing ?? '# Project Rules\n';
+  await writeFile(path, `${prefix}${JOURNAL_RULES_BLOCK}`, { mode: 0o644 });
+  return 'inserted';
+}
+
+async function ensureGitignoreEntry(cwd: string): Promise<boolean> {
+  const path = join(cwd, '.gitignore');
+  const existing = await readTextIfExists(path);
+  if (existing === null) {
+    await writeFile(path, `${SESSIONS_IGNORE_ENTRY}\n`, { mode: 0o644 });
+    return true;
+  }
+
+  const hasEntry = existing.split(/\r?\n/u).some((line) => line.trim() === SESSIONS_IGNORE_ENTRY);
+  if (hasEntry) return false;
+
+  const separator = existing.endsWith('\n') || existing.length === 0 ? '' : '\n';
+  await writeFile(path, `${existing}${separator}${SESSIONS_IGNORE_ENTRY}\n`, { mode: 0o644 });
+  return true;
+}
+
+export async function initializeJournalRules(cwd: string): Promise<InitJournalResult> {
+  const agents = await readRulesFile(cwd, AGENTS_FILE);
+  const claude = await readRulesFile(cwd, CLAUDE_FILE);
+  const targetFiles = selectTargetFiles(agents, claude);
+  const insertedFiles: RulesFileName[] = [];
+  const alreadyInitializedFiles: RulesFileName[] = [];
+
+  for (const file of targetFiles) {
+    const result = await writeRulesBlock(cwd, file);
+    if (result === 'inserted') insertedFiles.push(file);
+    else alreadyInitializedFiles.push(file);
+  }
+
+  await mkdir(join(cwd, '.azri', 'sessions'), { recursive: true });
+  const addedGitignoreEntry = await ensureGitignoreEntry(cwd);
+
+  return {
+    foundMessage: foundMessage(agents, claude),
+    targetFiles,
+    insertedFiles,
+    alreadyInitializedFiles,
+    createdSessionsDir: true,
+    addedGitignoreEntry,
+    newLineCount: JOURNAL_RULES_BLOCK.split('\n').length - 1,
+  };
 }
 
 function printInitHelp(): void {
   console.log(
     [
-      'azri init — first-run setup wizard',
+      'azri init — initialize journal rules in AGENTS.md / CLAUDE.md',
       '',
       'USAGE',
       '  azri init',
       '',
-      'Configures default theme, verbosity, and optionally an AI provider.',
-      'Writes ./.azri/config.json in the current directory.',
+      'Creates .azri/sessions/ and inserts Azri Journal rules into the project rules file.',
     ].join('\n'),
   );
 }
 
-function envProviderName(): ProviderName | null {
-  return PROVIDERS.find((pr) => process.env[envVarName(pr)]) ?? null;
+function formatList(files: RulesFileName[]): string {
+  return files.join(' and ');
 }
 
 export async function runInit(args: string[]): Promise<number> {
@@ -158,119 +186,39 @@ export async function runInit(args: string[]): Promise<number> {
   }
 
   try {
-    p.intro('azri · setup');
+    p.intro('azri · init');
 
-    const cwd = process.cwd();
-    const existing = await readExistingConfig(configPath(cwd));
-    const currentTheme =
-      typeof existing['theme'] === 'string' ? (existing['theme'] as string) : 'default';
-    const initialTheme = PRESET_NAMES.includes(currentTheme) ? currentTheme : 'default';
-    const currentVerbosity =
-      existing['verbosity'] === 'concise' ||
-      existing['verbosity'] === 'standard' ||
-      existing['verbosity'] === 'detailed'
-        ? (existing['verbosity'] as Verbosity)
-        : 'standard';
+    const result = await initializeJournalRules(process.cwd());
+    p.log.info(result.foundMessage);
 
-    const envProvider = envProviderName();
-
-    const baseResult = await p.group(
-      {
-        theme: () =>
-          p.select<string>({
-            message: 'Default theme',
-            options: buildThemeOptions(),
-            initialValue: initialTheme,
-          }),
-        verbosity: () =>
-          p.select<Verbosity>({
-            message: 'Default verbosity',
-            options: buildVerbosityOptions(),
-            initialValue: currentVerbosity,
-          }),
-        setupAuth: () =>
-          p.confirm({
-            message: envProvider
-              ? `${envVarName(envProvider)} is already set. Set up another provider?`
-              : 'Set up an AI provider now?',
-            initialValue: !envProvider,
-          }),
-      },
-      {
-        onCancel: () => {
-          p.cancel('Cancelled.');
-          process.exit(0);
-        },
-      },
+    for (const file of result.alreadyInitializedFiles) {
+      p.log.info(`already initialized in ${file}`);
+    }
+    for (const file of result.insertedFiles) {
+      p.log.info(`Wrote journal-rules block to ${file} (${result.newLineCount} new lines).`);
+    }
+    if (result.insertedFiles.length > 1) {
+      p.log.info(`Inserted into both ${AGENTS_FILE} and ${CLAUDE_FILE}.`);
+    }
+    p.log.info('Created .azri/sessions/ directory.');
+    p.log.info(
+      result.addedGitignoreEntry
+        ? 'Added .azri/sessions/ to .gitignore.'
+        : '.azri/sessions/ already present in .gitignore.',
     );
 
-    const configPathWritten = await writeInitConfig(cwd, {
-      theme: baseResult.theme,
-      verbosity: baseResult.verbosity,
-    });
-
-    if (baseResult.setupAuth) {
-      const authResult = await p.group(
-        {
-          provider: () =>
-            p.select<ProviderName>({
-              message: 'Which AI provider?',
-              options: buildProviderOptions(),
-            }),
-          key: ({ results }) =>
-            p.password({
-              message: `Paste your ${results.provider} API key`,
-              mask: '\u2022',
-              validate: (v) => {
-                const cleaned = sanitizeKey(v);
-                if (cleaned.length < 10) return 'Key looks too short.';
-              },
-            }),
-        },
-        {
-          onCancel: () => {
-            p.cancel('Cancelled.');
-            process.exit(0);
-          },
-        },
+    if (result.insertedFiles.length === 0) {
+      p.outro('Already initialized.');
+    } else {
+      p.outro(
+        [
+          'Done. Your AI assistant will now keep a journal at',
+          '   .azri/sessions/<branch>.md as it works on changes.',
+          '   Run `azri pr <url>` after pushing to render with reasoning.',
+        ].join('\n'),
       );
-
-      const cleanedKey = sanitizeKey(authResult.key);
-      const s = p.spinner();
-      s.start(`Validating ${authResult.provider} key…`);
-      const validation = await validateProviderKey(authResult.provider, cleanedKey);
-      if (validation.ok) {
-        s.stop(`✓ ${authResult.provider} key is valid`);
-        await saveCredential(authResult.provider, cleanedKey);
-        p.log.info(`Saved ${authResult.provider} (${maskKey(cleanedKey)}) to ${credentialsPath()}`);
-      } else {
-        s.stop(`Validation failed: ${validation.reason}`, 1);
-        const save = await p.confirm({ message: 'Save anyway?', initialValue: false });
-        if (p.isCancel(save) || !save) {
-          p.log.warn('Credential not saved.');
-        } else {
-          await saveCredential(authResult.provider, cleanedKey);
-          p.log.info(
-            `Saved ${authResult.provider} (${maskKey(cleanedKey)}) to ${credentialsPath()}`,
-          );
-        }
-      }
-    } else if (!envProvider) {
-      p.log.info('Later — set ANTHROPIC_API_KEY (or run `azri auth login`).');
     }
 
-    const doctorChoice = await p.confirm({
-      message: 'Run diagnostic checks?',
-      initialValue: true,
-    });
-    if (!p.isCancel(doctorChoice) && doctorChoice) {
-      const checks = await runDoctorChecks();
-      for (const check of checks) printDoctorCheck(check);
-    }
-
-    p.outro(
-      `All set. Try: azri pr https://github.com/owner/repo/pull/1\nConfig: ${configPathWritten}`,
-    );
     return 0;
   } catch (error) {
     p.cancel(`Error: ${error instanceof Error ? error.message : String(error)}`);
@@ -279,11 +227,10 @@ export async function runInit(args: string[]): Promise<number> {
 }
 
 export const testInternals = {
-  themeLabel,
-  buildThemeOptions,
-  buildVerbosityOptions,
-  buildProviderOptions,
-  sanitizeKey,
-  writeInitConfig,
-  envProviderName,
+  JOURNAL_HEADER,
+  JOURNAL_RULES_BLOCK,
+  isPointerTo,
+  selectTargetFiles,
+  initializeJournalRules,
+  formatList,
 };
