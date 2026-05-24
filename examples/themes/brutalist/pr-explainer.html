@@ -1,250 +1,273 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="generator" content="azri">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src data: 'self' https://github.com; base-uri 'none'; form-action 'none';">
-<title>router: thread RequestContext through handlers instead of FiberRef</title>
-<meta name="description" content="Routes now take a typed RequestContext as their first argument. Drops two hidden allocations per request and removes three deprecated exports from the package surface. Local benchmark shows -28% media">
-<meta property="og:title" content="router: thread RequestContext through handlers instead of FiberRef">
-<meta property="og:description" content="Routes now take a typed RequestContext as their first argument. Drops two hidden allocations per request and removes three deprecated exports from the package surface. Local benchmark shows -28% media">
-<meta property="og:type" content="article">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="router: thread RequestContext through handlers instead of FiberRef">
-<meta name="twitter:description" content="Routes now take a typed RequestContext as their first argument. Drops two hidden allocations per request and removes three deprecated exports from the package surface. Local benchmark shows -28% media">
-<style>
-
-*,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:24px}
-body{margin:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
-img,svg{display:block;max-width:100%;height:auto}
-button{font:inherit}
-
-
-:root{
-  --color-text:#000000;
-  --color-bg:#ffffff;
-  --color-accent:#000000;
-  --severity-info:#000000;
-  --severity-warn:#000000;
-  --severity-critical:#000000;
-  --color-bg-code-background:#000000;
-  --color-bg-code-text:#ffffff;
-  --typeface-serif:"Helvetica Neue", Helvetica, "IBM Plex Sans", "Arial Black", Arial, sans-serif;
-  --typeface-mono:"IBM Plex Mono", "Helvetica Neue Mono", "Courier New", Courier, monospace;
-  --space-xs:4px;
-  --space-sm:8px;
-  --space-md:12px;
-  --space-lg:16px;
-  --space-xl:24px;
-  --space-2xl:32px;
-  --space-3xl:48px;
-  --space-4xl:64px;
-  --radius-sm:0px;
-  --radius-md:0px;
-  --radius-lg:0px;
-  --shadow-subtle:none;
-  --shadow-lifted:none;
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src https://cdn.jsdelivr.net https://cdn.simpleicons.org data:; font-src https://fonts.gstatic.com; frame-ancestors 'none';">
+  <title>effect-ts/effect</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=EB+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@mermaid-js/tiny@11/dist/mermaid.tiny.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/lucide@1/dist/umd/lucide.min.js"></script>
+  <style type="text/tailwindcss">
+@theme {
+  --color-bg: oklch(1 0 0);
+  --color-surface: oklch(1 0 0);
+  --color-foreground: oklch(0 0 0);
+  --color-muted-foreground: oklch(0.40 0 0);
+  --color-muted: oklch(0.85 0 0);
+  --color-primary: oklch(0 0 0);
+  --color-success: oklch(0.40 0.18 145);
+  --color-warn: oklch(0.50 0.18 70);
+  --color-danger: oklch(0.45 0.22 25);
+  --font-display: "Helvetica Neue", "Arial", sans-serif;
+  --font-body: "Helvetica Neue", "Arial", sans-serif;
+  --font-mono: "IBM Plex Mono", "Courier New", monospace;
+  --radius-card: 0;
+  --shadow-card: none;
 }
-@media (prefers-color-scheme:dark){
-  :root{
-    --color-text:#ffffff;
-    --color-bg:#000000;
-    --color-accent:#ffffff;
-    --severity-info:#ffffff;
-    --severity-warn:#ffffff;
-    --severity-critical:#ffffff;
-  }
-}
-
-body{margin:0;font-family:var(--typeface-serif);background:var(--color-bg);color:var(--color-text);line-height:1.55;}
-.shell{display:grid;grid-template-columns:260px 1fr;gap:48px;max-width:1180px;margin:0 auto;padding:32px 28px;}
-@media (max-width:900px){.shell{grid-template-columns:1fr;}}
-.azri-toc{position:sticky;top:24px;align-self:start;font-size:14px;line-height:1.5;border-right:1px solid color-mix(in srgb, var(--color-text) 20%, transparent);padding-right:20px;}
-.azri-toc .toc-title{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin:0 0 12px;}
-.azri-toc ol{list-style:none;margin:0;padding:0;}
-.azri-toc li{margin:6px 0;}
-.azri-toc a{color:inherit;text-decoration:none;}
-.azri-toc a:hover{color:var(--color-accent);}
-.azri-toc .toc-num{font-family:var(--typeface-mono);font-size:12px;opacity:.6;margin-right:6px;}
-.azri-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
-.azri-header h1{font-size:42px;line-height:1.1;margin:0 0 12px;}
-.azri-header .header-summary{font-size:20px;opacity:.8;}
-.azri-header .header-link{display:inline-block;margin-top:12px;color:var(--color-accent);}
-.azri-header .header-meta{font-family:var(--typeface-mono);font-size:12px;opacity:.6;margin-top:12px;}
-.azri-section{margin-bottom:48px;}
-.azri-section h2{font-size:28px;margin:32px 0 16px;}
-.azri-section[data-importance="critical"] h2::before{content:"●";color:var(--severity-critical);margin-right:8px;font-size:14px;vertical-align:middle;}
-.azri-section[data-importance="important"] h2::before{content:"●";color:var(--severity-warn);margin-right:8px;font-size:14px;vertical-align:middle;}
-.azri-section .section-body p{margin:0 0 14px;}
-.azri-callout{border-left:3px solid;padding:14px 18px;margin:18px 0;background:color-mix(in srgb, var(--color-text) 5%, transparent);border-radius:0 4px 4px 0;}
-.azri-callout-info{border-color:var(--severity-info);}
-.azri-callout-warn{border-color:var(--severity-warn);}
-.azri-callout-critical{border-color:var(--severity-critical);}
-.azri-callout .callout-label{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:6px;opacity:.85;}
-.azri-code{font-family:var(--typeface-mono);font-size:13px;background:var(--color-bg-code-background);color:var(--color-bg-code-text);padding:16px;border-radius:4px;overflow-x:auto;}
-.azri-code code{background:none;color:inherit;font:inherit;}
-.azri-annotated-diff{margin:18px 0;}
-.azri-diff-file{margin:12px 0;border:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);border-radius:4px;overflow:hidden;}
-.azri-diff-file .diff-filename{font-family:var(--typeface-mono);font-size:12px;padding:6px 12px;background:color-mix(in srgb, var(--color-text) 6%, transparent);}
-.diff-annotation{font-family:var(--typeface-mono);font-size:12px;padding:6px 12px;border-top:1px solid color-mix(in srgb, var(--color-text) 10%, transparent);}
-.diff-annotation-info{background:color-mix(in srgb, var(--severity-info) 8%, transparent);}
-.diff-annotation-warn{background:color-mix(in srgb, var(--severity-warn) 10%, transparent);}
-.diff-annotation-critical{background:color-mix(in srgb, var(--severity-critical) 12%, transparent);}
-.diff-body{font-family:var(--typeface-mono);font-size:12px;line-height:1.5;}
-.diff-line{padding:0 12px;white-space:pre;}
-.diff-line-add{background:color-mix(in srgb, var(--severity-info) 6%, transparent);}
-.diff-line-del{background:color-mix(in srgb, var(--severity-critical) 6%, transparent);}
-.diff-line-meta{opacity:.6;}
-.azri-mermaid{margin:24px 0;padding:16px;background:color-mix(in srgb, var(--color-text) 4%, transparent);border-radius:6px;text-align:center;}
-.azri-mermaid svg{max-width:100%;height:auto;display:inline-block;}
-.azri-mermaid figcaption{font-style:italic;opacity:.7;font-size:13px;margin-top:8px;}
-.azri-citations{margin-top:48px;padding-top:24px;border-top:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
-.azri-citations h3{font-family:var(--typeface-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
-.azri-citations ol{font-family:var(--typeface-mono);font-size:13px;}
-.azri-citations a{color:var(--color-accent);}
-</style>
-</head>
-<body>
-<div class="shell">
-<nav class="azri-toc" aria-label="Contents"><p class="toc-title">Contents</p><ol><li><a href="#overview"><span class="toc-num">1.</span> Overview</a></li><li><a href="#shape"><span class="toc-num">2.</span> How the new context flows</a></li><li><a href="#risks"><span class="toc-num">3.</span> Risks we&#39;re watching</a></li><li><a href="#diff"><span class="toc-num">4.</span> The diff, file by file</a></li><li><a href="#module-map"><span class="toc-num">5.</span> Module impact</a></li><li><a href="#tests"><span class="toc-num">6.</span> Test coverage</a></li><li><a href="#next"><span class="toc-num">7.</span> After this lands</a></li></ol></nav>
-<main>
-<header class="azri-header"><h1>router: thread RequestContext through handlers instead of FiberRef</h1><p class="header-summary">Routes now take a typed RequestContext as their first argument. Drops two hidden allocations per request and removes three deprecated exports from the package surface. Local benchmark shows -28% median latency on a four-layer middleware stack.</p><a class="header-link" href="https://github.com/Effect-TS/effect/pull/4821" rel="noopener">View on GitHub →</a><div class="header-meta">Run example-pr-explainer · 2026-05-22T10:18:00Z</div></header>
-<section id="overview" class="azri-section" data-importance="critical"><h2>Overview</h2><div class="section-body"><p>HttpRouter held per-request state in a <code>FiberRef&lt;Request | null&gt;</code>. Every middleware boundary cloned the fiber graph to scope that state, which cost roughly 6μs and one allocation per layer on the included router benchmark.</p>
-<p>The new shape: handlers take a <code>RequestContext</code> argument. The router builds it once at the dispatch boundary, passes it down, and the FiberRef goes away. Three exports tied to it (<code>CurrentRequest</code>, <code>withRequest</code>, <code>getRequestRef</code>) are removed from <code>effect/unstable/http</code>.</p>
-<p>Existing routes keep working without changes. A small wrapper at <code>packages/http/src/HttpRouter.ts:142-158</code> adapts handlers that match the old <code>(req) =&gt; Effect&lt;Response&gt;</code> shape; the wrapper carries a <code>@deprecated</code> JSDoc tag and will be removed in 4.0.0-beta.78.</p>
-<p>Numbers from <code>packages/http/bench/router.bench.ts</code> (Bun 1.3.14, M2 Pro, four-layer middleware stack, 10k iterations):</p>
-<ul>
-<li>Median latency per request: <strong>5.8ms → 4.1ms</strong></li>
-<li>p99 latency: <strong>9.2ms → 6.0ms</strong></li>
-<li>Allocations per request (heap-snapshot diff): <strong>14 → 11</strong></li>
-</ul>
-</div></section>
-<section id="shape" class="azri-section" data-importance="critical"><h2>How the new context flows</h2><div class="section-body"><p>The router builds a <code>RequestContext</code> once when a request arrives. The context is immutable, shape-checked, and carries only what handlers are allowed to read: the raw <code>Request</code>, the parsed <code>URL</code>, the path params, and the abort signal tied to the connection.</p>
-<p>Middleware composes by passing the same context down the chain. There is no escape hatch back to fiber-local state and no setter on the request. Routes that need to write headers do so on the returned <code>Response</code>, which is the only place mutation lives.</p>
-<p>This is intentionally narrow. The old <code>FiberRef&lt;Request | null&gt;</code> had a <code>null</code> arm because nothing stopped code from running outside a request. The new shape makes that statically impossible — handlers cannot be invoked without a context.</p>
-
-<figure class="azri-mermaid" aria-label="Section diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Request context flow through router middleware">
-  <defs>
-    <marker id="ctx-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fill-opacity="0.7"/>
-    </marker>
-    <marker id="ctx-arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#2b6cb0" fill-opacity="0.9"/>
-    </marker>
-  </defs>
-  <style>
-    .ctx-lifeline { stroke: currentColor; stroke-opacity: 0.22; stroke-dasharray: 4 4; }
-    .ctx-actor { fill: none; stroke: currentColor; stroke-opacity: 0.55; }
-    .ctx-arrow { stroke: currentColor; stroke-opacity: 0.7; stroke-width: 1.4; fill: none; }
-    .ctx-arrow-accent { stroke: #2b6cb0; stroke-opacity: 0.9; stroke-width: 1.6; fill: none; }
-    .ctx-return { stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.1; stroke-dasharray: 6 3; fill: none; }
-    .ctx-actor-label { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; fill: currentColor; font-weight: 600; }
-    .ctx-msg { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; fill: currentColor; fill-opacity: 0.85; }
-    .ctx-self { fill-opacity: 0.65; font-style: italic; }
   </style>
-  <g>
-    <rect class="ctx-actor" x="30" y="18" width="100" height="32" rx="4"/>
-    <text class="ctx-actor-label" x="80" y="38" text-anchor="middle">Client</text>
-    <rect class="ctx-actor" x="200" y="18" width="100" height="32" rx="4"/>
-    <text class="ctx-actor-label" x="250" y="38" text-anchor="middle">HttpRouter</text>
-    <rect class="ctx-actor" x="380" y="18" width="100" height="32" rx="4"/>
-    <text class="ctx-actor-label" x="430" y="38" text-anchor="middle">Middleware</text>
-    <rect class="ctx-actor" x="550" y="18" width="100" height="32" rx="4"/>
-    <text class="ctx-actor-label" x="600" y="38" text-anchor="middle">Handler</text>
-  </g>
-  <line class="ctx-lifeline" x1="80" y1="50" x2="80" y2="365"/>
-  <line class="ctx-lifeline" x1="250" y1="50" x2="250" y2="365"/>
-  <line class="ctx-lifeline" x1="430" y1="50" x2="430" y2="365"/>
-  <line class="ctx-lifeline" x1="600" y1="50" x2="600" y2="365"/>
-  <text class="ctx-msg" x="162" y="78" text-anchor="middle">HTTP Request</text>
-  <line class="ctx-arrow-accent" x1="83" y1="86" x2="245" y2="86" marker-end="url(#ctx-arrow-accent)"/>
-  <path class="ctx-arrow" d="M 250 110 L 295 110 L 295 130 L 255 130" marker-end="url(#ctx-arrow)"/>
-  <text class="ctx-msg ctx-self" x="305" y="124">build RequestContext</text>
-  <text class="ctx-msg" x="337" y="155" text-anchor="middle">dispatch(ctx)</text>
-  <line class="ctx-arrow" x1="253" y1="163" x2="425" y2="163" marker-end="url(#ctx-arrow)"/>
-  <path class="ctx-arrow" d="M 430 188 L 475 188 L 475 208 L 435 208" marker-end="url(#ctx-arrow)"/>
-  <text class="ctx-msg ctx-self" x="485" y="202">read ctx.req.headers</text>
-  <text class="ctx-msg" x="512" y="232" text-anchor="middle">next(ctx)</text>
-  <line class="ctx-arrow" x1="433" y1="240" x2="595" y2="240" marker-end="url(#ctx-arrow)"/>
-  <path class="ctx-arrow" d="M 600 265 L 645 265 L 645 285 L 605 285" marker-end="url(#ctx-arrow)"/>
-  <text class="ctx-msg ctx-self" x="600" y="302" text-anchor="middle">read ctx.params</text>
-  <text class="ctx-msg" x="515" y="322" text-anchor="middle">Response</text>
-  <line class="ctx-return" x1="595" y1="330" x2="437" y2="330" marker-end="url(#ctx-arrow)"/>
-  <text class="ctx-msg" x="165" y="352" text-anchor="middle">HTTP Response</text>
-  <line class="ctx-return" x1="245" y1="360" x2="87" y2="360" marker-end="url(#ctx-arrow)"/>
-</svg>
-<figcaption>Diagram: mermaid-sequence</figcaption></figure></div></section>
-<section id="risks" class="azri-section" data-importance="critical"><h2>Risks we&#39;re watching</h2><div class="section-body"><p>Four risks were flagged during review. None are blocking, but the api-contract item below is the one to read carefully if you maintain a downstream package.</p>
+</head>
+<body class="min-h-screen bg-bg font-body text-foreground antialiased">
+  <div class="mx-auto grid w-full max-w-7xl gap-8 px-5 py-8 lg:grid-cols-[16rem_minmax(0,1fr)] lg:px-8">
+    <aside class="lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:overflow-auto">
+      <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/70">
+        <p class="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-foreground"><i data-lucide="list-tree" class="h-5 w-5 text-primary"></i>Contents</p>
+        <nav aria-label="Table of contents"><ol class="space-y-1"><li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#pr-tldr">PR TL;DR</a></li>
+<li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#change-summary">Change Summary</a></li>
+<li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#annotated-diff">Annotated Diff</a></li>
+<li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#test-impact">Test Impact</a></li>
+<li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#reviewer-guide">Reviewer guide</a></li></ol></nav>
+      </div>
+    </aside>
+    <main class="min-w-0">
+      <header class="mb-8 rounded-card bg-surface p-8 shadow-card ring-1 ring-muted/70">
+        <p class="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-primary">Azri Studio</p>
+        <h1 class="font-display text-4xl font-bold tracking-tight text-foreground md:text-6xl">effect-ts/effect</h1>
+        <div class="mt-3 flex flex-wrap gap-3 text-sm text-muted-foreground">
+    <span>Generated 2026-05-22T10:18:00Z</span>
+    <span>Run example-pr-explainer</span>
+    <a class="text-primary underline" href="https://github.com/effect-ts/effect">Repo</a><a class="text-primary underline" href="https://github.com/Effect-TS/effect/pull/4821">PR</a>
+  </div>
+      </header>
+      <section id="pr-tldr" class="scroll-mt-8 my-4">
+  <section id="pr-tldr" class="mb-12">
+  <div class="rounded-card bg-surface p-8 shadow-card ring-1 ring-muted/40">
+    <div class="mb-3 flex items-center gap-3">
+      <p class="text-sm font-semibold uppercase tracking-[0.24em] text-primary">PR TL;DR</p>
+      <span class="text-xs font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full ring-1 bg-warn/10 text-warn ring-warn/30">Minor</span>
+    </div>
+    <h2 class="font-display text-4xl font-bold tracking-tight text-foreground md:text-5xl mb-4">Adds the section gallery script and an axe-core sweep across all five themes.</h2>
+    <p class="text-lg text-muted-foreground leading-relaxed">Closes Phase 6 of the v0.3 plan — the last visual polish gate before cutover and release.</p>
+  <div class="mt-6 grid grid-cols-3 gap-3">
+      <div class="rounded-md bg-bg p-4 ring-1 ring-muted/40">
+        <div class="font-mono text-2xl font-bold text-foreground">4</div>
+        <div class="mt-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">files</div>
+      </div>
+      <div class="rounded-md bg-bg p-4 ring-1 ring-muted/40">
+        <div class="font-mono text-2xl font-bold text-success">+612</div>
+        <div class="mt-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">+ added</div>
+      </div>
+      <div class="rounded-md bg-bg p-4 ring-1 ring-muted/40">
+        <div class="font-mono text-2xl font-bold text-danger">−18</div>
+        <div class="mt-1 font-mono text-xs uppercase tracking-wider text-muted-foreground">− removed</div>
+      </div>
+  </div>
+  </div>
+</section>
+</section>
+<section id="change-summary" class="scroll-mt-8 my-4">
+  <section id="change-summary" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">What changed in this PR</h2>
+  <div class="space-y-6">
+  <article id="change-summary-0-packages-renderer-scripts" class="rounded-card bg-surface p-6 shadow-card ring-1 ring-muted/40">
+    <header class="mb-4">
+      <h3 class="font-display text-xl font-bold text-foreground">packages/renderer/scripts</h3>
+      <p class="mt-1 text-sm text-muted-foreground leading-relaxed">Two new scripts (gallery + axe sweep) and one mocks helper to feed them.</p>
+    </header>
+    <div class="overflow-x-auto rounded-md ring-1 ring-muted/30">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-muted/50 bg-muted/20">
+            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kind</th>
+            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Path</th>
+            <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Δ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-muted/30 last:border-0 hover:bg-muted/10">
+            <td class="px-4 py-2"><span class="text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ring-1 bg-success/10 text-success ring-success/30">added</span></td>
+            <td class="px-4 py-2 font-mono text-sm text-foreground break-all">packages/renderer/scripts/v3-gallery.ts</td>
+            <td class="px-4 py-2 text-right font-mono text-xs text-muted-foreground"></td>
+          </tr>
+          <tr class="border-b border-muted/30 last:border-0 hover:bg-muted/10">
+            <td class="px-4 py-2"><span class="text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ring-1 bg-success/10 text-success ring-success/30">added</span></td>
+            <td class="px-4 py-2 font-mono text-sm text-foreground break-all">packages/renderer/scripts/v3-gallery-mocks.ts</td>
+            <td class="px-4 py-2 text-right font-mono text-xs text-muted-foreground"></td>
+          </tr>
+          <tr class="border-b border-muted/30 last:border-0 hover:bg-muted/10">
+            <td class="px-4 py-2"><span class="text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ring-1 bg-success/10 text-success ring-success/30">added</span></td>
+            <td class="px-4 py-2 font-mono text-sm text-foreground break-all">packages/renderer/scripts/v3-axe-gallery.ts</td>
+            <td class="px-4 py-2 text-right font-mono text-xs text-muted-foreground"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+  <article id="change-summary-1-packages-core-src-sections" class="rounded-card bg-surface p-6 shadow-card ring-1 ring-muted/40">
+    <header class="mb-4">
+      <h3 class="font-display text-xl font-bold text-foreground">packages/core/src/sections</h3>
+      <p class="mt-1 text-sm text-muted-foreground leading-relaxed">Surgical fix: removed the duplicate-id wrapper from every section renderer.</p>
+    </header>
+    <div class="overflow-x-auto rounded-md ring-1 ring-muted/30">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-muted/50 bg-muted/20">
+            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Kind</th>
+            <th class="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground">Path</th>
+            <th class="px-4 py-2 text-right text-xs font-semibold uppercase tracking-wider text-muted-foreground">Δ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-muted/30 last:border-0 hover:bg-muted/10">
+            <td class="px-4 py-2"><span class="text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ring-1 bg-warn/10 text-warn ring-warn/30">modified</span></td>
+            <td class="px-4 py-2 font-mono text-sm text-foreground break-all">packages/core/src/sections/tldr/render.ts</td>
+            <td class="px-4 py-2 text-right font-mono text-xs text-muted-foreground"></td>
+          </tr>
+          <tr class="border-b border-muted/30 last:border-0 hover:bg-muted/10">
+            <td class="px-4 py-2"><span class="text-xs px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ring-1 bg-warn/10 text-warn ring-warn/30">modified</span></td>
+            <td class="px-4 py-2 font-mono text-sm text-foreground break-all">packages/core/src/sections/stack-grid/render.ts</td>
+            <td class="px-4 py-2 text-right font-mono text-xs text-muted-foreground"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </article>
+  </div>
+</section>
+</section>
+<section id="annotated-diff" class="scroll-mt-8 my-4">
+  <section id="annotated-diff" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Critical diff hunks</h2>
+  <div class="space-y-8">
+  <article id="annotated-diff-0-packages-core-src-sections-tldr-render-ts" class="space-y-3">
+    <header class="flex flex-wrap items-baseline gap-3">
+      <code class="text-xs font-mono text-foreground break-all">packages/core/src/sections/tldr/render.ts</code>
+      <span class="text-xs font-mono text-muted-foreground">L26-38</span>
+      <span class="text-xs font-mono uppercase tracking-wider text-muted-foreground">typescript</span>
+    </header>
+    <pre tabindex="0" class="bg-zinc-900 text-zinc-100 p-5 rounded-card overflow-x-auto shadow-card ring-1 ring-muted/40 focus:outline-2 focus:outline-primary"><code class="font-mono text-sm leading-relaxed language-typescript"><span class="block text-rose-300">-  return `&lt;section id=&quot;tldr&quot; class=&quot;mb-12&quot;&gt;</span><span class="block text-emerald-300">+  return `&lt;div class=&quot;mb-12&quot;&gt;</span><span class="block text-zinc-400">   &lt;div class=&quot;rounded-card bg-surface p-8 ...&quot;&gt;</span><span class="block text-zinc-400">     ...</span><span class="block text-zinc-400">   &lt;/div&gt;</span><span class="block text-rose-300">-&lt;/section&gt;`;</span><span class="block text-emerald-300">+&lt;/div&gt;`;</span></code></pre>
+    <div class="bg-surface p-4 rounded-md border-l-4 border-primary shadow-sm ring-1 ring-muted/40">
+      <p class="text-sm text-foreground leading-relaxed">Outer wrapper now uses a div, so the orchestrator-supplied section id is unique on the page.</p>
+    </div>
+  </article>
+  </div>
+</section>
+</section>
+<section id="test-impact" class="scroll-mt-8 my-4">
+  <section id="test-impact-test-impact" class="my-12">
+  <h2 class="font-display text-2xl font-bold text-foreground mb-6">Test impact</h2>
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="overflow-hidden rounded-card bg-surface ring-1 ring-success/20">
+      <div class="flex items-center gap-2 border-b border-success/20 bg-success/10 px-5 py-3">
+        <i data-lucide="plus-circle" class="h-5 w-5 text-success"></i>
+        <h3 class="font-display text-lg font-semibold text-success">Tests added</h3>
+        <span class="ml-auto rounded-full bg-success/20 px-2 py-0.5 text-xs font-semibold text-success">1</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-success/15 bg-success/5 text-left">
+            <th class="px-4 py-2 font-display font-semibold text-foreground/80">Test file</th>
+            <th class="px-4 py-2 font-display font-semibold text-foreground/80">Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-success/15 last:border-0 align-top">
+            <td class="px-4 py-3 font-mono text-xs text-foreground break-all">packages/renderer/test/v3-gallery.test.ts</td>
+            <td class="px-4 py-3 text-sm text-foreground/85">Smoke-tests gallery generation for every theme.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="overflow-hidden rounded-card bg-surface ring-1 ring-warn/20">
+      <div class="flex items-center gap-2 border-b border-warn/20 bg-warn/10 px-5 py-3">
+        <i data-lucide="refresh-cw" class="h-5 w-5 text-warn"></i>
+        <h3 class="font-display text-lg font-semibold text-warn">Tests changed</h3>
+        <span class="ml-auto rounded-full bg-warn/20 px-2 py-0.5 text-xs font-semibold text-warn">1</span>
+      </div>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-warn/15 bg-warn/5 text-left">
+            <th class="px-4 py-2 font-display font-semibold text-foreground/80">Test file</th>
+            <th class="px-4 py-2 font-display font-semibold text-foreground/80">What changed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-b border-warn/15 last:border-0 align-top">
+            <td class="px-4 py-3 font-mono text-xs text-foreground break-all">packages/core/test/sections/registry.test.ts</td>
+            <td class="px-4 py-3 text-sm text-foreground/85">No-op; included for snapshot regen.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="mt-6 rounded-card border-l-4 border-warn bg-warn/5 p-5 ring-1 ring-warn/30">
+    <div class="flex gap-3">
+      <i data-lucide="alert-triangle" class="h-5 w-5 text-warn mt-0.5 shrink-0"></i>
+      <div class="flex-1">
+        <h3 class="mb-2 font-display font-bold text-warn">Untested areas</h3>
+        <p class="mb-3 text-sm text-foreground leading-relaxed">Visual testing requires a hosted browser; deferred to Phase 7.</p>
+        <ul class="space-y-1">
+        <li class="flex gap-2"><span class="text-warn">•</span><span class="font-mono text-sm text-foreground break-all">Visual regression of theme calibration changes.</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+</section>
+<section id="reviewer-guide" class="scroll-mt-8 my-4">
+  <section id="reviewer-guide" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Where to focus the review</h2>
+  <ol class="space-y-4 list-none">
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-14 h-14 rounded-full bg-primary text-bg font-display font-bold text-2xl flex items-center justify-center shadow-card" aria-hidden="true">1</div>
+      <div class="flex-1 min-w-0">
+        <h3 class="font-display text-lg font-bold text-foreground mb-1">Section renderers</h3>
+        <p class="text-sm text-muted-foreground leading-relaxed">Confirm every render.ts now emits a div wrapper without an id attribute on the outer element.</p>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <code class="font-mono text-xs px-2 py-1 rounded bg-muted/30 text-foreground break-all">packages/core/src/sections/tldr/render.ts</code>
+        <code class="font-mono text-xs px-2 py-1 rounded bg-muted/30 text-foreground break-all">packages/core/src/sections/stack-grid/render.ts</code>
+      </div>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/15 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">2</div>
+      <div class="flex-1 min-w-0">
+        <h3 class="font-display text-lg font-bold text-foreground mb-1">Gallery + axe scripts</h3>
+        <p class="text-sm text-muted-foreground leading-relaxed">Validate the mock data matches each schema and the axe report writer covers all five themes.</p>
+      <div class="flex flex-wrap gap-2 mt-3">
+        <code class="font-mono text-xs px-2 py-1 rounded bg-muted/30 text-foreground break-all">packages/renderer/scripts/v3-gallery.ts</code>
+        <code class="font-mono text-xs px-2 py-1 rounded bg-muted/30 text-foreground break-all">packages/renderer/scripts/v3-axe-gallery.ts</code>
+      </div>
+      </div>
+    </li>
+  </ol>
+</section>
+</section>
+    </main>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (globalThis.lucide) {
+        globalThis.lucide.createIcons();
+      }
 
-<aside class="azri-callout azri-callout-warn"><div class="callout-label">api-contract</div><div class="callout-body"><p>Three public exports (&#96;CurrentRequest&#96;, &#96;withRequest&#96;, &#96;getRequestRef&#96;) are removed from &#96;effect/unstable/http&#96;. Downstream code importing them will fail to compile against this version. Eleven published dependents flagged via &#96;npms.io&#96;; all are listed in the CHANGELOG with the one-line replacement.</p></div></aside>
-<aside class="azri-callout azri-callout-info"><div class="callout-label">performance</div><div class="callout-body"><p>Microbenchmark shows -28% median request latency on the included four-layer middleware stack (5.8ms → 4.1ms). No production telemetry yet; the win is from removing FiberRef clones, not from algorithmic changes, so the effect should be roughly linear in middleware depth.</p></div></aside>
-<aside class="azri-callout azri-callout-warn"><div class="callout-label">test-coverage</div><div class="callout-body"><p>Eleven new tests cover nested middleware, header propagation, abort signals, path params, and 404 handling. One test for fiber-scoped cancellation was removed; the scenario is now exercised by the abort-signal test at line 130, but a corner case where the fiber is cancelled mid-middleware is no longer directly tested.</p></div></aside>
-<aside class="azri-callout azri-callout-info"><div class="callout-label">dependency-change</div><div class="callout-body"><p>No new dependencies. The &#96;@effect/core&#96; peer range is unchanged at &#96;&gt;&#61;3.0.0&#96;. The &#96;effect/unstable/http&#96; package version bumps to &#96;0.4.0&#96; to signal the breaking surface change.</p></div></aside></div></section>
-<section id="diff" class="azri-section" data-importance="important"><h2>The diff, file by file</h2><div class="section-body"><p><strong><code>packages/http/src/HttpRouter.ts</code></strong> — dispatch path becomes a pure function of context.</p>
-<pre><code class="language-diff">-const currentRequest = FiberRef.unsafeMake&lt;Request | null&gt;(null)
--
- export const make = (routes: ReadonlyArray&lt;Route&gt;) =&gt; {
--  return Effect.gen(function* () {
--    const req = yield* FiberRef.get(currentRequest)
--    if (req === null) return new Response(null, { status: 500 })
--    const ctx: HandlerCtx = { req }
-+  return (ctx: RequestContext) =&gt; Effect.gen(function* () {
-     for (const route of routes) {
--      const match = route.match(req.url, req.method)
-+      const match = route.match(ctx.url.pathname, ctx.req.method)
-       if (match) return yield* route.handler(ctx)
-     }
-     return new Response(null, { status: 404 })
-   })
- }
-</code></pre>
-<p><strong><code>packages/http/src/RequestContext.ts</code></strong> — new module, 24 lines, no implementation logic.</p>
-<pre><code class="language-ts">export interface RequestContext {
-  readonly req: Request
-  readonly url: URL
-  readonly params: ReadonlyMap&lt;string, string&gt;
-  readonly signal: AbortSignal
-}
-
-export const make = (req: Request, params: ReadonlyMap&lt;string, string&gt;): RequestContext =&gt; ({
-  req,
-  url: new URL(req.url),
-  params,
-  signal: req.signal,
-})
-</code></pre>
-<p><strong><code>packages/http/src/index.ts</code></strong> — three exports removed, one added.</p>
-<pre><code class="language-diff">-export { CurrentRequest, withRequest, getRequestRef } from &quot;./HttpRouter.js&quot;
-+export type { RequestContext } from &quot;./RequestContext.js&quot;
-+export { make as makeContext } from &quot;./RequestContext.js&quot;
-</code></pre>
-<p>The removed names were marked <code>@deprecated</code> two minors ago. CHANGELOG entry at <code>packages/http/CHANGELOG.md:14-22</code> calls this out under <strong>BREAKING CHANGES</strong>.</p>
-</div></section>
-<section id="module-map" class="azri-section" data-importance="important"><h2>Module impact</h2><div class="section-body"><p>The change is scoped to <code>packages/http</code>. Both platform adapters (<code>platform-node</code>, <code>platform-bun</code>) consume the router through the public route definition API, which is unchanged. No code in those packages had to move.</p>
-<p>Downstream packages that imported the deprecated exports (<code>CurrentRequest</code>, <code>withRequest</code>, <code>getRequestRef</code>) need to migrate. An npm search via <code>npms.io</code> found 11 published dependents touching those names. All 11 are listed in the CHANGELOG with the one-line replacement. The migration is mechanical: replace <code>yield* CurrentRequest</code> with the <code>ctx</code> argument.</p>
-<p>Internal call sites inside the monorepo: zero. Earlier passes had already moved <code>@effect/experimental/sse</code> and <code>@effect/rpc-http</code> off the FiberRef path.</p>
-</div></section>
-<section id="tests" class="azri-section" data-importance="supporting"><h2>Test coverage</h2><div class="section-body"><p>Eleven tests added in <code>packages/http/test/HttpRouter.test.ts:88-201</code>, covering:</p>
-<ul>
-<li><strong>Nested middleware</strong> with three layers passing the same context (lines 88-110)</li>
-<li><strong>Header propagation</strong> through <code>ctx.req.headers</code> (lines 112-128)</li>
-<li><strong>Abort signal</strong> plumbing from the client through to a slow handler (lines 130-152)</li>
-<li><strong>Path param parsing</strong> for routes with two and three segments (lines 154-178)</li>
-<li><strong>404 handling</strong> when no route matches and no fallback is configured (lines 180-201)</li>
-</ul>
-<p>The seven tests that previously read from the <code>FiberRef</code> were rewritten in place. One test for fiber-scoped cancellation was deleted; the same scenario is now covered by the abort-signal test at line 130, which is closer to how production code observes cancellation.</p>
-</div></section>
-<section id="next" class="azri-section" data-importance="supporting"><h2>After this lands</h2><div class="section-body"><p>Three follow-ups are queued behind this PR:</p>
-<ol>
-<li><strong>Remove the deprecated wrapper</strong> at <code>packages/http/src/HttpRouter.ts:142-158</code> in <code>4.0.0-beta.78</code>. The wrapper exists only so the major bump can be a single, isolated PR.</li>
-<li><strong>Constructor-time route compilation</strong>. With the FiberRef gone, the router&#39;s hot path is dominated by <code>route.match</code> calls. A planned follow-up compiles routes into a single regex on <code>make()</code>, which the benchmark suggests would cut another 1.2ms off median latency.</li>
-<li><strong>Cancellation telemetry</strong>. The abort signal now flows through <code>ctx.signal</code>. The observability package will add a span event when a handler exits via abort, which is currently invisible.</li>
-</ol>
-</div></section>
-<aside class="azri-citations"><h3>Citations</h3><ol><li class="citation citation-code"><a href="https://github.com/Effect-TS/effect/blob/eb19a72/packages/http/src/index.ts#L88-L94" rel="noopener">packages/http/src/index.ts:88-94</a></li><li class="citation citation-comment"><a href="https://github.com/Effect-TS/effect/blob/eb19a72/packages/http/CHANGELOG.md#L14-L22" rel="noopener">packages/http/CHANGELOG.md:14-22</a></li><li class="citation citation-code"><a href="https://github.com/Effect-TS/effect/blob/eb19a72/packages/http/bench/router.bench.ts#L1-L44" rel="noopener">packages/http/bench/router.bench.ts:1-44</a></li><li class="citation citation-test"><a href="https://github.com/Effect-TS/effect/blob/eb19a72/packages/http/test/HttpRouter.test.ts#L88-L201" rel="noopener">packages/http/test/HttpRouter.test.ts:88-201</a></li><li class="citation citation-config"><a href="https://github.com/Effect-TS/effect/blob/eb19a72/packages/http/package.json#L18-L22" rel="noopener">packages/http/package.json:18-22</a></li></ol></aside>
-</main>
-</div>
+      if (globalThis.mermaid) {
+        globalThis.mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+      }
+    });
+  </script>
 </body>
 </html>

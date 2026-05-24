@@ -9,7 +9,7 @@ import { createLocalHostingAdapter } from '../../../../packages/adapters/hosting
 import {
   fetchPrFromGitHub,
   readRepoSnapshotFromGitHub,
-  runAzri,
+  runAzriV3,
   type ProviderName,
 } from '../../../../packages/core/src/index.ts';
 import type {
@@ -342,7 +342,10 @@ export async function runPr(rawArgs: string[]): Promise<number> {
         return 0;
       }
     }
-    const output = await runAzri({ mode: 'pr', repo, change, config }, { provider: args.provider });
+    const output = await runAzriV3(
+      { mode: 'pr', repo, change, config },
+      { provider: args.provider },
+    );
     if (output.kind === 'too-large' || output.kind === 'head-sha-drift' || output.kind === 'skip') {
       return printRunResult(output, outputPath, args.json);
     }

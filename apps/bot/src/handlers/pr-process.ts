@@ -8,7 +8,7 @@ import {
   metricsInfo,
   metricsWarn,
   readRepoSnapshotFromGitHub,
-  runAzri,
+  runAzriV3,
   type OctokitGitHubClient,
   type OctokitRepoClient,
 } from '@azri/core';
@@ -240,7 +240,7 @@ export async function processPullRequest(payload: PullRequestPayload): Promise<v
       change.prMetadata.head.repo.id !== change.prMetadata.base.repo.id;
 
     const input: AzriRunInput = { mode: 'pr', repo: repoSnap, change, config: {} };
-    const result = await runAzri(input, {});
+    const result = await runAzriV3(input, {});
 
     await handleRunResult(result, { octokit, owner, repo, prNumber, isFork, checkRunId });
     metricsInfo('webhook.pr.done', { owner, repo, prNumber, kind: result.kind });

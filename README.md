@@ -26,18 +26,22 @@ Open [`./examples/pr-explainer.html`](./examples/pr-explainer.html) in a browser
 
 ```sh
 bun install -g @vdmkotai/azri
+# or pin the current release
+bun install -g @vdmkotai/azri@0.3.0
 ```
 
 **npm:**
 
 ```sh
 npm install -g @vdmkotai/azri
+npm install -g @vdmkotai/azri@0.3.0
 ```
 
 **pnpm:**
 
 ```sh
 pnpm add -g @vdmkotai/azri
+pnpm add -g @vdmkotai/azri@0.3.0
 ```
 
 > **Note:** `npm` and `pnpm` install the package, but the CLI calls `bun` at runtime. Make sure `bun` is on your `PATH` before running `azri`.
@@ -100,13 +104,13 @@ All environment variables are documented in [`.env.example`](./.env.example).
 
 ## Architecture
 
-Azri processes each request through a six-stage pipeline:
+Azri v0.3 processes each request through a dynamic Section Registry pipeline:
 
 ```mermaid
 flowchart LR
     S0["Stage 0\nTriage"] --> S1["Stage 1\nSummarize"]
-    S1 --> S2["Stage 2\nStructure"]
-    S2 --> S3["Stage 3\nSection"]
+    S1 --> S2["Stage 2\nPlan sections"]
+    S2 --> S3["Stage 3\nProduce sections"]
     S3 --> S4["Stage 4\nRender"]
     S4 --> S5["Stage 5\nValidate"]
 ```
@@ -115,12 +119,12 @@ flowchart LR
 | ----- | --------- | -------------------------------------------------------------------------------- |
 | 0     | Triage    | Classifies the input (PR diff, repo tree) and decides which sections to generate |
 | 1     | Summarize | Produces a concise summary of the change or codebase                             |
-| 2     | Structure | Builds the document outline                                                      |
-| 3     | Section   | Fills each section with LLM-generated content                                    |
-| 4     | Render    | Assembles the final self-contained HTML page                                     |
+| 2     | Plan      | Chooses the best section mix from the 37-type registry                           |
+| 3     | Produce   | Fills selected sections in parallel with schema-validated output                 |
+| 4     | Render    | Assembles the final HTML with Tailwind v4 utility classes loaded from CDN        |
 | 5     | Validate  | Checks output quality and retries failed sections                                |
 
-The pipeline is implemented in `packages/core` using Effect for typed error handling and structured concurrency. The LLM layer is swappable via adapters in `packages/adapters/`.
+The pipeline is implemented in `packages/core` using Effect for typed error handling and structured concurrency. The v0.3 renderer dynamically composes 37 registered section types and themes pages with Tailwind v4 CDN utilities. The LLM layer is swappable via adapters in `packages/adapters/`.
 
 ---
 

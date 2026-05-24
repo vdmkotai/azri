@@ -14,10 +14,14 @@ pipeline live in the [main Azri repository](https://github.com/vdmkotai/azri).
 
 ```sh
 bun install -g @vdmkotai/azri
+# or pin the current release
+bun install -g @vdmkotai/azri@0.3.0
 # or
 npm install -g @vdmkotai/azri
+npm install -g @vdmkotai/azri@0.3.0
 # or
 pnpm add -g @vdmkotai/azri
+pnpm add -g @vdmkotai/azri@0.3.0
 ```
 
 ## Quickstart

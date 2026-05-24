@@ -98,20 +98,16 @@ Azri processes a PR or repo through a **6-stage pipeline**:
 | ----- | -------------- | ------- | ---------------------------------------------------------- |
 | 0     | Fetch & triage | 10 s    | Fetch diff/snapshot, filter generated files, check cache   |
 | 1     | Summarize      | 60 s    | Per-file summaries via cheap-tier LLM                      |
-| 2     | Structure      | 90 s    | Generate `ExplainerPlan` (section list + evidence mapping) |
-| 3     | Write          | 120 s   | Generate prose for each section in parallel batches        |
-| 4     | Render         | 10 s    | Assemble HTML from renderer components                     |
+| 2     | Plan sections  | 90 s    | Pick the best section mix from the Section Registry        |
+| 3     | Produce        | 120 s   | Generate schema-validated section data in parallel batches |
+| 4     | Render         | 10 s    | Assemble Tailwind v4 CDN HTML from section renderers       |
 | 5     | Publish        | 10 s    | Write to hosting adapter, post sticky comment              |
 
 Total budget: 5 minutes.
 
-**8 locked renderer components** (v1):
+**37 registered section types** (v0.3):
 
-`header`, `sticky-toc`, `section`, `callout`, `code-block`, `annotated-diff`, `mermaid-diagram`, `citation-footnote`
-
-**7 section types** (v1):
-
-`summary`, `architecture`, `risk`, `annotated-diff`, `test-impact`, `performance`, `security`
+Section types live under `packages/core/src/sections/*` and register themselves through `packages/core/src/sections/index.ts`.
 
 **7 risk categories** (v1):
 
@@ -119,41 +115,22 @@ Total budget: 5 minutes.
 
 ---
 
-## How to add a renderer component
+## How to add a section renderer
 
-**v1 locks the component set at 8.** This is intentional: the design system, CSS budget, and HTML structure were co-designed for exactly these components. Adding a ninth changes the visual contract for all existing pages.
+The v0.3 renderer is section-first. New UI belongs beside its section in `packages/core/src/sections/<id>/render.ts`, not in a shared component folder.
 
-To propose a new component:
-
-1. Open an issue describing the use case and why none of the 8 existing components cover it.
-2. Get explicit sign-off from a maintainer before writing any code.
-3. Submit a PR that includes: the component implementation, updated snapshot tests, design-system token usage, and an update to this section of CONTRIBUTING.md.
-
-The PR will go through design review in addition to code review.
-
-**Implementation rules for any component:**
+**Implementation rules for any renderer:**
 
 - Pure function: `(props: YourProps) => string`
-- No framework dependencies (no React, Vue, Solid, Tailwind, emotion, styled-components)
+- Use Tailwind v4 utility classes and the v3 theme tokens
 - Call `escapeHtml()` on every user-controlled string
-- Live in `packages/renderer/src/components/`
-- Export from `packages/renderer/src/index.ts`
-- Include a snapshot test in `packages/renderer/src/components/__snapshots__/`
+- Include a render test under the section folder
 
 ---
 
 ## How to add a section type
 
-**v1 locks section types at 7.** Same policy as renderer components: open an issue first, get maintainer sign-off, then submit a PR.
-
-A new section type requires changes in at least four places:
-
-1. `packages/types/src/types.ts` — add to the `SectionType` union
-2. `packages/core/src/prompts/` — add a system prompt file
-3. `packages/core/src/pipeline/stage-2-structure.ts` — update the Zod schema
-4. `packages/renderer/src/components/section.ts` — handle the new type in the renderer
-
-All four must land in the same PR.
+A new section type requires a folder in `packages/core/src/sections/<id>/` with schema, prompt, renderer, tests, and an `index.ts` that registers the section. Export it from `packages/core/src/sections/index.ts` so the CLI and bot load it before planning.
 
 ---
 

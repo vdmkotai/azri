@@ -9,7 +9,7 @@ import { $ } from 'bun';
 import {
   parseUnifiedDiff,
   readRepoSnapshot,
-  runAzri,
+  runAzriV3,
   type ProviderName,
 } from '../../../../packages/core/src/index.ts';
 import {
@@ -342,7 +342,7 @@ export async function runDiff(args: string[]): Promise<number> {
   progress.complete('snapshot');
 
   progress.start('run');
-  const output = await runAzri({ mode: 'pr', repo, change, config }, { provider });
+  const output = await runAzriV3({ mode: 'pr', repo, change, config }, { provider });
   if (output.kind === 'ok' || output.kind === 'cache-hit') {
     progress.complete('run');
     progress.start('render');

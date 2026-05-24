@@ -345,7 +345,7 @@ Render supports Docker services and works with Azri. Create a **Web Service**, p
 
 **Vercel / Netlify:** Both platforms are designed for serverless functions with short execution windows (Vercel's default function timeout is 10 seconds on the Hobby plan, 60 seconds on Pro). Azri's pipeline can take up to 5 minutes for a large PR. There's no way to keep state between requests, and the bot needs a persistent process to handle webhook retries and deduplication. These platforms are not suitable.
 
-**Cloudflare Workers:** Workers have a 30-second CPU time limit per request and no persistent disk. Azri's Stage 3 (section prose generation) alone can take up to 120 seconds. Workers also can't run Bun or Node.js natively. Not suitable for v1.
+**Cloudflare Workers:** Workers have a 30-second CPU time limit per request and no persistent disk. Azri's Stage 3 (parallel dynamic section production) can take up to 120 seconds on large PRs. Workers also can't run Bun or Node.js natively. Not suitable for v1.
 
 ---
 

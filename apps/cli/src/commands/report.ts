@@ -9,7 +9,7 @@ import {
   metricsInfo,
   metricsWarn,
   readRepoSnapshot,
-  runAzri,
+  runAzriV3,
   setQuietMetrics,
   type OrchestratorDeps,
   type Stage0Logger,
@@ -266,7 +266,7 @@ export async function runReport(args: string[]): Promise<number> {
       stages: PROGRESS_STAGES,
       enabled: !parsed.json && !parsed.verbose && !process.env.CI && !!process.stdout.isTTY,
     });
-    const output = await runAzri(input, {
+    const output = await runAzriV3(input, {
       provider: parsed.provider,
       cache: makeMemoryCache(),
       logger: makeLogger(parsed, progress),

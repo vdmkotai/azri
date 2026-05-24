@@ -20,8 +20,7 @@ const THEME_DESCRIPTIONS: Record<string, string> = {
 function presetSwatches(name: string): string {
   const preset = PRESETS[name];
   if (!preset) return '';
-  const c = preset.colors;
-  return swatchRow([c.accent, c.background, c.severity.info, c.severity.warn, c.severity.critical]);
+  return swatchRow(preset.swatches);
 }
 
 function themeLabel(name: string): string {

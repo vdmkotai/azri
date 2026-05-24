@@ -4,7 +4,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
-import { fetchPrFromGitHub, readRepoSnapshotFromGitHub, runAzri } from '@azri/core';
+import { fetchPrFromGitHub, readRepoSnapshotFromGitHub, runAzriV3 } from '@azri/core';
 import type { AzriRunInput, AzriRunOutput, SectionType } from '@azri/types';
 
 import { makeGitHubClient } from './github-client.ts';
@@ -64,7 +64,7 @@ async function runEntry(entry: DatasetEntry, args: RunArgs): Promise<SavedRun> {
     readRepoSnapshotFromGitHub({ ...entry, octokit }),
   ]);
   const input: AzriRunInput = { mode: 'pr', repo, change, config: {} };
-  const output = await runAzri(input, { provider: args.provider });
+  const output = await runAzriV3(input, { provider: args.provider });
   return { dataset: entry, provider: args.provider, dryRun: false, input, output };
 }
 

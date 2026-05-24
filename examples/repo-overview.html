@@ -1,199 +1,322 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="generator" content="azri">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self' 'unsafe-inline'; img-src data: 'self' https://github.com; base-uri 'none'; form-action 'none';">
-<title>commander.js — a small, opinionated CLI parser</title>
-<meta name="description" content="An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page sh">
-<meta property="og:title" content="commander.js — a small, opinionated CLI parser">
-<meta property="og:description" content="An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page sh">
-<meta property="og:type" content="article">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="commander.js — a small, opinionated CLI parser">
-<meta name="twitter:description" content="An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page sh">
-<style>
-
-*,*::before,*::after{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:24px}
-body{margin:0;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
-img,svg{display:block;max-width:100%;height:auto}
-button{font:inherit}
-
-
-:root{
-  --color-text:#1a202c;
-  --color-bg:#fdfcf7;
-  --color-accent:#2b6cb0;
-  --severity-info:#2c5282;
-  --severity-warn:#9c4221;
-  --severity-critical:#9b2c2c;
-  --color-bg-code-background:#1a202c;
-  --color-bg-code-text:#e2e8f0;
-  --typeface-serif:"EB Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --typeface-mono:ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  --space-xs:4px;
-  --space-sm:8px;
-  --space-md:12px;
-  --space-lg:16px;
-  --space-xl:24px;
-  --space-2xl:32px;
-  --space-3xl:48px;
-  --space-4xl:64px;
-  --radius-sm:4px;
-  --radius-md:8px;
-  --radius-lg:12px;
-  --shadow-subtle:0 1px 3px rgba(0,0,0,.04);
-  --shadow-lifted:0 4px 12px rgba(0,0,0,.08);
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src https://cdn.jsdelivr.net; style-src 'unsafe-inline'; img-src https://cdn.jsdelivr.net https://cdn.simpleicons.org data:; font-src https://fonts.gstatic.com; frame-ancestors 'none';">
+  <title>tj/commander.js</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=EB+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/@mermaid-js/tiny@11/dist/mermaid.tiny.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/lucide@1/dist/umd/lucide.min.js"></script>
+  <style type="text/tailwindcss">
+@theme {
+  --color-bg: oklch(0.98 0.005 80);
+  --color-surface: oklch(1 0 0);
+  --color-foreground: oklch(0.18 0.02 250);
+  --color-muted-foreground: oklch(0.42 0.02 250);
+  --color-muted: oklch(0.85 0.01 250);
+  --color-primary: oklch(0.48 0.14 240);
+  --color-success: oklch(0.43 0.15 145);
+  --color-warn: oklch(0.46 0.16 60);
+  --color-danger: oklch(0.45 0.20 25);
+  --font-display: "EB Garamond", Georgia, serif;
+  --font-body: "Inter", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius-card: 0.75rem;
+  --shadow-card: 0 1px 3px oklch(0.18 0.02 250 / 0.1);
 }
-@media (prefers-color-scheme:dark){
-  :root{
-    --color-text:#e2e8f0;
-    --color-bg:#161616;
-    --color-accent:#63b3ed;
-    --severity-info:#4299e1;
-    --severity-warn:#ed8936;
-    --severity-critical:#fc8181;
-  }
-}
-
-body{margin:0;font-family:var(--typeface-serif);background:var(--color-bg);color:var(--color-text);line-height:1.55;}
-.shell{display:grid;grid-template-columns:260px 1fr;gap:48px;max-width:1180px;margin:0 auto;padding:32px 28px;}
-@media (max-width:900px){.shell{grid-template-columns:1fr;}}
-.azri-toc{position:sticky;top:24px;align-self:start;font-size:14px;line-height:1.5;border-right:1px solid color-mix(in srgb, var(--color-text) 20%, transparent);padding-right:20px;}
-.azri-toc .toc-title{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;opacity:.7;margin:0 0 12px;}
-.azri-toc ol{list-style:none;margin:0;padding:0;}
-.azri-toc li{margin:6px 0;}
-.azri-toc a{color:inherit;text-decoration:none;}
-.azri-toc a:hover{color:var(--color-accent);}
-.azri-toc .toc-num{font-family:var(--typeface-mono);font-size:12px;opacity:.6;margin-right:6px;}
-.azri-header{margin-bottom:48px;padding-bottom:32px;border-bottom:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
-.azri-header h1{font-size:42px;line-height:1.1;margin:0 0 12px;}
-.azri-header .header-summary{font-size:20px;opacity:.8;}
-.azri-header .header-link{display:inline-block;margin-top:12px;color:var(--color-accent);}
-.azri-header .header-meta{font-family:var(--typeface-mono);font-size:12px;opacity:.6;margin-top:12px;}
-.azri-section{margin-bottom:48px;}
-.azri-section h2{font-size:28px;margin:32px 0 16px;}
-.azri-section[data-importance="critical"] h2::before{content:"●";color:var(--severity-critical);margin-right:8px;font-size:14px;vertical-align:middle;}
-.azri-section[data-importance="important"] h2::before{content:"●";color:var(--severity-warn);margin-right:8px;font-size:14px;vertical-align:middle;}
-.azri-section .section-body p{margin:0 0 14px;}
-.azri-callout{border-left:3px solid;padding:14px 18px;margin:18px 0;background:color-mix(in srgb, var(--color-text) 5%, transparent);border-radius:0 4px 4px 0;}
-.azri-callout-info{border-color:var(--severity-info);}
-.azri-callout-warn{border-color:var(--severity-warn);}
-.azri-callout-critical{border-color:var(--severity-critical);}
-.azri-callout .callout-label{font-family:var(--typeface-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;margin-bottom:6px;opacity:.85;}
-.azri-code{font-family:var(--typeface-mono);font-size:13px;background:var(--color-bg-code-background);color:var(--color-bg-code-text);padding:16px;border-radius:4px;overflow-x:auto;}
-.azri-code code{background:none;color:inherit;font:inherit;}
-.azri-annotated-diff{margin:18px 0;}
-.azri-diff-file{margin:12px 0;border:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);border-radius:4px;overflow:hidden;}
-.azri-diff-file .diff-filename{font-family:var(--typeface-mono);font-size:12px;padding:6px 12px;background:color-mix(in srgb, var(--color-text) 6%, transparent);}
-.diff-annotation{font-family:var(--typeface-mono);font-size:12px;padding:6px 12px;border-top:1px solid color-mix(in srgb, var(--color-text) 10%, transparent);}
-.diff-annotation-info{background:color-mix(in srgb, var(--severity-info) 8%, transparent);}
-.diff-annotation-warn{background:color-mix(in srgb, var(--severity-warn) 10%, transparent);}
-.diff-annotation-critical{background:color-mix(in srgb, var(--severity-critical) 12%, transparent);}
-.diff-body{font-family:var(--typeface-mono);font-size:12px;line-height:1.5;}
-.diff-line{padding:0 12px;white-space:pre;}
-.diff-line-add{background:color-mix(in srgb, var(--severity-info) 6%, transparent);}
-.diff-line-del{background:color-mix(in srgb, var(--severity-critical) 6%, transparent);}
-.diff-line-meta{opacity:.6;}
-.azri-mermaid{margin:24px 0;padding:16px;background:color-mix(in srgb, var(--color-text) 4%, transparent);border-radius:6px;text-align:center;}
-.azri-mermaid svg{max-width:100%;height:auto;display:inline-block;}
-.azri-mermaid figcaption{font-style:italic;opacity:.7;font-size:13px;margin-top:8px;}
-.azri-citations{margin-top:48px;padding-top:24px;border-top:1px solid color-mix(in srgb, var(--color-text) 15%, transparent);}
-.azri-citations h3{font-family:var(--typeface-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;}
-.azri-citations ol{font-family:var(--typeface-mono);font-size:13px;}
-.azri-citations a{color:var(--color-accent);}
-</style>
-</head>
-<body>
-<div class="shell">
-<nav class="azri-toc" aria-label="Contents"><p class="toc-title">Contents</p><ol><li><a href="#overview"><span class="toc-num">1.</span> Overview</a></li><li><a href="#tour"><span class="toc-num">2.</span> Where the work lives</a></li><li><a href="#core-types"><span class="toc-num">3.</span> The Command object</a></li><li><a href="#risks"><span class="toc-num">4.</span> Sharp edges to know about</a></li><li><a href="#next"><span class="toc-num">5.</span> Where to read next</a></li></ol></nav>
-<main>
-<header class="azri-header"><h1>commander.js — a small, opinionated CLI parser</h1><p class="header-summary">An overview of tj/commander.js v12.1.0: 3,200 lines of TypeScript across 14 files. Used by ~2.4 million packages on npm to parse command-line arguments. Most issues land in three places — this page shows where they live and which parts of the code carry the load.</p><div class="header-meta">Run example-repo-overview · 2026-05-22T10:24:00Z</div></header>
-<section id="overview" class="azri-section" data-importance="critical"><h2>Overview</h2><div class="section-body"><p>Commander is the workhorse argument parser behind Vercel CLI, Vue CLI, Storybook, and several thousand smaller tools. It does one thing: turn <code>process.argv</code> into typed options, positional arguments, and a tree of subcommands. It has done that since 2012.</p>
-<p>The repo is small. Three files do most of the work — <code>lib/command.js</code>, <code>lib/option.js</code>, and <code>lib/argument.js</code>. The rest are helpers, error types, and the package entry point. There are no runtime dependencies. The published bundle weighs in at 27 KB unminified.</p>
-<p>The public surface fits on one page: <code>new Command()</code>, <code>.option()</code>, <code>.argument()</code>, <code>.action()</code>, <code>.parse()</code>. Variadic options, custom parsers, conflicting flags, and subcommand inheritance are all expressed as fluent calls on the same <code>Command</code> object. That choice — one class doing many things — is the design decision the rest of the code orbits around.</p>
-</div></section>
-<section id="tour" class="azri-section" data-importance="critical"><h2>Where the work lives</h2><div class="section-body"><p>Three files hold the meaningful logic.</p>
-<p><code>lib/command.js</code> (1,840 lines) defines the <code>Command</code> class. It owns the option list, the positional argument list, the subcommand tree, and the parse loop. Every fluent call returns <code>this</code>, so chains read like a small DSL. The parse loop at <code>lib/command.js:1124-1248</code> is the hot path; it walks <code>process.argv</code> once and matches tokens against the option list, the argument list, and the subcommand map in that order.</p>
-<p><code>lib/option.js</code> (420 lines) defines <code>Option</code>. An <code>Option</code> holds a flag string (parsed into short and long forms), a description, a default value, and an optional custom-parse function. It does no I/O — building an Option never touches <code>process.argv</code>. That separation is what makes the test suite fast.</p>
-<p><code>lib/argument.js</code> (180 lines) is the positional counterpart. It is similar to Option but lacks the flag-parsing logic. Variadic arguments live here, gated by an <code>isVariadic</code> boolean set when the flag string ends in <code>...</code>.</p>
-<p><code>lib/help.js</code> (520 lines) renders the auto-generated help text. It is the only file that uses <code>process.stdout</code> directly.</p>
-
-<figure class="azri-mermaid" aria-label="Section diagram"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 320" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Commander.js core type relationships">
-  <defs>
-    <marker id="ovw-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor" fill-opacity="0.7"/>
-    </marker>
-    <marker id="ovw-arrow-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9b2c2c" fill-opacity="0.85"/>
-    </marker>
-  </defs>
-  <style>
-    .ovw-node { fill: none; stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.3; }
-    .ovw-node-accent { stroke: #2b6cb0; stroke-opacity: 0.9; stroke-width: 1.6; }
-    .ovw-node-err { stroke: #9b2c2c; stroke-opacity: 0.7; stroke-width: 1.2; }
-    .ovw-edge { stroke: currentColor; stroke-opacity: 0.55; stroke-width: 1.2; fill: none; }
-    .ovw-edge-err { stroke: #9b2c2c; stroke-opacity: 0.7; stroke-width: 1.1; stroke-dasharray: 5 3; fill: none; }
-    .ovw-edge-self { stroke: currentColor; stroke-opacity: 0.45; stroke-width: 1.1; fill: none; }
-    .ovw-label { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 14px; fill: currentColor; font-weight: 600; }
-    .ovw-label-err { fill: #9b2c2c; }
-    .ovw-edge-label { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 11px; fill: currentColor; fill-opacity: 0.7; }
-    .ovw-edge-label-err { fill: #9b2c2c; fill-opacity: 0.85; }
   </style>
-  <rect class="ovw-node ovw-node-accent" x="280" y="135" width="160" height="50" rx="6"/>
-  <text class="ovw-label" x="360" y="166" text-anchor="middle">Command</text>
-  <rect class="ovw-node" x="60" y="135" width="120" height="50" rx="6"/>
-  <text class="ovw-label" x="120" y="166" text-anchor="middle">Option</text>
-  <rect class="ovw-node" x="60" y="225" width="120" height="50" rx="6"/>
-  <text class="ovw-label" x="120" y="256" text-anchor="middle">Argument</text>
-  <rect class="ovw-node" x="540" y="135" width="120" height="50" rx="6"/>
-  <text class="ovw-label" x="600" y="166" text-anchor="middle">Help</text>
-  <rect class="ovw-node ovw-node-err" x="280" y="245" width="160" height="50" rx="6"/>
-  <text class="ovw-label ovw-label-err" x="360" y="276" text-anchor="middle">CommanderError</text>
-  <line class="ovw-edge" x1="280" y1="153" x2="185" y2="153" marker-end="url(#ovw-arrow)"/>
-  <text class="ovw-edge-label" x="232" y="146" text-anchor="middle">has many</text>
-  <path class="ovw-edge" d="M 280 175 L 240 175 L 240 240 L 185 240" marker-end="url(#ovw-arrow)"/>
-  <text class="ovw-edge-label" x="232" y="218" text-anchor="middle">has many</text>
-  <line class="ovw-edge" x1="445" y1="160" x2="535" y2="160" marker-end="url(#ovw-arrow)"/>
-  <text class="ovw-edge-label" x="490" y="153" text-anchor="middle">renders via</text>
-  <path class="ovw-edge-err" d="M 120 190 L 120 215 L 280 260" marker-end="url(#ovw-arrow-err)"/>
-  <text class="ovw-edge-label ovw-edge-label-err" x="195" y="234">throws</text>
-  <path class="ovw-edge-err" d="M 180 252 L 270 260" marker-end="url(#ovw-arrow-err)"/>
-  <text class="ovw-edge-label ovw-edge-label-err" x="220" y="248">throws</text>
-  <path class="ovw-edge-self" d="M 425 135 C 470 95 470 60 360 60 C 250 60 250 95 295 135" marker-end="url(#ovw-arrow)"/>
-  <text class="ovw-edge-label" x="360" y="55" text-anchor="middle">registers child</text>
-</svg>
-<figcaption>Diagram: mermaid-flow</figcaption></figure></div></section>
-<section id="core-types" class="azri-section" data-importance="important"><h2>The Command object</h2><div class="section-body"><p>Every public API call routes through <code>Command</code>. The class has 67 methods, but only twelve are used in 95% of programs (per a quick survey of the top-100 downstream packages).</p>
-<p>The core surface:</p>
-<ul>
-<li><strong>Constructor</strong>: <code>new Command(name?)</code> — the root command is unnamed; subcommands take their name as the first argument.</li>
-<li><strong><code>.option(flags, description, defaultValue?)</code></strong> — registers an <code>Option</code>. Flag strings follow the convention <code>-s, --long &lt;value&gt;</code>. Adding <code>...</code> after the placeholder marks the option variadic.</li>
-<li><strong><code>.argument(name, description, defaultValue?)</code></strong> — registers a positional. Same <code>...</code> suffix for variadic.</li>
-<li><strong><code>.command(name, description, opts?)</code></strong> — registers a subcommand. Returns the <em>child</em> <code>Command</code>, not <code>this</code>, breaking the chain pattern on purpose.</li>
-<li><strong><code>.action(fn)</code></strong> — registers the function called when this command matches. Receives the parsed values as arguments.</li>
-<li><strong><code>.parse(argv?)</code></strong> — runs the parse loop. Default argv is <code>process.argv</code>.</li>
-<li><strong><code>.parseAsync(argv?)</code></strong> — same, but awaits async actions before resolving.</li>
-</ul>
-<p>A small set of error types lives next to <code>Command</code>: <code>CommanderError</code>, <code>InvalidArgumentError</code>, <code>MissingArgumentError</code>. They all extend a shared base with a <code>code</code> field, which is what programs branch on for non-zero exit codes.</p>
-</div></section>
-<section id="risks" class="azri-section" data-importance="important"><h2>Sharp edges to know about</h2><div class="section-body"><p>Three years of issues distill to four recurring patterns. None are bugs. All are documented in the README, but each catches someone new every month.</p>
+</head>
+<body class="min-h-screen bg-bg font-body text-foreground antialiased">
+  <div class="mx-auto grid w-full max-w-7xl gap-8 px-5 py-8 lg:grid-cols-[16rem_minmax(0,1fr)] lg:px-8">
+    <aside class="lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)] lg:overflow-auto">
+      <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/70">
+        <p class="mb-3 flex items-center gap-2 font-display text-lg font-semibold text-foreground"><i data-lucide="list-tree" class="h-5 w-5 text-primary"></i>Contents</p>
+        <nav aria-label="Table of contents"><ol class="space-y-1"><li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#tldr">TL;DR</a></li>
+<li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#project-overview">Project overview</a></li>
+<li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#stack-grid">Stack grid</a></li>
+<li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#key-files">Key files</a></li>
+<li><a class="block rounded-md px-3 py-2 text-sm text-muted-foreground transition hover:bg-muted/40 hover:text-primary" href="#directory-tree">Directory tree</a></li></ol></nav>
+      </div>
+    </aside>
+    <main class="min-w-0">
+      <header class="mb-8 rounded-card bg-surface p-8 shadow-card ring-1 ring-muted/70">
+        <p class="mb-2 text-sm font-semibold uppercase tracking-[0.24em] text-primary">Azri Studio</p>
+        <h1 class="font-display text-4xl font-bold tracking-tight text-foreground md:text-6xl">tj/commander.js</h1>
+        <div class="mt-3 flex flex-wrap gap-3 text-sm text-muted-foreground">
+    <span>Generated 2026-05-22T10:24:00Z</span>
+    <span>Run example-repo-overview</span>
+    <a class="text-primary underline" href="https://github.com/tj/commander.js">Repo</a>
+  </div>
+      </header>
+      <section id="tldr" class="scroll-mt-8 my-4">
+  <section id="tldr" class="mb-12">
+  <div class="rounded-card bg-surface p-8 shadow-card ring-1 ring-muted/40">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-primary">TL;DR</p>
+    <h2 class="font-display text-4xl font-bold tracking-tight text-foreground md:text-5xl mb-4">Azri turns any GitHub repo or PR into a self-contained explanation page in under a minute.</h2>
+    <p class="text-lg text-muted-foreground leading-relaxed">It runs a six-stage LLM pipeline that triages the input, plans the document outline, fills each section in parallel, and renders a single CDN-only HTML file ready to share with reviewers, teammates, and stakeholders.</p>
+  </div>
+  <div class="mt-6 grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40">
+        <div class="font-display text-3xl font-bold text-primary">37</div>
+        <div class="mt-1 text-sm font-medium text-foreground">Sections</div>
+        <div class="mt-1 text-xs text-muted-foreground">Composable section types</div>
+      </div>
+      <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40">
+        <div class="font-display text-3xl font-bold text-primary">5</div>
+        <div class="mt-1 text-sm font-medium text-foreground">Themes</div>
+        <div class="mt-1 text-xs text-muted-foreground">Calibrated for WCAG AA</div>
+      </div>
+      <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40">
+        <div class="font-display text-3xl font-bold text-primary">6</div>
+        <div class="mt-1 text-sm font-medium text-foreground">Pipeline stages</div>
+        <div class="mt-1 text-xs text-muted-foreground">Triage to validate</div>
+      </div>
+      <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40">
+        <div class="font-display text-3xl font-bold text-primary">4</div>
+        <div class="mt-1 text-sm font-medium text-foreground">CDN deps</div>
+        <div class="mt-1 text-xs text-muted-foreground">Tailwind, Mermaid, Lucide, Simple Icons</div>
+      </div>
+  </div>
+</section>
+</section>
+<section id="project-overview" class="scroll-mt-8 my-4">
+  <section id="project-overview" class="mb-12">
+  <div class="rounded-card bg-surface p-8 shadow-card ring-1 ring-muted/40 md:p-12">
+    <p class="mb-3 text-sm font-semibold uppercase tracking-[0.24em] text-primary">Project overview</p>
+    <h2 class="font-display text-4xl font-bold tracking-tight text-foreground md:text-5xl">Azri turns Git repositories into shareable explanation pages.</h2>
+    <p class="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground">It runs locally as a CLI or as a self-hosted GitHub bot, processes any public repo or pull request through a six-stage LLM pipeline, and produces a single self-contained HTML file that explains both the what and the why.</p>
+    <div class="mt-8">
+      <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-foreground/70">Who it's for</p>
+      <ul class="flex flex-wrap gap-3">
+      <li class="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 ring-1 ring-primary/20">
+        <i data-lucide="user" class="h-4 w-4 text-primary shrink-0" aria-hidden="true"></i>
+        <span class="font-medium text-foreground">Reviewer</span>
+        <span class="text-muted-foreground">·</span>
+        <span class="text-sm text-muted-foreground">Wants the why behind a PR before scrolling through 800 lines of diff.</span>
+      </li>
+      <li class="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 ring-1 ring-primary/20">
+        <i data-lucide="user" class="h-4 w-4 text-primary shrink-0" aria-hidden="true"></i>
+        <span class="font-medium text-foreground">New hire</span>
+        <span class="text-muted-foreground">·</span>
+        <span class="text-sm text-muted-foreground">Wants a one-page architecture tour without reading every README.</span>
+      </li>
+      <li class="flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 ring-1 ring-primary/20">
+        <i data-lucide="user" class="h-4 w-4 text-primary shrink-0" aria-hidden="true"></i>
+        <span class="font-medium text-foreground">Tech lead</span>
+        <span class="text-muted-foreground">·</span>
+        <span class="text-sm text-muted-foreground">Wants a defensible record of decisions made during a release.</span>
+      </li>
+      </ul>
+    </div>
+  </div>
+</section>
+</section>
+<section id="stack-grid" class="scroll-mt-8 my-4">
+  <section id="stack-grid" class="my-12">
+  <h2 class="font-display text-3xl font-bold text-foreground mb-6">Built with</h2>
+  <div class="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/bun/3b82f6" width="32" height="32" alt="Bun" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">Bun</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Runtime + package manager</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">Build</span>
+    </div>
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/typescript/3b82f6" width="32" height="32" alt="TypeScript" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">TypeScript</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Type-safe source</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">Framework</span>
+    </div>
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/effect/3b82f6" width="32" height="32" alt="Effect" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">Effect</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Structured concurrency</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">Framework</span>
+    </div>
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/zod/3b82f6" width="32" height="32" alt="Zod" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">Zod</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Runtime schema validation</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">Framework</span>
+    </div>
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/tailwindcss/3b82f6" width="32" height="32" alt="Tailwind CSS" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">Tailwind CSS</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Utility-first styling</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">UI</span>
+    </div>
+    <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 hover:shadow-lg transition">
+      <div class="flex items-center gap-3 mb-3">
+        <img src="https://cdn.simpleicons.org/anthropic/3b82f6" width="32" height="32" alt="Anthropic" class="rounded" loading="lazy">
+        <div class="font-display text-xl font-semibold text-foreground">Anthropic</div>
+      </div>
+      <p class="text-sm text-muted-foreground mb-3">Primary LLM provider</p>
+      <span class="inline-block text-xs px-2.5 py-1 rounded-full bg-primary/10 text-primary font-medium">Other</span>
+    </div>
+  </div>
+</section>
+</section>
+<section id="key-files" class="scroll-mt-8 my-4">
+  <section id="key-files" class="my-12">
+  <h2 class="mb-6 font-display text-3xl font-bold text-foreground">Start reading here</h2>
+  <ol class="space-y-4 list-none">
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">1</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3 mb-2">
+          <code class="font-mono text-sm text-foreground break-all">apps/cli/src/index.ts</code>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-primary/10 text-primary">Entry</span>
+        </div>
+        <p class="text-sm text-muted-foreground leading-relaxed">The CLI entry — every command flows through this dispatcher.</p>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">2</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3 mb-2">
+          <code class="font-mono text-sm text-foreground break-all">packages/core/src/pipeline/v3/orchestrator.ts</code>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-danger/10 text-danger">Critical</span>
+        </div>
+        <p class="text-sm text-muted-foreground leading-relaxed">Owns the v0.3 pipeline; reads top-to-bottom like a runbook.</p>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">3</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3 mb-2">
+          <code class="font-mono text-sm text-foreground break-all">packages/core/src/sections/registry.ts</code>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-danger/10 text-danger">Critical</span>
+        </div>
+        <p class="text-sm text-muted-foreground leading-relaxed">Every section type registers itself here at import time.</p>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">4</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3 mb-2">
+          <code class="font-mono text-sm text-foreground break-all">packages/renderer/src/v3/template.ts</code>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-muted/30 text-muted-foreground">Reference</span>
+        </div>
+        <p class="text-sm text-muted-foreground leading-relaxed">Defines the HTML shell, CSP, and CDN script tags.</p>
+      </div>
+    </li>
+    <li class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 flex gap-4 items-start">
+      <div class="shrink-0 w-10 h-10 rounded-full bg-primary/10 text-primary font-display font-bold text-lg flex items-center justify-center" aria-hidden="true">5</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-baseline gap-3 mb-2">
+          <code class="font-mono text-sm text-foreground break-all">AGENTS.md</code>
+          <span class="text-xs px-2 py-0.5 rounded-full font-semibold bg-muted/30 text-muted-foreground">Reference</span>
+        </div>
+        <p class="text-sm text-muted-foreground leading-relaxed">Coding rules, stack constraints, and quality gates for contributors.</p>
+      </div>
+    </li>
+  </ol>
+</section>
+</section>
+<section id="directory-tree" class="scroll-mt-8 my-4">
+  <section id="directory-tree" class="my-12">
+  <h2 class="mb-4 font-display text-3xl font-bold text-foreground">Repository layout</h2>
+  <div class="rounded-card bg-surface p-5 shadow-card ring-1 ring-muted/40 overflow-x-auto">
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20">
+    <div class="font-mono text-sm font-bold text-foreground flex items-center gap-2 min-w-0">
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">azri/</span>
+    </div>
+    <div class="text-sm text-muted-foreground italic">repository root</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70"></span>
+      <i data-lucide="file-text" class="w-4 h-4 text-muted-foreground shrink-0"></i>
+      <span class="truncate">AGENTS.md</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Operating rules for AI assistants editing this repo.</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70"></span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">examples/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Pre-rendered HTML for the README.</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70">├─ </span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">adapters/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Provider adapters (Anthropic, OpenAI, Google).</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70">├─ </span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">bot/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Self-hosted GitHub App webhook receiver.</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70">├─ </span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">cli/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">User-facing CLI entry point — Bun executable.</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70">├─ </span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">core/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Pipeline stages, section registry, orchestrator.</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70">├─ </span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">renderer/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">HTML shell, themes, section render helpers.</div>
+  </div>
+    <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-6 py-1 border-b border-muted/20 last:border-b-0">
+    <div class="font-mono text-sm text-foreground whitespace-pre flex items-center gap-2 min-w-0">
+      <span class="text-muted-foreground/70">└─ </span>
+      <i data-lucide="folder" class="w-4 h-4 text-primary shrink-0"></i>
+      <span class="truncate">types/</span>
+    </div>
+    <div class="text-sm text-muted-foreground leading-relaxed">Shared TypeScript types across packages.</div>
+  </div>
+  </div>
+</section>
+</section>
+    </main>
+  </div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (globalThis.lucide) {
+        globalThis.lucide.createIcons();
+      }
 
-<aside class="azri-callout azri-callout-info"><div class="callout-label">api-contract</div><div class="callout-body"><p>Boolean options without a value (&#96;-v&#96;) and option-value pairs (&#96;-p 8080&#96;) parse differently when the flag is grouped with others (&#96;-vp&#96;). The README documents this at the top of the &#39;Options&#39; section, but it surprises users coming from yargs.</p></div></aside>
-<aside class="azri-callout azri-callout-warn"><div class="callout-label">api-contract</div><div class="callout-body"><p>Subcommand registration via &#96;.command(name, description)&#96; returns the *child* command, not the parent. Chaining &#96;.option()&#96; after &#96;.command()&#96; will register the option on the child, which is rarely what the caller meant. The README calls this out explicitly; issues #1408 and #1670 are the canonical reports.</p></div></aside>
-<aside class="azri-callout azri-callout-info"><div class="callout-label">dependency-change</div><div class="callout-body"><p>Commander has no runtime dependencies and intends to stay that way. Pull requests adding dependencies are routinely closed with a pointer to the contributing guide. The internal &#96;pkg.dependencies&#96; field is empty.</p></div></aside>
-<aside class="azri-callout azri-callout-info"><div class="callout-label">performance</div><div class="callout-body"><p>The parse loop is O(n × m) where n is the argv length and m is the number of registered options. For a typical CLI (≤20 options, ≤10 args) this is a non-issue. For programs that register hundreds of options at runtime, the README recommends precomputing the option map and bypassing &#96;.parse()&#96; in favor of &#96;.parseOptions()&#96;.</p></div></aside></div></section>
-<section id="next" class="azri-section" data-importance="supporting"><h2>Where to read next</h2><div class="section-body"><p>Three entry points cover most questions:</p>
-<ol>
-<li><strong><code>README.md</code></strong> is unusually thorough. The table of contents at the top lists 47 worked examples covering option types, variadic flags, conflicting options, action handlers, and lifecycle hooks. If your problem looks common, the README probably solves it.</li>
-<li><strong><code>examples/</code></strong> has 33 runnable scripts, one per feature. Each one is a complete program — copy-paste, run, modify. The patterns under <code>examples/options-*.js</code> are the most-linked answers in old issues.</li>
-<li><strong><code>CHANGELOG.md</code></strong> is curated by hand. Breaking changes are flagged with <strong>(breaking)</strong> at the start of the line. When a new major lands, the diff against the previous major in the CHANGELOG is the fastest path to understanding the migration.</li>
-</ol>
-</div></section>
-<aside class="azri-citations"><h3>Citations</h3><ol><li class="citation citation-code"><a href="https://github.com/tj/commander.js/blob/v12.1.0/lib/option.js#L88-L120" rel="noopener">lib/option.js:88-120</a></li><li class="citation citation-test"><a href="https://github.com/tj/commander.js/blob/v12.1.0/tests/options.parse.test.js#L240-L288" rel="noopener">tests/options.parse.test.js:240-288</a></li><li class="citation citation-code"><a href="https://github.com/tj/commander.js/blob/v12.1.0/lib/command.js#L412-L458" rel="noopener">lib/command.js:412-458</a></li><li class="citation citation-config"><a href="https://github.com/tj/commander.js/blob/v12.1.0/package.json#L30-L38" rel="noopener">package.json:30-38</a></li><li class="citation citation-code"><a href="https://github.com/tj/commander.js/blob/v12.1.0/lib/command.js#L1124-L1248" rel="noopener">lib/command.js:1124-1248</a></li></ol></aside>
-</main>
-</div>
+      if (globalThis.mermaid) {
+        globalThis.mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+      }
+    });
+  </script>
 </body>
 </html>
