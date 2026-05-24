@@ -76,20 +76,15 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   ]);
 }
 
-function prettyZodError(error: z.ZodError): string {
-  return error.issues
-    .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
-    .join('; ');
-}
-
 async function callSectionLlm(
   prompt: string,
+  schema: z.ZodTypeAny,
   deps: PipelineDeps,
 ): Promise<{ object: unknown; tokensIn: number; tokensOut: number }> {
   const result = await withTimeout(
     generateObject({
       model: deps.reasoningModel,
-      schema: z.unknown(),
+      schema,
       system: 'Return ONLY valid JSON. No prose.',
       prompt,
       providerOptions: {
@@ -108,52 +103,39 @@ async function produceOne(
 ): Promise<SectionAttempt> {
   let tokensIn = 0;
   let tokensOut = 0;
+  const section = getSection(planned.id);
+  const themeTokens = resolveV3Theme(input.config.theme);
+  const prompt = section.prompt(input, themeTokens);
+
   try {
-    const section = getSection(planned.id);
-    const themeTokens = resolveV3Theme(input.config.theme);
-    const prompt = section.prompt(input, themeTokens);
-    const first = await callSectionLlm(prompt, deps);
+    const first = await callSectionLlm(prompt, section.schema, deps);
     tokensIn += first.tokensIn;
     tokensOut += first.tokensOut;
-    const parsed = section.schema.safeParse(first.object);
-    if (parsed.success) {
+    return {
+      section: { id: planned.id, rationale: planned.rationale, data: first.object },
+      tokensIn,
+      tokensOut,
+    };
+  } catch (firstError) {
+    const firstMessage = firstError instanceof Error ? firstError.message : String(firstError);
+    const retryPrompt = `${prompt}\n\nYour previous output was invalid: ${firstMessage}. Re-emit ONLY valid JSON matching the schema.`;
+
+    try {
+      const second = await callSectionLlm(retryPrompt, section.schema, deps);
+      tokensIn += second.tokensIn;
+      tokensOut += second.tokensOut;
       return {
-        section: { id: planned.id, rationale: planned.rationale, data: parsed.data },
+        section: { id: planned.id, rationale: planned.rationale, data: second.object },
         tokensIn,
         tokensOut,
       };
+    } catch (secondError) {
+      const message = secondError instanceof Error ? secondError.message : String(secondError);
+      deps.logger?.warn('stage3-produce.section.failed', { sectionId: planned.id, error: message });
+      if (!deps.logger)
+        metricsWarn('stage3-produce.section.failed', { sectionId: planned.id, error: message });
+      return { section: null, failure: { id: planned.id, error: message }, tokensIn, tokensOut };
     }
-
-    const retryPrompt = `${prompt}\n\nYour previous output failed validation: ${prettyZodError(parsed.error)}. Re-emit ONLY valid JSON matching the schema.`;
-    const second = await callSectionLlm(retryPrompt, deps);
-    tokensIn += second.tokensIn;
-    tokensOut += second.tokensOut;
-    const retried = section.schema.safeParse(second.object);
-    if (retried.success) {
-      return {
-        section: { id: planned.id, rationale: planned.rationale, data: retried.data },
-        tokensIn,
-        tokensOut,
-      };
-    }
-
-    const message = prettyZodError(retried.error);
-    deps.logger?.warn('stage3-produce.section.validation-failed', {
-      sectionId: planned.id,
-      error: message,
-    });
-    if (!deps.logger)
-      metricsWarn('stage3-produce.section.validation-failed', {
-        sectionId: planned.id,
-        error: message,
-      });
-    return { section: null, failure: { id: planned.id, error: message }, tokensIn, tokensOut };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    deps.logger?.warn('stage3-produce.section.failed', { sectionId: planned.id, error: message });
-    if (!deps.logger)
-      metricsWarn('stage3-produce.section.failed', { sectionId: planned.id, error: message });
-    return { section: null, failure: { id: planned.id, error: message }, tokensIn, tokensOut };
   }
 }
 
