@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 export const TldrStatSchema = z.object({
   label: z.string().min(1).max(40),
-  value: z.string().min(1).max(40),
+  value: z.string().min(1).max(20),
   hint: z.string().min(1).max(80).optional(),
 });
 

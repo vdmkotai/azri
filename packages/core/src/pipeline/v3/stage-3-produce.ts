@@ -12,7 +12,7 @@ import { getSection } from '../../sections/registry.ts';
 import type { PlannedSection, ProducedSection, SectionInput } from '../../sections/types.ts';
 import type { Stage0Logger } from '../types.ts';
 
-const CONCURRENCY = 6;
+const CONCURRENCY = 3;
 const TIMEOUT_MS = 45_000;
 
 export interface PipelineDeps {
